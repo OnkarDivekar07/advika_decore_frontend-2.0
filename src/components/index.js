@@ -1,0 +1,19 @@
+// Auto-export barrel – add new components here
+export { default as Navbar }               from './Navbar/Navbar';
+export { default as HeroBanner }           from './HeroBanner/HeroBanner';
+export { default as BannerSlide }          from './HeroBanner/BannerSlide';
+export { default as BannerPagination }     from './HeroBanner/BannerPagination';
+export { default as ProductCard }          from './Product/ProductCard';
+export { default as NewArrivals }          from './Product/NewArrivals';
+export { default as Categories }           from './Product/Categories';
+export { default as ImageGallery }         from './Product/ImageGallery';
+export { default as ProductDetails }       from './Product/ProductDetails';
+export { default as RelatedProducts }      from './Product/RelatedProducts';
+export { default as Breadcrumb }           from './Product/Breadcrumb';
+export { default as QuantitySelector }     from './Product/QuantitySelector';
+export { default as CartItem }             from './Cart/CartItem';
+export { default as CartSummary }          from './Cart/CartSummary';
+export { default as ActionButtons }        from './Shared/ActionButtons';
+export { default as Spinner }              from './Shared/Spinner';
+export { default as ErrorBoundary }        from './Shared/ErrorBoundary';
+export { default as LanguageSelectorModal} from './Shared/LanguageSelectorModal';

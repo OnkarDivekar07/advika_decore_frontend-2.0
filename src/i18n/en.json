@@ -1,0 +1,37 @@
+{
+  "homepage": {
+    "newArrivals": "New Arrivals",
+    "vehicleCategories": "Vehicle Categories",
+    "shopByVehicle": "Shop by Vehicle"
+  },
+  "categories": {
+    "truck": "Truck",
+    "tempo": "Tempo",
+    "pickup": "Pickup",
+    "car": "Car",
+    "twowheeler": "Two-Wheeler",
+    "tractor": "Tractor"
+  },
+  "banner": {
+    "title": "Upgrade Your Ride",
+    "description": "Explore the best accessories for your vehicle."
+  },
+  "common": {
+    "shopNow": "Shop Now"
+  },
+  
+  "buttons": {
+    "buyNow": "Buy It Now",
+    "addToCart": "Add to Cart"
+  },
+  "cart":{
+  "title": "Your Cart",
+  "empty": "Your cart is empty.",
+  "itemsSection": "Shopping cart items",
+  "proceed": "Proceed to Checkout"
+}
+
+}
+
+
+

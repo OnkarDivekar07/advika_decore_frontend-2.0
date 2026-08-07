@@ -1,0 +1,38 @@
+{
+  "homepage": {
+    "newArrivals": "नई आगमन",
+    "vehicleCategories": "वाहन श्रेणियाँ",
+    "shopByVehicle": "वाहन अनुसार खरीदें"
+  },
+  "categories": {
+    "truck": "ट्रक",
+    "tempo": "टेम्पो",
+    "pickup": "पिकअप वाहन",
+    "car": "कार",
+    "twowheeler": "दोपहिया वाहन",
+    "tractor": "ट्रैक्टर"
+  },
+  
+  "banner": {
+    "title": "अपनी सवारी को अपग्रेड करें",
+    "description": "अपने वाहन के लिए बेहतरीन एक्सेसरीज़ देखें।"
+  },
+  "common": {
+    "shopNow": "अभी खरीदें"
+  },
+  
+  "buttons": {
+    "buyNow": "अभी खरीदें",
+    "addToCart": "कार्ट में डालें"
+  },
+  
+"cart":{
+  "title": "आपकी गाड़ी",
+  "empty": "आपकी गाड़ी खाली है।",
+  "itemsSection": "खरीदारी की वस्तुएँ",
+  "proceed": "चेकआउट पर जाएँ"
+}
+
+
+  
+}
