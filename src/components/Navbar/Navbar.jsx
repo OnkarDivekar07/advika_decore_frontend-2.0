@@ -1,23 +1,30 @@
 // src/components/Navbar/Navbar.jsx
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useContext, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FiHome, FiHeart, FiShoppingCart, FiUser, FiSearch, FiX, FiMenu } from 'react-icons/fi';
+import { FiHome, FiHeart, FiShoppingCart, FiUser, FiSearch, FiX, FiMenu, FiLogOut } from 'react-icons/fi';
 import { FaTruck } from 'react-icons/fa';
-
-const NAV_LINKS = [
-  { to: '/',         icon: <FiHome />,         label: 'Home' },
-  { to: '/wishlist', icon: <FiHeart />,         label: 'Wishlist' },
-  { to: '/cart',     icon: <FiShoppingCart />,  label: 'Cart' },
-  { to: '/profile',  icon: <FiUser />,          label: 'Profile' },
-];
+import { AuthContext } from '@/contexts/AuthContext';
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
+  const { isAuthenticated, logout } = useContext(AuthContext);
 
   const toggleMenu = useCallback(() => setMenuOpen(prev => !prev), []);
   const closeMenu  = useCallback(() => setMenuOpen(false), []);
+
+  // Profile icon doubles as the login entry point when signed out — the
+  // "Profile" page itself is behind auth, so send anonymous users to
+  // verification instead of a page that will immediately bounce them.
+  const navLinks = useMemo(() => ([
+    { to: '/',         icon: <FiHome />,        label: 'Home' },
+    { to: '/wishlist', icon: <FiHeart />,        label: 'Wishlist' },
+    { to: '/cart',     icon: <FiShoppingCart />, label: 'Cart' },
+    isAuthenticated
+      ? { to: '/profile',          icon: <FiUser />, label: 'Profile' }
+      : { to: '/otp-verification', icon: <FiUser />, label: 'Login' },
+  ]), [isAuthenticated]);
 
   const handleSearch = useCallback((e) => {
     e.preventDefault();
@@ -27,6 +34,12 @@ export default function Navbar() {
       setSearchQuery('');
     }
   }, [searchQuery, navigate]);
+
+  const handleLogout = useCallback(() => {
+    logout();
+    closeMenu();
+    navigate('/');
+  }, [logout, closeMenu, navigate]);
 
   return (
     <header className="sticky top-0 z-50 w-full bg-white border-b border-[var(--clr-border)] shadow-sm">
@@ -45,7 +58,7 @@ export default function Navbar() {
 
         {/* Desktop nav links */}
         <nav className="hidden md:flex items-center gap-1" aria-label="Main navigation">
-          {NAV_LINKS.map(({ to, icon, label }) => (
+          {navLinks.map(({ to, icon, label }) => (
             <Link
               key={to}
               to={to}
@@ -55,6 +68,15 @@ export default function Navbar() {
               {label}
             </Link>
           ))}
+          {isAuthenticated && (
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-700 hover:text-red-600 hover:bg-gray-50 transition-colors"
+            >
+              <span className="text-base" aria-hidden><FiLogOut /></span>
+              Logout
+            </button>
+          )}
         </nav>
 
         {/* Desktop search */}
@@ -76,7 +98,7 @@ export default function Navbar() {
 
         {/* Mobile: icon strip + hamburger */}
         <div className="flex md:hidden items-center gap-3 text-xl text-gray-700">
-          {NAV_LINKS.slice(1).map(({ to, icon, label }) => (
+          {navLinks.slice(1).map(({ to, icon, label }) => (
             <Link key={to} to={to} aria-label={label} className="hover:text-red-600 transition-colors">
               {icon}
             </Link>
@@ -107,7 +129,7 @@ export default function Navbar() {
               aria-label="Search products"
             />
           </form>
-          {NAV_LINKS.map(({ to, icon, label }) => (
+          {navLinks.map(({ to, icon, label }) => (
             <Link
               key={to}
               to={to}
@@ -118,6 +140,15 @@ export default function Navbar() {
               {label}
             </Link>
           ))}
+          {isAuthenticated && (
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center gap-3 px-2 py-3 rounded-lg text-base font-medium text-gray-700 hover:text-red-600 hover:bg-gray-50 transition-colors"
+            >
+              <span className="text-lg" aria-hidden><FiLogOut /></span>
+              Logout
+            </button>
+          )}
         </div>
       )}
     </header>

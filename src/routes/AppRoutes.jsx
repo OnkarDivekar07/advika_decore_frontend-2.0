@@ -6,6 +6,7 @@ import Spinner from '@/components/Shared/Spinner';
 const HomePage          = lazy(() => import('@/pages/Home/HomePage'));
 const CartPage          = lazy(() => import('@/pages/Cart/CartPage'));
 const ProductDetailPage = lazy(() => import('@/pages/ProductDetail/ProductDetailPage'));
+const OTPVerificationPage = lazy(() => import('@/pages/OTPVerification/OTPVerificationPage'));
 const NotFound          = lazy(() => import('@/pages/NotFound'));
 
 function PageLoader() {
@@ -23,6 +24,7 @@ export default function AppRoutes() {
         <Route path="/"           element={<HomePage />} />
         <Route path="/product/:id" element={<ProductDetailPage />} />
         <Route path="/cart"        element={<CartPage />} />
+        <Route path="/otp-verification" element={<OTPVerificationPage />} />
         {/* Uncomment when pages are ready */}
         {/* <Route path="/profile"    element={<UserProfilePage />} /> */}
         {/* <Route path="/wishlist"   element={<WishlistPage />} /> */}

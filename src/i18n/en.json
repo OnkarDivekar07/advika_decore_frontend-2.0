@@ -19,19 +19,33 @@
   "common": {
     "shopNow": "Shop Now"
   },
-  
   "buttons": {
     "buyNow": "Buy It Now",
     "addToCart": "Add to Cart"
   },
-  "cart":{
-  "title": "Your Cart",
-  "empty": "Your cart is empty.",
-  "itemsSection": "Shopping cart items",
-  "proceed": "Proceed to Checkout"
+  "cart": {
+    "title": "Your Cart",
+    "empty": "Your cart is empty.",
+    "itemsSection": "Shopping cart items",
+    "proceed": "Proceed to Checkout"
+  },
+  "otp": {
+    "title": "Verify Your Phone",
+    "phoneSubtitle": "We'll send you a one-time code.",
+    "otpSubtitle": "Enter the code sent to {{phone}}",
+    "phoneLabel": "Phone Number",
+    "phonePlaceholder": "10-digit mobile number",
+    "sendButton": "Send OTP",
+    "sent": "OTP sent to your phone.",
+    "sendFailed": "Could not send OTP. Please try again.",
+    "otpLabel": "One-Time Code",
+    "otpPlaceholder": "Enter 6-digit code",
+    "verifyButton": "Verify",
+    "verified": "Verified successfully.",
+    "verifyFailed": "Invalid or expired OTP. Please try again.",
+    "changeNumber": "Change Number",
+    "resend": "Resend OTP",
+    "resendIn": "Resend OTP in {{seconds}}s",
+    "resent": "OTP resent to your phone."
+  }
 }
-
-}
-
-
-
