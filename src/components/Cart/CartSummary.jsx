@@ -3,9 +3,11 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { FiArrowRight } from 'react-icons/fi';
+import { useAuthGate } from '@/contexts/AuthGateContext';
 
 export default function CartSummary({ items }) {
   const navigate = useNavigate();
+  const { requireAuth } = useAuthGate();
   const subtotal = items.reduce((acc, item) => acc + item.price * item.quantity, 0);
   const itemCount = items.reduce((acc, item) => acc + item.quantity, 0);
 
@@ -35,7 +37,7 @@ export default function CartSummary({ items }) {
       </div>
 
       <button
-        onClick={() => navigate('/checkout')}
+        onClick={() => requireAuth(() => navigate('/checkout'))}
         className="btn btn-primary w-full py-3 text-base"
         aria-label="Proceed to checkout"
       >

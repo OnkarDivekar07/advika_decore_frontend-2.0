@@ -23,6 +23,7 @@ import React, {
   useState,
 } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import i18n from '@/i18n/index';
 import * as cartService from '@/services/cartService';
 import {
   getCartFromLocalStorage,
@@ -53,6 +54,7 @@ const fromBackendRow = (row) => ({
 // or guest) had a positive quantity wins the item, and anything that
 // nets to zero/negative (shouldn't normally happen, but defensive) is
 // dropped rather than sent to the backend as a bad payload.
+// eslint-disable-next-line react-refresh/only-export-components -- exported separately for unit testing, not a component
 export const mergeCartItems = (backendRows, guestItems) => {
   const merged = new Map(backendRows.map((row) => [row.productId, row.quantity]));
   for (const item of guestItems) {
@@ -133,6 +135,38 @@ export function CartProvider({ children }) {
     cartService.getCart().then((rows) => setItems(rows.map(fromBackendRow))).catch(() => {});
   }, []);
 
+  // A failed mutation means either a plain request error (rollback to the
+  // pre-optimistic snapshot is correct) or a stale-cart/stock conflict
+  // (that snapshot is *also* stale, so rolling back to it would just show
+  // the user another wrong state). For conflicts we instead reload the
+  // authoritative cart from the server and say so, rather than silently
+  // reverting to a number that was never right.
+  const recoverFromMutationError = useCallback(
+    async (error, previous, fallbackMessage) => {
+      if (isCartConflictError(error)) {
+        try {
+          await loadBackendCart();
+        } catch {
+          // If even the resync fails, fall back to the pre-optimistic
+          // snapshot so the UI isn't left showing the failed optimistic
+          // state.
+          setItems(previous);
+        }
+        handleError(
+          error,
+          i18n.t(
+            'cart.staleConflict',
+            "Some items in your cart changed — we've refreshed it to match what's actually available."
+          )
+        );
+        return;
+      }
+      setItems(previous); // rollback
+      handleError(error, fallbackMessage);
+    },
+    [loadBackendCart]
+  );
+
   const addItem = useCallback(
     async (product, quantity = 1) => {
       const previous = items;
@@ -157,21 +191,23 @@ export function CartProvider({ children }) {
           await cartService.updateCartItem(product.id, nextQuantity);
           reconcileInBackground();
         } catch (error) {
-          setItems(previous); // rollback
-          handleError(error, 'Could not add item to cart.');
+          await recoverFromMutationError(error, previous, 'Could not add item to cart.');
           throw error;
         }
         return;
       }
 
       // Guest mode — localStorage only, no network call, so optimism is
-      // moot: the write itself is instant.
+      // moot: the write itself is instant. Still needs to report failure
+      // (e.g. storage quota exceeded, private browsing) rather than let
+      // the caller believe the add succeeded when nothing was persisted.
       const current = getCartFromLocalStorage();
       const existingIndex = current.findIndex((i) => i.id === product.id);
+      const updated = [...current];
       if (existingIndex >= 0) {
-        current[existingIndex].quantity += quantity;
+        updated[existingIndex] = { ...updated[existingIndex], quantity: updated[existingIndex].quantity + quantity };
       } else {
-        current.push({
+        updated.push({
           id: product.id,
           name: product.name,
           price: product.price,
@@ -179,10 +215,13 @@ export function CartProvider({ children }) {
           image: product.images?.[0] || '',
         });
       }
-      updateCartToLocalStorage(current);
-      setItems(current);
+      const ok = updateCartToLocalStorage(updated);
+      if (!ok) {
+        throw new Error('Could not save your cart on this device.');
+      }
+      setItems(updated);
     },
-    [mode, items, reconcileInBackground]
+    [mode, items, reconcileInBackground, recoverFromMutationError]
   );
 
   const removeItem = useCallback(
@@ -195,17 +234,16 @@ export function CartProvider({ children }) {
           await cartService.removeFromCart(id);
           reconcileInBackground();
         } catch (error) {
-          setItems(previous); // rollback
-          handleError(error, 'Could not remove item.');
+          await recoverFromMutationError(error, previous, 'Could not remove item.');
         }
         return;
       }
 
       const updated = items.filter((item) => item.id !== id);
       setItems(updated);
-      updateCartToLocalStorage(updated);
+      updateCartToLocalStorage(updated); // best-effort; UI already reflects the removal
     },
-    [mode, items, reconcileInBackground]
+    [mode, items, reconcileInBackground, recoverFromMutationError]
   );
 
   const updateQuantity = useCallback(
@@ -222,8 +260,7 @@ export function CartProvider({ children }) {
           await cartService.updateCartItem(id, quantity);
           reconcileInBackground();
         } catch (error) {
-          setItems(previous); // rollback
-          handleError(error, 'Could not update quantity.');
+          await recoverFromMutationError(error, previous, 'Could not update quantity.');
         }
         return;
       }
@@ -232,7 +269,7 @@ export function CartProvider({ children }) {
       setItems(updated);
       updateCartToLocalStorage(updated);
     },
-    [mode, items, reconcileInBackground, removeItem]
+    [mode, items, reconcileInBackground, removeItem, recoverFromMutationError]
   );
 
   // "Buy Now" purchase intent — deliberately separate from the persistent
@@ -240,9 +277,20 @@ export function CartProvider({ children }) {
   // this same context so there's exactly one place that manages either
   // kind of cart-ish state instead of components reaching into
   // localStorage helpers directly.
+  //
+  // Returns whether the write actually succeeded (storage can fail —
+  // quota exceeded, private-browsing restrictions, etc.) so a caller
+  // like the Buy Now button can avoid navigating to checkout with a
+  // stale or missing purchase intent.
   const setBuyNow = useCallback((product, quantity = 1) => {
-    setBuyNowItem(product, quantity);
-    setBuyNowItemState(getBuyNowItem());
+    const wrote = setBuyNowItem(product, quantity);
+    const stored = getBuyNowItem();
+    // Confirm the item we just wrote is actually what's in storage now
+    // (not, say, a stale item left over from a failed write), not just
+    // that the write call itself didn't throw.
+    const ok = wrote && stored?.id === product.id && stored?.quantity === quantity;
+    setBuyNowItemState(stored);
+    return ok;
   }, []);
 
   const clearBuyNow = useCallback(() => {
@@ -291,6 +339,7 @@ export function CartProvider({ children }) {
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components -- provider and hook are intentionally colocated
 export function useCart() {
   const ctx = useContext(CartContext);
   if (!ctx) throw new Error('useCart must be used within a CartProvider');

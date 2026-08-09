@@ -3,7 +3,12 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { FiShoppingCart, FiZap } from 'react-icons/fi';
 
-export default function ActionButtons({ onBuyNow, onAddToCart }) {
+export default function ActionButtons({
+  onBuyNow,
+  onAddToCart,
+  isAddingToCart = false,
+  isBuyNowPending = false,
+}) {
   const { t } = useTranslation();
 
   return (
@@ -11,18 +16,22 @@ export default function ActionButtons({ onBuyNow, onAddToCart }) {
       <button
         type="button"
         onClick={onBuyNow}
-        className="btn btn-primary flex-1 py-3 text-sm sm:text-base"
+        disabled={isBuyNowPending}
+        className="btn btn-primary flex-1 py-3 text-sm sm:text-base disabled:opacity-60 disabled:cursor-not-allowed"
       >
         <FiZap className="w-4 h-4" aria-hidden />
-        {t('buttons.buyNow', 'Buy Now')}
+        {isBuyNowPending ? t('buttons.processing', 'Processing…') : t('buttons.buyNow', 'Buy Now')}
       </button>
       <button
         type="button"
         onClick={onAddToCart}
-        className="btn btn-outline flex-1 py-3 text-sm sm:text-base"
+        disabled={isAddingToCart}
+        className="btn btn-outline flex-1 py-3 text-sm sm:text-base disabled:opacity-60 disabled:cursor-not-allowed"
       >
         <FiShoppingCart className="w-4 h-4" aria-hidden />
-        {t('buttons.addToCart', 'Add to Cart')}
+        {isAddingToCart
+          ? t('buttons.addingToCart', 'Adding…')
+          : t('buttons.addToCart', 'Add to Cart')}
       </button>
     </div>
   );

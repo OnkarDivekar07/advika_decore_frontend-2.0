@@ -2,6 +2,7 @@ import React, { createContext, useEffect, useState } from 'react';
 import { getLanguage, saveLanguage } from '../utils/languageUtils';
 import i18n from '../i18n'; // ✅ Import i18n instance
 
+// eslint-disable-next-line react-refresh/only-export-components -- provider and context are intentionally colocated
 export const LanguageContext = createContext();
 
 export const LanguageProvider = ({ children }) => {

@@ -1,16 +1,22 @@
 // src/components/Product/ProductCard.jsx
-import React, { useCallback } from 'react';
-import { FiHeart, FiShoppingCart } from 'react-icons/fi';
+import React, { useCallback, useState } from 'react';
+import { FiHeart, FiShoppingCart, FiLoader } from 'react-icons/fi';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import ImageWithFallback from '@/components/Shared/ImageWithFallback';
+import { useCart } from '@/contexts/CartContext';
+import { getLocalized } from '@/utils/i18nUtils';
 
 export default function ProductCard({ product }) {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
+  const { addItem } = useCart();
+  const [isAdding, setIsAdding] = useState(false);
 
   const lang = i18n.language || 'en';
-  const name       = product?.name?.[lang]        ?? product?.name?.en        ?? product?.name        ?? 'Unnamed';
-  const imageUrl   = product?.images?.[0] || '/placeholder.jpg';
+  const name = getLocalized(product?.name, lang) || t('productDetail.unnamedProduct', 'Unnamed product');
+  const imageUrl = product?.images?.[0] || null;
 
   const handleNavigate = useCallback(() => {
     navigate(`/product/${product.id}`);
@@ -21,10 +27,23 @@ export default function ProductCard({ product }) {
     // wishlist logic placeholder
   }, []);
 
-  const handleAddToCart = useCallback((e) => {
-    e.stopPropagation();
-    // cart logic placeholder
-  }, []);
+  const handleAddToCart = useCallback(
+    async (e) => {
+      e.stopPropagation();
+      if (isAdding) return;
+      setIsAdding(true);
+      try {
+        await addItem(product, 1);
+        toast.success(t('productDetail.addedToCart', 'Added to cart!'));
+      } catch {
+        // CartContext already surfaces an error toast (including
+        // stale-stock conflicts) — nothing further to do here.
+      } finally {
+        setIsAdding(false);
+      }
+    },
+    [addItem, isAdding, product, t]
+  );
 
   return (
     <article
@@ -37,7 +56,7 @@ export default function ProductCard({ product }) {
     >
       {/* Image */}
       <div className="relative overflow-hidden aspect-square bg-gray-50">
-        <img
+        <ImageWithFallback
           src={imageUrl}
           alt={name}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
@@ -59,12 +78,17 @@ export default function ProductCard({ product }) {
         <h3 className="text-sm font-semibold text-gray-800 leading-snug line-clamp-2">{name}</h3>
         <p className="text-base font-bold text-gray-900 mt-auto">₹{product.price}</p>
         <button
-          aria-label="Add to Cart"
+          aria-label={t('buttons.addToCart', 'Add to Cart')}
           onClick={handleAddToCart}
-          className="btn btn-primary w-full text-sm py-2 mt-1"
+          disabled={isAdding}
+          className="btn btn-primary w-full text-sm py-2 mt-1 disabled:opacity-60 disabled:cursor-not-allowed"
         >
-          <FiShoppingCart className="w-4 h-4" aria-hidden />
-          Add to Cart
+          {isAdding ? (
+            <FiLoader className="w-4 h-4 animate-spin" aria-hidden />
+          ) : (
+            <FiShoppingCart className="w-4 h-4" aria-hidden />
+          )}
+          {isAdding ? t('buttons.addingToCart', 'Adding…') : t('buttons.addToCart', 'Add to Cart')}
         </button>
       </div>
     </article>

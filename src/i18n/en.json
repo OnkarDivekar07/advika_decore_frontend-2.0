@@ -2,7 +2,9 @@
   "homepage": {
     "newArrivals": "New Arrivals",
     "vehicleCategories": "Vehicle Categories",
-    "shopByVehicle": "Shop by Vehicle"
+    "shopByVehicle": "Shop by Vehicle",
+    "viewAll": "View all",
+    "noProducts": "No products in this category."
   },
   "categories": {
     "truck": "Truck",
@@ -17,22 +19,27 @@
     "description": "Explore the best accessories for your vehicle."
   },
   "common": {
-    "shopNow": "Shop Now"
+    "shopNow": "Shop Now",
+    "home": "Home"
   },
   "buttons": {
     "buyNow": "Buy It Now",
-    "addToCart": "Add to Cart"
+    "addToCart": "Add to Cart",
+    "addingToCart": "Adding…",
+    "processing": "Processing…"
   },
   "cart": {
     "title": "Your Cart",
     "empty": "Your cart is empty.",
     "itemsSection": "Shopping cart items",
-    "proceed": "Proceed to Checkout"
+    "proceed": "Proceed to Checkout",
+    "syncing": "Syncing your cart…",
+    "staleConflict": "Some items in your cart changed — we've refreshed it to match what's actually available."
   },
   "otp": {
     "title": "Verify Your Phone",
     "phoneSubtitle": "We'll send you a one-time code.",
-    "otpSubtitle": "Enter the code sent to {{phone}}",
+    "otpSubtitle": "Enter the code sent to +91 {{phone}}",
     "phoneLabel": "Phone Number",
     "phonePlaceholder": "10-digit mobile number",
     "sendButton": "Send OTP",
@@ -46,6 +53,95 @@
     "changeNumber": "Change Number",
     "resend": "Resend OTP",
     "resendIn": "Resend OTP in {{seconds}}s",
-    "resent": "OTP resent to your phone."
+    "resent": "OTP resent to your phone.",
+    "modalAriaLabel": "Verify your mobile number",
+    "modalTitle": "Verify your mobile number",
+    "modalSubtitle": "We'll send a one-time code to confirm it's you before checkout.",
+    "close": "Close",
+    "sendingOtp": "Sending OTP…",
+    "tryAgainIn": "Try again in {{seconds}}s",
+    "enterOtpTitle": "Enter OTP",
+    "sentTo": "Sent to +91 {{phone}}.",
+    "change": "Change",
+    "codeLabel": "6-digit code",
+    "expiredHint": "This code may have expired. Request a new one.",
+    "expiresIn": "Code expires in {{time}}",
+    "expiresInSoon": "Code expires in {{time}}",
+    "verifying": "Verifying…",
+    "verifyAndContinue": "Verify & Continue",
+    "errors": {
+      "sendRateLimit": "Too many OTP requests for this number. Try again in {{seconds}}s.",
+      "sendRateLimitServer": "Too many OTP requests. Please wait a minute and try again.",
+      "verifyRateLimit": "Too many incorrect attempts. Request a new OTP in {{seconds}}s.",
+      "verifyRateLimitServer": "Too many attempts. Please request a new OTP.",
+      "expired": "This code has expired. Please request a new one.",
+      "network": "Network error. Check your connection and try again."
+    }
+  },
+  "session": {
+    "expired": "Your session has expired. Please verify your number again.",
+    "invalid": "Your session is no longer valid. Please sign in again."
+  },
+  "search": {
+    "title": "Search Products",
+    "navPlaceholder": "Search products…",
+    "placeholder": "Search for truck, tempo, tractor parts…",
+    "clear": "Clear search",
+    "idle": "Start typing to find products.",
+    "error": "Something went wrong while searching.",
+    "retry": "Try Again",
+    "noResultsTitle": "No products found",
+    "noResultsHint": "Try a different word, or search by vehicle type — truck, tempo, pickup, car, two-wheeler, or tractor.",
+    "loadMore": "Load More",
+    "loadingMore": "Loading…"
+  },
+  "products": {
+    "title": "All Products",
+    "filters": "Filters",
+    "clearFilters": "Clear all",
+    "category": "Category",
+    "price": "Price",
+    "min": "Min",
+    "max": "Max",
+    "any": "Any",
+    "availability": "Availability",
+    "inStockOnly": "In stock only",
+    "sortBy": "Sort by",
+    "sortNewest": "Newest",
+    "sortPriceAsc": "Price: Low to High",
+    "sortPriceDesc": "Price: High to Low",
+    "sortNameAsc": "Name: A to Z",
+    "resultCount": "{{count}} products",
+    "resultCount_one": "{{count}} product",
+    "error": "Something went wrong while loading products.",
+    "noResultsTitle": "No products found",
+    "noResultsHint": "Try removing some filters or widening your price range.",
+    "close": "Close",
+    "showResults": "Show results",
+    "priceRangeError": "Min price cannot be greater than max price."
+  },
+  "productDetail": {
+    "imageGallery": "Product images",
+    "selectedImageAlt": "Selected product view",
+    "viewImageN": "View image {{n}}",
+    "thumbnailAlt": "Thumbnail {{n}}",
+    "unnamedProduct": "Unnamed product",
+    "addedToWishlist": "Added to wishlist!",
+    "addToWishlist": "Add to wishlist",
+    "priceUnavailable": "Price unavailable",
+    "perUnit": "/ {{unit}}",
+    "inStock": "In Stock",
+    "outOfStock": "Out of Stock",
+    "lowStock": "Only {{count}} left in stock",
+    "lowStockGeneric": "Low stock",
+    "quantity": "Quantity",
+    "subtotal": "Subtotal",
+    "addedToCart": "Added to cart!",
+    "relatedProducts": "Related Products",
+    "viewProduct": "View {{name}}",
+    "errorLoadingProduct": "Failed to load product. Please try again.",
+    "retry": "Try Again",
+    "back": "Back",
+    "buyNowFailed": "Couldn't start checkout. Please try again."
   }
 }

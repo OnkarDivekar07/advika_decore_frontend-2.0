@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { getRelatedProducts } from '@/services/productsService';
 import { getLocalized } from '@/utils/i18nUtils';
 import { handleError } from '@/utils/errorHandler';
+import ImageWithFallback from '@/components/Shared/ImageWithFallback';
 
 const SKELETON_COUNT = 4;
 
@@ -12,7 +13,7 @@ export default function RelatedProducts({ currentProductId }) {
   const [related, setRelated] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const lang = i18n.language || 'en';
 
   useEffect(() => {
@@ -31,7 +32,7 @@ export default function RelatedProducts({ currentProductId }) {
   return (
     <section className="mt-14 max-w-7xl mx-auto px-4 sm:px-6" aria-label="Related products">
       <div className="mb-5">
-        <h2 className="section-title">Related Products</h2>
+        <h2 className="section-title">{t('productDetail.relatedProducts', 'Related Products')}</h2>
       </div>
       <div className="scroll-strip">
         {loading
@@ -39,8 +40,8 @@ export default function RelatedProducts({ currentProductId }) {
               <div key={i} className="skeleton w-44 sm:w-52 h-64 shrink-0" />
             ))
           : related.map(product => {
-              const name  = getLocalized(product.name, lang);
-              const image = product.images?.[0] || '/placeholder.jpg';
+              const name = getLocalized(product.name, lang) || t('productDetail.unnamedProduct', 'Unnamed product');
+              const image = product.images?.[0] || null;
               return (
                 <article
                   key={product.id}
@@ -49,16 +50,16 @@ export default function RelatedProducts({ currentProductId }) {
                   tabIndex={0}
                   onKeyDown={e => e.key === 'Enter' && navigate(`/product/${product.id}`)}
                   role="button"
-                  aria-label={`View ${name || 'product'}`}
+                  aria-label={t('productDetail.viewProduct', 'View {{name}}', { name })}
                 >
-                  <img
+                  <ImageWithFallback
                     src={image}
-                    alt={name || 'Product'}
+                    alt={name}
                     className="w-full aspect-square object-cover"
                     loading="lazy"
                   />
                   <div className="p-3">
-                    <p className="text-sm font-semibold text-gray-800 line-clamp-2">{name || 'Unnamed'}</p>
+                    <p className="text-sm font-semibold text-gray-800 line-clamp-2">{name}</p>
                     <p className="text-primary font-bold mt-1 text-sm">₹{product.price}</p>
                   </div>
                 </article>

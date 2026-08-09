@@ -3,24 +3,31 @@ import React, { useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { LanguageContext } from '@/contexts/LanguageContext';
+import { getLocalized } from '@/utils/i18nUtils';
 import { FiChevronRight } from 'react-icons/fi';
-
-const getTranslated = (input, lang) => {
-  if (typeof input === 'object' && input !== null) return input[lang] || input.en || 'Unnamed';
-  return input || '';
-};
 
 export default function Breadcrumb({ categoryName, productName }) {
   const { t } = useTranslation();
   const { language } = useContext(LanguageContext);
 
-  const translatedCategory = categoryName ? t(`categories.${categoryName}`, categoryName) : '';
-  const translatedProduct  = getTranslated(productName, language);
+  // `categoryName` may come through as a plain string or as a
+  // { en, hi, mr, ... } localization map (same shape as `productName`),
+  // so normalize it to a canonical English string before doing any
+  // string ops on it. PRODUCT_CATEGORIES / the API filter param expect
+  // this display-cased English form (e.g. "Two Wheeler"), while the i18n
+  // lookup key is that string lowercased with spaces stripped
+  // (e.g. "twowheeler" - see i18n/*.json `categories`).
+  const rawCategory = typeof categoryName === 'string' ? categoryName : getLocalized(categoryName, 'en');
+  const categoryKey = rawCategory ? rawCategory.toLowerCase().replace(/\s+/g, '') : '';
+  const translatedCategory = rawCategory ? t(`categories.${categoryKey}`, rawCategory) : '';
+  const translatedProduct = getLocalized(productName, language);
 
   const items = [
-    { label: t('home', 'Home'), href: '/' },
-    ...(translatedCategory ? [{ label: translatedCategory, href: `/products?category=${encodeURIComponent(categoryName)}` }] : []),
-    { label: translatedProduct || t('unnamedProduct', 'Product'), href: null },
+    { label: t('common.home', 'Home'), href: '/' },
+    ...(translatedCategory
+      ? [{ label: translatedCategory, href: `/products?category=${encodeURIComponent(rawCategory)}` }]
+      : []),
+    { label: translatedProduct || t('productDetail.unnamedProduct', 'Product'), href: null },
   ];
 
   return (

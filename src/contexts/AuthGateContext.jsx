@@ -51,6 +51,7 @@ export function AuthGateProvider({ children }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components -- provider and hook are intentionally colocated
 export function useAuthGate() {
   const ctx = useContext(AuthGateContext);
   if (!ctx) throw new Error('useAuthGate must be used within an AuthGateProvider');

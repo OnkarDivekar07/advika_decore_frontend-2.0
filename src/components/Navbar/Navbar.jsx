@@ -1,11 +1,13 @@
 // src/components/Navbar/Navbar.jsx
 import React, { useState, useCallback, useContext, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FiHome, FiHeart, FiShoppingCart, FiUser, FiSearch, FiX, FiMenu, FiLogOut } from 'react-icons/fi';
+import { useTranslation } from 'react-i18next';
+import { FiHome, FiHeart, FiShoppingCart, FiUser, FiSearch, FiX, FiMenu, FiLogOut, FiGrid } from 'react-icons/fi';
 import { FaTruck } from 'react-icons/fa';
 import { AuthContext } from '@/contexts/AuthContext';
 
 export default function Navbar() {
+  const { t } = useTranslation();
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
@@ -19,6 +21,7 @@ export default function Navbar() {
   // verification instead of a page that will immediately bounce them.
   const navLinks = useMemo(() => ([
     { to: '/',         icon: <FiHome />,        label: 'Home' },
+    { to: '/products', icon: <FiGrid />,         label: 'Shop' },
     { to: '/wishlist', icon: <FiHeart />,        label: 'Wishlist' },
     { to: '/cart',     icon: <FiShoppingCart />, label: 'Cart' },
     isAuthenticated
@@ -88,11 +91,11 @@ export default function Navbar() {
           <FiSearch className="text-gray-400 shrink-0" aria-hidden />
           <input
             type="search"
-            placeholder="Search products…"
+            placeholder={t('search.navPlaceholder', 'Search products…')}
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             className="bg-transparent outline-none text-sm text-gray-800 placeholder-gray-400 w-full"
-            aria-label="Search products"
+            aria-label={t('search.title', 'Search Products')}
           />
         </form>
 
@@ -122,11 +125,11 @@ export default function Navbar() {
             <FiSearch className="text-gray-400 shrink-0" aria-hidden />
             <input
               type="search"
-              placeholder="Search products…"
+              placeholder={t('search.navPlaceholder', 'Search products…')}
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               className="bg-transparent outline-none text-sm text-gray-800 placeholder-gray-400 w-full"
-              aria-label="Search products"
+              aria-label={t('search.title', 'Search Products')}
             />
           </form>
           {navLinks.map(({ to, icon, label }) => (

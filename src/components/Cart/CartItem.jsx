@@ -3,6 +3,7 @@ import React from 'react';
 import { FiTrash2 } from 'react-icons/fi';
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
+import ImageWithFallback from '@/components/Shared/ImageWithFallback';
 
 export default function CartItem({ item, onQuantityChange, onRemove }) {
   const { t, i18n } = useTranslation();
@@ -19,8 +20,8 @@ export default function CartItem({ item, onQuantityChange, onRemove }) {
     <div className="card flex flex-col sm:flex-row items-start gap-4 p-4">
       {/* Image */}
       <div className="w-full sm:w-28 h-28 shrink-0 rounded-lg overflow-hidden bg-gray-50 border border-[var(--clr-border)]">
-        <img
-          src={item.image || '/placeholder.jpg'}
+        <ImageWithFallback
+          src={item.image || null}
           alt={itemName}
           className="w-full h-full object-cover"
           loading="lazy"

@@ -1,11 +1,11 @@
 // src/components/Product/Categories.jsx
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import { fetchAllProducts } from '@/services/productsService';
 import ProductCard from './ProductCard';
 import { useTranslation } from 'react-i18next';
 import { handleError } from '@/utils/errorHandler';
-
-const CATEGORIES = ['Truck', 'Tempo', 'Pickup', 'Car', 'Two Wheeler', 'Tractor'];
+import { PRODUCT_CATEGORIES as CATEGORIES } from '@/utils/constants';
 
 export default function Categories() {
   const { t } = useTranslation();
@@ -53,8 +53,14 @@ export default function Categories() {
 
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
-      <div className="mb-7">
+      <div className="mb-7 flex items-end justify-between gap-3">
         <h2 className="section-title">{t('homepage.vehicleCategories')}</h2>
+        <Link
+          to={`/products?category=${encodeURIComponent(active)}`}
+          className="text-sm font-semibold text-[var(--clr-primary-dark)] hover:underline shrink-0"
+        >
+          {t('homepage.viewAll', 'View all')}
+        </Link>
       </div>
 
       {/* Category pills */}
