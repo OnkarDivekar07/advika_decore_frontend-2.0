@@ -6,6 +6,42 @@ export const getProductById = async (id) => {
   return res.data.data;
 };
 
+/**
+ * Bulk lookup by id — GET /api/products/batch?ids=a,b,c. Used to
+ * revalidate a guest (localStorage-only) cart's prices/stock/availability
+ * against live product data in one call instead of one request per line
+ * item. Any id that no longer matches a live, non-deleted product is
+ * simply absent from the response — the backend's convention for "this
+ * product is no longer available" (see product.service.getProductsByIds).
+ *
+ * Chunked at the backend's own cap (see product.validation's
+ * MAX_BATCH_IDS) so an unusually large cart still resolves instead of
+ * 422ing outright.
+ *
+ * @param {string[]} ids
+ * @returns {Promise<object[]>}
+ */
+const BATCH_IDS_CHUNK_SIZE = 50;
+export const getProductsByIds = async (ids) => {
+  const deduped = Array.from(new Set((ids || []).filter(Boolean)));
+  if (deduped.length === 0) return [];
+
+  const chunks = [];
+  for (let i = 0; i < deduped.length; i += BATCH_IDS_CHUNK_SIZE) {
+    chunks.push(deduped.slice(i, i + BATCH_IDS_CHUNK_SIZE));
+  }
+
+  const results = await Promise.all(
+    chunks.map(async (chunk) => {
+      const { data } = await apiClient.get('/api/products/batch', {
+        params: { ids: chunk.join(',') },
+      });
+      return data.data ?? [];
+    })
+  );
+  return results.flat();
+};
+
 export const getRelatedProducts = async (id) => {
   const res = await apiClient.get(`/api/products/${id}/related`);
   return res.data.data;

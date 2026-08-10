@@ -1,8 +1,8 @@
 // src/pages/Cart/CartPage.jsx
-import React from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { FiShoppingBag } from 'react-icons/fi';
+import { FiShoppingBag, FiAlertTriangle } from 'react-icons/fi';
 import Navbar from '@/components/Navbar/Navbar';
 import CartItem from '@/components/Cart/CartItem';
 import CartSummary from '@/components/Cart/CartSummary';
@@ -11,7 +11,28 @@ import { useCart } from '@/contexts/CartContext';
 
 export default function CartPage() {
   const { t } = useTranslation();
-  const { items: cartItems, updateQuantity, removeItem, isSyncing } = useCart();
+  const {
+    items: cartItems,
+    updateQuantity,
+    removeItem,
+    isSyncing,
+    loadError,
+    retryLoadCart,
+  } = useCart();
+  // Local-only: disables the retry button and swaps its label while a
+  // retry is in flight, without needing a second global loading flag —
+  // `isSyncing` already covers that (retryLoadCart re-triggers the same
+  // sync), this just keeps the button itself from being spammed.
+  const [isRetrying, setIsRetrying] = useState(false);
+
+  const handleRetry = async () => {
+    setIsRetrying(true);
+    try {
+      await retryLoadCart();
+    } finally {
+      setIsRetrying(false);
+    }
+  };
 
   return (
     <>
@@ -25,6 +46,25 @@ export default function CartPage() {
             <p className="text-gray-500 text-sm">
               {t('cart.syncing', 'Syncing your cart…')}
             </p>
+          </div>
+        ) : loadError ? (
+          <div className="flex flex-col items-center justify-center py-24 gap-5 text-center">
+            <FiAlertTriangle className="w-14 h-14 text-red-300" aria-hidden />
+            <div>
+              <p className="text-gray-700 text-lg font-medium">
+                {t('cart.loadError', "We couldn't load your cart.")}
+              </p>
+              <p className="text-gray-500 text-sm mt-1">
+                {t('cart.loadErrorHint', 'Check your connection and try again.')}
+              </p>
+            </div>
+            <button
+              onClick={handleRetry}
+              disabled={isRetrying}
+              className="btn btn-primary px-6 disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {isRetrying ? t('cart.retrying', 'Retrying…') : t('cart.retry', 'Try again')}
+            </button>
           </div>
         ) : cartItems.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 gap-5 text-center">

@@ -34,7 +34,9 @@
     "itemsSection": "Shopping cart items",
     "proceed": "Proceed to Checkout",
     "syncing": "Syncing your cart…",
-    "staleConflict": "Some items in your cart changed — we've refreshed it to match what's actually available."
+    "staleConflict": "Some items in your cart changed — we've refreshed it to match what's actually available.",
+    "stockLimitReached": "Only {{count}} left in stock.",
+    "lowStockHint": "{{count}} left in stock"
   },
   "otp": {
     "title": "Verify Your Phone",
