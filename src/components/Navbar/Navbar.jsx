@@ -2,7 +2,7 @@
 import React, { useState, useCallback, useContext, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { FiHome, FiHeart, FiShoppingCart, FiUser, FiSearch, FiX, FiMenu, FiLogOut, FiGrid } from 'react-icons/fi';
+import { FiHome, FiHeart, FiShoppingCart, FiUser, FiSearch, FiX, FiMenu, FiLogOut, FiGrid, FiMapPin } from 'react-icons/fi';
 import { FaTruck } from 'react-icons/fa';
 import { AuthContext } from '@/contexts/AuthContext';
 
@@ -38,6 +38,14 @@ export default function Navbar() {
     }
   }, [searchQuery, navigate]);
 
+  // Shown only when signed in — kept out of navLinks (and therefore out
+  // of the mobile icon strip, navLinks.slice(1)) so the always-visible
+  // top strip doesn't get crowded on small screens; it still appears in
+  // the desktop nav and the mobile dropdown below.
+  const accountLinks = isAuthenticated
+    ? [{ to: '/addresses', icon: <FiMapPin />, label: t('addresses.navLabel', 'Addresses') }]
+    : [];
+
   const handleLogout = useCallback(() => {
     logout();
     closeMenu();
@@ -62,6 +70,16 @@ export default function Navbar() {
         {/* Desktop nav links */}
         <nav className="hidden md:flex items-center gap-1" aria-label="Main navigation">
           {navLinks.map(({ to, icon, label }) => (
+            <Link
+              key={to}
+              to={to}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-700 hover:text-[var(--clr-primary-dark)] hover:bg-gray-50 transition-colors"
+            >
+              <span className="text-base" aria-hidden>{icon}</span>
+              {label}
+            </Link>
+          ))}
+          {accountLinks.map(({ to, icon, label }) => (
             <Link
               key={to}
               to={to}
@@ -133,6 +151,17 @@ export default function Navbar() {
             />
           </form>
           {navLinks.map(({ to, icon, label }) => (
+            <Link
+              key={to}
+              to={to}
+              onClick={closeMenu}
+              className="flex items-center gap-3 px-2 py-3 rounded-lg text-base font-medium text-gray-700 hover:text-[var(--clr-primary-dark)] hover:bg-gray-50 transition-colors"
+            >
+              <span className="text-lg" aria-hidden>{icon}</span>
+              {label}
+            </Link>
+          ))}
+          {accountLinks.map(({ to, icon, label }) => (
             <Link
               key={to}
               to={to}

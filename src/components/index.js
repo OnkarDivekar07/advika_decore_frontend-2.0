@@ -17,3 +17,5 @@ export { default as ActionButtons }        from './Shared/ActionButtons';
 export { default as Spinner }              from './Shared/Spinner';
 export { default as ErrorBoundary }        from './Shared/ErrorBoundary';
 export { default as LanguageSelectorModal} from './Shared/LanguageSelectorModal';
+export { default as AddressCard }          from './Address/AddressCard';
+export { default as AddressForm }          from './Address/AddressForm';

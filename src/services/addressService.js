@@ -17,7 +17,10 @@ import apiClient from '@/utils/apiClient';
  *   city: string,
  *   state: string,
  *   houseArea: string,
+ *   area: string,
  *   landmark?: string,
+ *   deliveryInstructions?: string,
+ *   isDefault: boolean,
  * }} Address
  */
 
@@ -54,4 +57,17 @@ export const updateAddress = async (id, payload) => {
  */
 export const deleteAddress = async (id) => {
   await apiClient.delete(`/api/user/address/${id}`);
+};
+
+/**
+ * Marks an address as the default one. The backend atomically clears
+ * isDefault on every other address this user owns (see
+ * user.service.js#setDefaultAddressById) — nothing to reconcile client-side
+ * beyond re-syncing the list with whatever it returns.
+ * @param {string} id
+ * @returns {Promise<Address>}
+ */
+export const setDefaultAddress = async (id) => {
+  const { data } = await apiClient.patch(`/api/user/address/${id}/default`);
+  return data.data;
 };

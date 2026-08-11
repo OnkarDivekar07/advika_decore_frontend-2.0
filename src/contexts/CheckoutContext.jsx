@@ -195,8 +195,17 @@ export function CheckoutProvider({ children }) {
   // address than the one the user last chose would be surprising.
   const removeAddress = useCallback(
     async (id) => {
+      const wasDefault = addresses.find((a) => a.id === id)?.isDefault;
       await addressService.deleteAddress(id);
-      setAddresses((prev) => prev.filter((a) => a.id !== id));
+      if (wasDefault) {
+        // The backend promotes a different address to default when the
+        // default one is deleted (see user.service.js#deleteAddressById) —
+        // re-fetch rather than guess which one, same reasoning as
+        // useAddressBook's removeAddress.
+        await loadAddresses();
+      } else {
+        setAddresses((prev) => prev.filter((a) => a.id !== id));
+      }
       if (id === selectedAddressId) {
         setSelectedAddressId(null);
         setDraftOrder(null);
@@ -205,8 +214,24 @@ export function CheckoutProvider({ children }) {
         clearSavedCheckoutState();
       }
     },
-    [selectedAddressId]
+    [selectedAddressId, addresses, loadAddresses]
   );
+
+  // Marks an address as default (see addressService.setDefaultAddress /
+  // user.service.js#setDefaultAddressById on the backend, which atomically
+  // clears every other address's flag). Doesn't touch selectedAddressId or
+  // the draft order — "default" and "selected for this order" are related
+  // but independent (see AddressSelectionPage, which only *defaults* the
+  // initial selection to whichever address is marked default).
+  const setDefaultAddress = useCallback(async (id) => {
+    try {
+      await addressService.setDefaultAddress(id);
+      setAddresses((prev) => prev.map((a) => ({ ...a, isDefault: a.id === id })));
+    } catch (error) {
+      handleError(error, "Couldn't set that as your default address. Please try again.");
+      throw error;
+    }
+  }, []);
 
   // Restore-on-mount: re-validate a selection saved by a previous visit to
   // this route tree (typically: the same visit, before a refresh blew away
@@ -417,6 +442,7 @@ export function CheckoutProvider({ children }) {
       addAddress,
       editAddress,
       removeAddress,
+      setDefaultAddress,
       draftOrder,
       draftStatus,
       draftError,
@@ -446,6 +472,7 @@ export function CheckoutProvider({ children }) {
       addAddress,
       editAddress,
       removeAddress,
+      setDefaultAddress,
       draftOrder,
       draftStatus,
       draftError,

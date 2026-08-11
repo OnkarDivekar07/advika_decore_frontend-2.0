@@ -9,6 +9,7 @@ const ProductDetailPage = lazy(() => import('@/pages/ProductDetail/ProductDetail
 const OTPVerificationPage = lazy(() => import('@/pages/OTPVerification/OTPVerificationPage'));
 const CheckoutLayout     = lazy(() => import('@/pages/Checkout/CheckoutLayout'));
 const AddressSelectionPage = lazy(() => import('@/pages/AddressSelection/AddressSelectionPage'));
+const AddressBookPage = lazy(() => import('@/pages/Addresses/AddressBookPage'));
 const ReviewPage        = lazy(() => import('@/pages/Review/ReviewPage'));
 const PaymentPage        = lazy(() => import('@/pages/Payment/PaymentPage'));
 const OrderSuccessPage   = lazy(() => import('@/pages/OrderSuccess/OrderSuccessPage'));
@@ -49,6 +50,7 @@ export default function AppRoutes() {
           <Route path="*"       element={<Navigate to="/checkout" replace />} />
         </Route>
         <Route path="/order/success/:orderId" element={<OrderSuccessPage />} />
+        <Route path="/addresses" element={<AddressBookPage />} />
         <Route path="/search"      element={<SearchResultsPage />} />
         <Route path="/products"    element={<ProductListingPage />} />
         {/* Uncomment when pages are ready */}

@@ -26,6 +26,7 @@ export default function AddressSelectionPage() {
     addAddress,
     editAddress,
     removeAddress,
+    setDefaultAddress,
     draftStatus,
     isRestoring,
     goToStep,
@@ -36,6 +37,7 @@ export default function AddressSelectionPage() {
   const [isContinuing, setIsContinuing] = useState(false);
   const [editingAddress, setEditingAddress] = useState(null); // the Address object being edited, or null
   const [deletingId, setDeletingId] = useState(null);
+  const [settingDefaultId, setSettingDefaultId] = useState(null);
 
   // Keeps the persisted "current step" hint (see checkoutStorage.js) in
   // sync whenever this step is actually the one on screen — covers
@@ -53,10 +55,13 @@ export default function AddressSelectionPage() {
     loadAddresses();
   }, [isRestoring, addressesStatus, loadAddresses]);
 
-  // Once the list is in, either default to the most recently added
-  // address (this also kicks off the first draft-order creation, so
-  // Review & Payment has something to show without an extra click) or,
-  // if there's nothing on file yet, jump straight to the add-address form.
+  // Once the list is in, either default to the user's marked-default
+  // address (falling back to the most recently added one if, somehow,
+  // none is marked default — shouldn't happen per user.service.js's
+  // invariant, but the list is otherwise unordered by that) — this also
+  // kicks off the first draft-order creation, so Review & Payment has
+  // something to show without an extra click — or, if there's nothing on
+  // file yet, jump straight to the add-address form.
   const defaultedRef = React.useRef(false);
   useEffect(() => {
     // While CheckoutContext is still restoring a selection from a previous
@@ -69,7 +74,8 @@ export default function AddressSelectionPage() {
     if (addresses.length === 0) {
       setShowForm(true);
     } else if (!selectedAddressId) {
-      selectAddress(addresses[addresses.length - 1].id);
+      const preferred = addresses.find((a) => a.isDefault) ?? addresses[addresses.length - 1];
+      selectAddress(preferred.id);
     }
   }, [isRestoring, addressesStatus, addresses, selectedAddressId, selectAddress]);
 
@@ -109,6 +115,17 @@ export default function AddressSelectionPage() {
       handleError(error, "Couldn't remove that address. Please try again.");
     } finally {
       setDeletingId(null);
+    }
+  };
+
+  const handleSetDefault = async (id) => {
+    setSettingDefaultId(id);
+    try {
+      await setDefaultAddress(id);
+    } catch {
+      // setDefaultAddress already surfaced a toast on failure.
+    } finally {
+      setSettingDefaultId(null);
     }
   };
 
@@ -159,7 +176,9 @@ export default function AddressSelectionPage() {
               setEditingAddress(a);
             }}
             onDelete={handleDeleteAddress}
+            onSetDefault={handleSetDefault}
             isDeleting={deletingId === address.id}
+            isSettingDefault={settingDefaultId === address.id}
           />
         )
       )}
@@ -169,6 +188,7 @@ export default function AddressSelectionPage() {
           onSubmit={handleAddAddress}
           onCancel={addresses.length > 0 ? () => setShowForm(false) : undefined}
           isSubmitting={isAddingAddress}
+          hideDefaultToggle={addresses.length === 0}
         />
       ) : (
         <button
