@@ -3,11 +3,11 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
-import { FiArrowRight, FiAlertTriangle, FiTag, FiX } from 'react-icons/fi';
+import { FiArrowRight, FiAlertTriangle, FiTag, FiX, FiTruck } from 'react-icons/fi';
 import { useAuthGate } from '@/contexts/AuthGateContext';
 import { useCart } from '@/contexts/CartContext';
+import { usePricing } from '@/contexts/PricingContext';
 import { getStockInfo } from '@/utils/productUtils';
-import { FREE_DELIVERY_THRESHOLD } from '@/config/pricing';
 
 export default function CartSummary({ items }) {
   const { t } = useTranslation();
@@ -20,8 +20,12 @@ export default function CartSummary({ items }) {
   // IS the final payable amount: subtotal + delivery - discount, never
   // anything computed independently.
   const { subtotal, deliveryCharge, total, coupon, applyCoupon, clearCoupon } = useCart();
+  // Backend-configured threshold (see PricingContext.jsx) — used only for
+  // the "add ₹X more" nudge below, not for the charge itself (which
+  // already comes from CartContext above).
+  const { freeDeliveryThreshold } = usePricing();
   const itemCount = items.reduce((acc, item) => acc + item.quantity, 0);
-  const amountToFreeDelivery = Math.max(FREE_DELIVERY_THRESHOLD - subtotal, 0);
+  const amountToFreeDelivery = Math.max(freeDeliveryThreshold - subtotal, 0);
   const [couponInput, setCouponInput] = useState('');
 
   const handleApplyCoupon = (e) => {
@@ -63,11 +67,14 @@ export default function CartSummary({ items }) {
           <span>₹{subtotal.toFixed(2)}</span>
         </div>
         <div className="flex justify-between text-gray-600">
-          <span>{t('cart.deliveryCharge', 'Delivery Charge')}</span>
+          <span className="flex items-center gap-1.5">
+            <FiTruck className="w-3.5 h-3.5 shrink-0 text-gray-400" aria-hidden />
+            {t('cart.deliveryCharge', 'Delivery Charge')}
+          </span>
           {deliveryCharge > 0 ? (
-            <span>₹{deliveryCharge.toFixed(2)}</span>
+            <span className="font-medium text-gray-800">₹{deliveryCharge.toFixed(2)}</span>
           ) : (
-            <span className="text-green-600 font-medium">{t('cart.free', 'Free')}</span>
+            <span className="text-green-600 font-semibold">{t('cart.free', 'Free')}</span>
           )}
         </div>
         {/* Discount/coupon placeholder architecture — only shown once a
@@ -85,7 +92,8 @@ export default function CartSummary({ items }) {
       {/* Nudge shown only while there's still a real gap to close, so it
           doesn't linger once free delivery already kicked in. */}
       {amountToFreeDelivery > 0 && (
-        <p className="text-xs text-amber-600 mt-3">
+        <p className="flex items-center gap-1.5 text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mt-3">
+          <FiTruck className="w-3.5 h-3.5 shrink-0" aria-hidden />
           {t(
             'cart.freeDeliveryNudge',
             'Add ₹{{amount}} more to get free delivery.',

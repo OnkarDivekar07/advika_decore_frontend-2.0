@@ -6,19 +6,18 @@
 // in checkout (see checkout-architecture.md §2). Reused as-is by both the
 // checkout address step (AddressSelectionPage) and the standalone address
 // book (AddressBookPage) — nothing here is checkout-specific.
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
-import { FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
 import {
   sanitizePhoneInput,
   isValidIndianMobile,
   toE164,
   fromE164,
 } from '@/utils/phoneValidation';
-import { PINCODE_REGEX, sanitizePincodeInput, isValidIndianPincode } from '@/utils/pincodeValidation';
-import { useDebouncedValue } from '@/features/products/hooks/useDebouncedValue';
-import * as shippingService from '@/services/shippingService';
+import { sanitizePincodeInput, isValidIndianPincode } from '@/utils/pincodeValidation';
+import { useServiceabilityCheck } from '@/features/shipping/hooks/useServiceabilityCheck';
+import ServiceabilityMessage from '@/components/Shipping/ServiceabilityMessage';
 
 const DELIVERY_INSTRUCTIONS_MAX = 200;
 
@@ -74,31 +73,9 @@ export default function AddressForm({
   // and checkout-architecture.md §2): the backend never blocks address
   // creation or draft-order creation on this, so a "not deliverable" or
   // failed check here never disables the Save button, just surfaces a
-  // heads-up before the user commits to this address.
-  const [serviceability, setServiceability] = useState({ status: 'idle', data: null });
-  const debouncedPincode = useDebouncedValue(form.pincode, 500);
-
-  useEffect(() => {
-    if (!PINCODE_REGEX.test(debouncedPincode)) {
-      setServiceability({ status: 'idle', data: null });
-      return;
-    }
-    let cancelled = false;
-    setServiceability({ status: 'checking', data: null });
-    shippingService
-      .checkServiceability({ pincode: debouncedPincode })
-      .then((data) => {
-        if (!cancelled) setServiceability({ status: 'ready', data });
-      })
-      .catch(() => {
-        // Non-critical — the user can still save the address and this
-        // gets re-validated for real at draft-order/shipping time.
-        if (!cancelled) setServiceability({ status: 'error', data: null });
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [debouncedPincode]);
+  // heads-up before the user commits to this address. Same shared hook
+  // ProductDetails/ReviewPage use — see useServiceabilityCheck.js.
+  const serviceability = useServiceabilityCheck(form.pincode);
 
   const setField = (field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -239,28 +216,14 @@ export default function AddressForm({
             autoComplete="postal-code"
           />
           {errors.pincode && <p className="text-xs text-red-500 mt-1">{errors.pincode}</p>}
-          {!errors.pincode && serviceability.status === 'checking' && (
-            <p className="text-xs text-gray-400 mt-1">
-              {t('checkout.checkingServiceability', 'Checking delivery availability…')}
-            </p>
-          )}
-          {!errors.pincode && serviceability.status === 'ready' && serviceability.data.serviceable && (
-            <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
-              <FiCheckCircle className="w-3.5 h-3.5 shrink-0" aria-hidden />
-              {serviceability.data.estimatedDays
-                ? t('checkout.deliversIn', 'Delivers in ~{{days}} days', {
-                    days: serviceability.data.estimatedDays,
-                  })
-                : t('checkout.deliverable', 'We deliver to this pincode')}
-              {serviceability.data.codAvailable === false &&
-                ` — ${t('checkout.codUnavailable', 'Cash on delivery not available here')}`}
-            </p>
-          )}
-          {!errors.pincode && serviceability.status === 'ready' && !serviceability.data.serviceable && (
-            <p className="text-xs text-amber-600 mt-1 flex items-center gap-1">
-              <FiAlertCircle className="w-3.5 h-3.5 shrink-0" aria-hidden />
-              {t('checkout.notServiceable', "We don't deliver to this pincode yet")}
-            </p>
+          {!errors.pincode && (
+            <ServiceabilityMessage
+              status={serviceability.status}
+              data={serviceability.data}
+              onRetry={serviceability.retry}
+              isRetrying={serviceability.status === 'checking'}
+              className="mt-1"
+            />
           )}
         </div>
         <div>

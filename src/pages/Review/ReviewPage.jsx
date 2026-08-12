@@ -16,14 +16,26 @@
 // Payment" is the only place reviewConfirmed is ever set — that's what
 // stops /checkout/payment itself from being reachable by skipping this
 // step (see CheckoutContext's confirmReview and PaymentPage's own guard).
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { FiEdit2, FiArrowLeft } from 'react-icons/fi';
+import { FiEdit2, FiArrowLeft, FiTruck } from 'react-icons/fi';
 import Spinner from '@/components/Shared/Spinner';
 import { useCheckout } from '@/contexts/CheckoutContext';
 import OrderSummaryCard from '@/components/Checkout/OrderSummaryCard';
 import OrderConflictsNotice from '@/components/Checkout/OrderConflictsNotice';
+import ServiceabilityMessage from '@/components/Shipping/ServiceabilityMessage';
+import { formatDeliveryDate } from '@/utils/formatDeliveryDate';
+import { useServiceabilityCheck } from '@/features/shipping/hooks/useServiceabilityCheck';
+
+// Mirrors shipping.service.js's own DEFAULT_ITEM_WEIGHT_KG fallback — the
+// Product model doesn't carry a real weight field yet on either side, so
+// this is only ever a best-effort echo of the same constant the backend
+// already applies when a weight is missing, never a second source of
+// truth for pricing/eligibility. Its only real job here is giving the
+// serviceability recheck below a number that moves whenever the draft
+// order's item quantities do.
+const FALLBACK_ITEM_WEIGHT_KG = 0.5;
 
 export default function ReviewPage() {
   const { t } = useTranslation();
@@ -81,6 +93,69 @@ export default function ReviewPage() {
   }, [isRestoring, selectedAddressId]);
 
   const selectedAddress = addresses.find((a) => a.id === selectedAddressId);
+
+  // Cart-derived recheck inputs — recomputed from the live draft order
+  // (itself already re-synced on arrival here and by "Refresh order"
+  // above) any time its items change, so a quantity change picked up mid-
+  // checkout (e.g. a stale draft re-synced back to a changed cart) also
+  // invalidates and re-runs the shipping check below, not just an address
+  // edit. `itemsSignature` is the reliable trigger — it changes on *any*
+  // item/quantity edit, including the rare case where a total-weight-based
+  // number alone wouldn't (e.g. two lines swapping quantities); weightKg
+  // is the actual value forwarded to the backend alongside it.
+  const orderItems = useMemo(() => draftOrder?.orderItems ?? [], [draftOrder?.orderItems]);
+  const itemsSignature = useMemo(
+    () =>
+      orderItems
+        .map((item) => `${item.productId ?? item.product?.id ?? item.id}:${item.quantity}`)
+        .sort()
+        .join('|'),
+    [orderItems]
+  );
+  const cartWeightKg = useMemo(
+    () => orderItems.reduce((sum, item) => sum + FALLBACK_ITEM_WEIGHT_KG * (item.quantity || 0), 0),
+    [orderItems]
+  );
+
+  // This is the one shipping check in checkout that's actually load-
+  // bearing rather than purely informational (contrast AddressForm's own
+  // use of the same hook): the backend's own order-placement gate
+  // (order.service.js's detectAddressConflict -> shippingService.
+  // checkDeliveryEligibility) runs this exact same check server-side
+  // right before COD confirmation / Razorpay order creation and blocks a
+  // definitively unserviceable address there — so surfacing "still
+  // checking" / "couldn't check, retry" / "not deliverable" here, before
+  // the customer ever reaches Payment, avoids sending them forward only
+  // to be bounced back by that same rule a step later. debounceMs: 0 since
+  // the pincode here is already a saved, validated address, not
+  // free-typed input like AddressForm's; subtotal/weightKg/recalcKey tie
+  // this to the live draft order so cart changes invalidate it exactly
+  // like a pincode/address change would (see useServiceabilityCheck.js).
+  const {
+    status: shippingStatus,
+    data: deliveryEstimate,
+    retry: retryShippingCheck,
+  } = useServiceabilityCheck(selectedAddress?.pincode, {
+    debounceMs: 0,
+    enabled: !!selectedAddress?.pincode,
+    weightKg: cartWeightKg || undefined,
+    subtotal: typeof draftOrder?.subtotal === 'number' ? draftOrder.subtotal : undefined,
+    recalcKey: itemsSignature,
+  });
+
+  // Definitive negative — the backend would reject this exact address the
+  // same way at placement time (see the comment above), so there's
+  // nothing a retry against the *same* address/cart would change; the fix
+  // is picking a different address, not re-asking Ekart the same
+  // question.
+  const shippingUnserviceable = shippingStatus === 'ready' && deliveryEstimate?.serviceable === false;
+  // The check is either still running or couldn't get an answer at all —
+  // both are "we don't yet know if this is deliverable" rather than a
+  // confirmed no, so Payment stays blocked until it resolves (or the
+  // customer retries) rather than letting a silent gap through.
+  const shippingCheckPending = shippingStatus === 'checking';
+  const shippingCheckFailed = shippingStatus === 'error';
+  const shippingBlocksProceed = shippingCheckPending || shippingCheckFailed || shippingUnserviceable;
 
   const handleRefreshOrder = async () => {
     if (!selectedAddressId) return;
@@ -140,6 +215,51 @@ export default function ReviewPage() {
                 {selectedAddress.houseArea}, {selectedAddress.city}, {selectedAddress.state} —{' '}
                 {selectedAddress.pincode}
               </p>
+              {/* Serviceable + something to say about timing: the normal,
+                  happy-path case, unchanged from before. */}
+              {(() => {
+                if (!(shippingStatus === 'ready' && deliveryEstimate?.serviceable)) return null;
+                const formattedDate = formatDeliveryDate(deliveryEstimate.estimatedDeliveryDate);
+                const label = formattedDate
+                  ? t('checkout.estimatedDeliveryByDate', 'Estimated delivery by {{date}}', {
+                      date: formattedDate,
+                    })
+                  : deliveryEstimate.estimatedDays
+                    ? t('checkout.deliversIn', 'Delivers in ~{{days}} days', {
+                        days: deliveryEstimate.estimatedDays,
+                      })
+                    : null;
+                if (!label) return null;
+                return (
+                  <p className="text-sm text-[var(--clr-primary-dark)] mt-1.5 flex items-center gap-1.5">
+                    <FiTruck className="w-3.5 h-3.5 shrink-0" aria-hidden />
+                    {label}
+                  </p>
+                );
+              })()}
+              {/* Checking / failed / definitively unserviceable — unlike
+                  the happy path above, these are exactly the states that
+                  hold "Proceed to Payment" back (see shippingBlocksProceed
+                  below), so they always get a visible, worded status
+                  rather than silently disabling the button. The error
+                  branch carries the one real backend retry action in this
+                  step — re-asks the same check, doesn't just clear the
+                  local error and hope. */}
+              {shippingCheckPending && (
+                <p className="text-xs text-gray-400 mt-1.5 flex items-center gap-1.5">
+                  <Spinner size={12} />
+                  {t('checkout.checkingServiceability', 'Checking delivery availability…')}
+                </p>
+              )}
+              {(shippingCheckFailed || shippingUnserviceable) && (
+                <ServiceabilityMessage
+                  status={shippingStatus}
+                  data={deliveryEstimate}
+                  onRetry={shippingCheckFailed ? retryShippingCheck : undefined}
+                  isRetrying={shippingCheckPending}
+                  className="mt-1.5"
+                />
+              )}
             </>
           ) : (
             <p className="text-sm text-gray-500">{t('checkout.addressOnFile', 'Address on file')}</p>
@@ -173,12 +293,29 @@ export default function ReviewPage() {
         <button
           type="button"
           onClick={handleProceed}
-          disabled={!canProceedToReview || !!conflicts}
+          disabled={!canProceedToReview || !!conflicts || shippingBlocksProceed}
           className="btn btn-primary flex-1 py-3 disabled:opacity-60 disabled:cursor-not-allowed"
         >
-          {t('checkout.proceedToPayment', 'Proceed to Payment')}
+          {shippingCheckPending
+            ? t('checkout.checkingServiceability', 'Checking delivery availability…')
+            : t('checkout.proceedToPayment', 'Proceed to Payment')}
         </button>
       </div>
+
+      {/* Why the button above is disabled, when it's the shipping check
+          rather than canProceedToReview/conflicts holding it back —
+          those two already explain themselves elsewhere (the spinner
+          screen above, and OrderConflictsNotice). Unserviceable points
+          at the fix (a different address) rather than a retry, matching
+          the ServiceabilityMessage shown in the address card above. */}
+      {canProceedToReview && shippingUnserviceable && (
+        <p className="text-xs text-amber-600 -mt-2 text-center sm:text-right">
+          {t(
+            'checkout.cannotProceedUnserviceable',
+            "We can't confirm delivery to this address. Choose a different address to continue."
+          )}
+        </p>
+      )}
     </div>
   );
 }

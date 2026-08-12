@@ -40,7 +40,7 @@ import {
   clearBuyNowItem,
 } from '@/features/cart/cartUtils';
 import { handleError } from '@/utils/errorHandler';
-import { calculateDeliveryCharge } from '@/config/pricing';
+import { usePricing } from '@/contexts/PricingContext';
 import { MAX_CART_QUANTITY } from '@/config/cartLimits';
 
 const CartContext = createContext(null);
@@ -87,6 +87,10 @@ export const mergeCartItems = (backendRows, guestItems) => {
 
 export function CartProvider({ children }) {
   const { isAuthenticated, isRestoring } = useAuth();
+  // Backend-configured delivery rule (see PricingContext.jsx) — used only
+  // in the guest-cart fallback branch of `summary` below, same role
+  // config/pricing.js's calculateDeliveryCharge used to play directly.
+  const { calculateDeliveryCharge } = usePricing();
   const [items, setItems] = useState([]);
   const [mode, setMode] = useState('guest'); // 'guest' | 'backend'
   // Starts true (not false): AuthContext's `isRestoring` is also true on
@@ -731,7 +735,8 @@ export function CartProvider({ children }) {
   // `backendSummary` above / cart.controller.js's `meta.summary`) — the
   // single source of truth for what an authenticated cart's totals are,
   // never recomputed here. This is also why `calculateDeliveryCharge` is
-  // imported from src/config/pricing.js at all: it's ONLY used in the
+  // pulled from usePricing() (PricingContext.jsx, itself fetched from
+  // GET /api/shipping/delivery-config) at all: it's ONLY used in the
   // fallback branch below, for a cart the backend has no way to price —
   // an anonymous guest cart. Once that guest cart is merged in at login
   // (see syncGuestCartToBackend), this whole branch stops being consulted
@@ -741,7 +746,7 @@ export function CartProvider({ children }) {
     const subtotal = items.reduce((acc, item) => acc + item.price * item.quantity, 0);
     const deliveryCharge = calculateDeliveryCharge(subtotal);
     return { subtotal, deliveryCharge, total: subtotal + deliveryCharge };
-  }, [mode, backendSummary, items]);
+  }, [mode, backendSummary, items, calculateDeliveryCharge]);
 
   // What CartSummary should treat as the actual "final payable amount":
   // summary.total - discount, floored at 0 the same way the backend

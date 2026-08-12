@@ -5,6 +5,8 @@ import { useTranslation } from 'react-i18next';
 import { FiHeart, FiCheckCircle, FiXCircle, FiAlertTriangle } from 'react-icons/fi';
 import QuantitySelector from './QuantitySelector';
 import ActionButtons from '../Shared/ActionButtons';
+import DeliveryChargeEstimate from '../Shipping/DeliveryChargeEstimate';
+import PincodeServiceabilityCheck from '../Shipping/PincodeServiceabilityCheck';
 import { useCart } from '@/contexts/CartContext';
 import { useAuthGate } from '@/contexts/AuthGateContext';
 import { toast } from 'react-toastify';
@@ -142,6 +144,15 @@ export default function ProductDetails({ product }) {
           <span className="text-sm text-gray-500">{t('productDetail.perUnit', '/ {{unit}}', { unit })}</span>
         )}
       </div>
+
+      {/* Delivery charge — computed against price × selected quantity, so
+          it updates live as the quantity selector below changes. */}
+      {hasValidPrice && <DeliveryChargeEstimate subtotal={priceValue * quantity} />}
+
+      {/* Pincode delivery-date check — separate from the flat delivery
+          charge shown above, since timing (unlike charge) genuinely
+          depends on where this ships to. */}
+      <PincodeServiceabilityCheck />
 
       {/* Stock status */}
       <StockBadge stock={stock} t={t} />

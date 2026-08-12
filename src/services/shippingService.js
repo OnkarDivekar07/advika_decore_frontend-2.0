@@ -9,18 +9,40 @@
 import apiClient from '@/utils/apiClient';
 
 /**
+ * Fetches the backend-configured delivery pricing rule (free-delivery
+ * threshold + flat delivery charge below it — see the backend's
+ * src/constants/pricing.js / src/config/env.js, where these are themselves
+ * driven by FREE_DELIVERY_THRESHOLD / DELIVERY_CHARGE env vars). Public,
+ * cheap, and stable — safe to call once at app start and cache for the
+ * session rather than refetching per page. See PricingContext.jsx, the
+ * only caller; components should read `usePricing()` rather than calling
+ * this directly.
+ *
+ * @returns {Promise<{ freeDeliveryThreshold: number, deliveryCharge: number }>}
+ */
+export const getDeliveryConfig = async () => {
+  const { data } = await apiClient.get('/api/shipping/delivery-config');
+  return data.data;
+};
+
+/**
  * Checks whether a pincode is serviceable, before or during checkout.
  * Public endpoint — no auth required, safe to call as soon as a 6-digit
  * pincode is entered on the address form.
  *
- * @param {{ pincode: string, paymentMode?: 'COD'|'PREPAID', weightKg?: number }} params
- * @returns {Promise<{ serviceable: boolean, estimatedDays: number|null, codAvailable: boolean }>}
+ * @param {{ pincode: string, paymentMode?: 'COD'|'PREPAID', weightKg?: number, subtotal?: number }} params
+ *   `subtotal`, when passed, is only ever forwarded so the *same* call can
+ *   also return deliveryCharge/freeDeliveryThreshold/freeDeliveryEligible
+ *   for that amount (see shipping.service.js's checkServiceability on the
+ *   backend) — it's never used to compute anything client-side.
+ * @returns {Promise<{ serviceable: boolean, reason: 'INVALID_PINCODE'|'AREA_NOT_COVERED'|null, estimatedDays: number|null, estimatedDeliveryDate: string|null, codAvailable: boolean }>}
  */
-export const checkServiceability = async ({ pincode, paymentMode, weightKg }) => {
+export const checkServiceability = async ({ pincode, paymentMode, weightKg, subtotal }) => {
   const { data } = await apiClient.post('/api/shipping/serviceability', {
     pincode,
     ...(paymentMode ? { paymentMode } : {}),
     ...(weightKg ? { weightKg } : {}),
+    ...(typeof subtotal === 'number' ? { subtotal } : {}),
   });
   return data.data;
 };

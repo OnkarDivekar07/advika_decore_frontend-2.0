@@ -15,9 +15,14 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
-import { FiTruck, FiRefreshCw, FiPackage } from 'react-icons/fi';
+import { FiTruck, FiRefreshCw, FiPackage, FiCalendar } from 'react-icons/fi';
 import * as shippingService from '@/services/shippingService';
 import { handleError } from '@/utils/errorHandler';
+import { formatDeliveryDate } from '@/utils/formatDeliveryDate';
+
+// Once a shipment has reached one of these, "estimated delivery" no longer
+// means anything useful — it's either already happened or isn't going to.
+const TERMINAL_STATUSES = new Set(['DELIVERED', 'RTO_INITIATED', 'RTO_DELIVERED', 'CANCELLED']);
 
 const CANCELLABLE_STATUSES = new Set([
   'CREATED',
@@ -152,6 +157,21 @@ export default function ShipmentStatusCard({ orderId }) {
       </div>
 
       <div className="text-sm text-gray-600 flex flex-col gap-1">
+        {/* estimatedDeliveryDate is set on the shipment when it's created,
+            and kept fresh by the backend if Ekart later revises it (see
+            shipping.service.js) — shown here only while it's still
+            meaningful (not already delivered/returned/cancelled). */}
+        {!TERMINAL_STATUSES.has(shipment.status) && formatDeliveryDate(shipment.estimatedDeliveryDate) && (
+          <div className="flex justify-between">
+            <span className="flex items-center gap-1.5">
+              <FiCalendar className="w-3.5 h-3.5 shrink-0 text-gray-400" aria-hidden />
+              {t('checkout.estimatedDelivery', 'Estimated delivery')}
+            </span>
+            <span className="font-medium text-gray-900">
+              {formatDeliveryDate(shipment.estimatedDeliveryDate)}
+            </span>
+          </div>
+        )}
         {shipment.trackingId && (
           <div className="flex justify-between">
             <span>{t('checkout.trackingId', 'Tracking ID')}</span>

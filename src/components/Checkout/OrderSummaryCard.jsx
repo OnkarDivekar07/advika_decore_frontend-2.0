@@ -19,6 +19,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
+import { FiTruck } from 'react-icons/fi';
 
 export default function OrderSummaryCard({ order, title }) {
   const { t } = useTranslation();
@@ -54,11 +55,14 @@ export default function OrderSummaryCard({ order, title }) {
       </div>
 
       <div className="flex justify-between text-sm text-gray-600">
-        <span>{t('cart.deliveryCharge', 'Delivery Charge')}</span>
+        <span className="flex items-center gap-1.5">
+          <FiTruck className="w-3.5 h-3.5 shrink-0 text-gray-400" aria-hidden />
+          {t('cart.deliveryCharge', 'Delivery Charge')}
+        </span>
         {deliveryCharge > 0 ? (
-          <span>₹{deliveryCharge.toFixed(2)}</span>
+          <span className="font-medium text-gray-800">₹{deliveryCharge.toFixed(2)}</span>
         ) : (
-          <span className="text-green-600 font-medium">{t('cart.free', 'Free')}</span>
+          <span className="text-green-600 font-semibold">{t('cart.free', 'Free')}</span>
         )}
       </div>
 
