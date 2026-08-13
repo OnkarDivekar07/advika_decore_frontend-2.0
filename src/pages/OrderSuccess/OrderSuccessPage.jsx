@@ -26,6 +26,7 @@ import Navbar from '@/components/Navbar/Navbar';
 import Spinner from '@/components/Shared/Spinner';
 import ShipmentStatusCard from '@/components/Shipping/ShipmentStatusCard';
 import OrderSummaryCard from '@/components/Checkout/OrderSummaryCard';
+import AddressCard from '@/components/Address/AddressCard';
 import { useCart } from '@/contexts/CartContext';
 import * as orderService from '@/services/orderService';
 
@@ -232,12 +233,45 @@ export default function OrderSuccessPage() {
                 : t('orderSuccess.paidBody', 'Your payment was received and your order is confirmed.')}
         </p>
 
-        <div className="flex justify-between text-sm text-gray-600 mb-4 max-w-md mx-auto">
+        <div className="flex justify-between text-sm text-gray-600 mb-1 max-w-md mx-auto">
           <span>{t('orderSuccess.orderId', 'Order ID')}</span>
           <span className="font-mono text-gray-900">{order.id}</span>
         </div>
 
-        <div className="mx-auto max-w-md text-left">
+        {/* Reuses the same isFailed/isProcessing/paymentMethod this page
+            already derives from order.paymentStatus for its headline/icon
+            above — a compact, scannable label alongside Order ID rather
+            than a second, separately-computed status. */}
+        <div className="flex justify-between text-sm text-gray-600 mb-4 max-w-md mx-auto">
+          <span>{t('orderSuccess.paymentStatus', 'Payment')}</span>
+          <span
+            className={`font-medium ${
+              isFailed ? 'text-rose-600' : isProcessing ? 'text-amber-600' : 'text-green-600'
+            }`}
+          >
+            {paymentMethod === 'cod'
+              ? t('orderSuccess.paymentCod', 'Cash on Delivery')
+              : isFailed
+                ? t('orderSuccess.paymentFailed', 'Failed')
+                : isProcessing
+                  ? t('orderSuccess.paymentProcessing', 'Processing')
+                  : t('orderSuccess.paymentPaid', 'Paid')}
+          </span>
+        </div>
+
+        <div className="mx-auto max-w-md text-left flex flex-col gap-4">
+          {/* order.address comes from the same GET /api/order/:id fetch as
+              everything else on this page (see order.service.js's
+              fetchOrderById, which includes it) — the actual address this
+              order ships to, not whatever was last selected client-side. */}
+          {order.address && (
+            <div>
+              <h2 className="text-sm font-semibold text-gray-500 mb-2">
+                {t('orderSuccess.deliveringTo', 'Delivering to')}
+              </h2>
+              <AddressCard address={order.address} />
+            </div>
+          )}
           <OrderSummaryCard order={order} />
         </div>
 
