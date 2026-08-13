@@ -20,8 +20,10 @@ import { FiArrowLeft } from 'react-icons/fi';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCheckout } from '@/contexts/CheckoutContext';
 import { handleError } from '@/utils/errorHandler';
+import { toast } from 'react-toastify';
 import OrderSummaryCard from '@/components/Checkout/OrderSummaryCard';
 import OrderConflictsNotice from '@/components/Checkout/OrderConflictsNotice';
+import PaymentStatusNotice from '@/components/Checkout/PaymentStatusNotice';
 
 export default function PaymentPage() {
   const { t } = useTranslation();
@@ -46,6 +48,14 @@ export default function PaymentPage() {
   } = useCheckout();
 
   const [isRefreshingOrder, setIsRefreshingOrder] = useState(false);
+  // Set only for a *definite* online-payment outcome that wasn't success —
+  // either Razorpay reporting the attempt itself failed ('failed') or the
+  // customer closing the modal before attempting anything ('cancelled').
+  // An ambiguous network hiccup never lands here — see handlePlaceOrder
+  // below and CheckoutContext.payOnline's reconciliation step. Cleared on
+  // every new attempt and on a payment-method switch, so it never lingers
+  // across an unrelated action.
+  const [paymentNotice, setPaymentNotice] = useState(null); // { variant: 'failed' | 'cancelled', message } | null
 
   // Keeps the persisted "current step" hint (see checkoutStorage.js) in
   // sync whenever this step is actually the one on screen.
@@ -73,6 +83,7 @@ export default function PaymentPage() {
   const selectedAddress = addresses.find((a) => a.id === selectedAddressId);
 
   const handlePlaceOrder = async () => {
+    setPaymentNotice(null);
     try {
       if (method === 'cod') {
         const order = await placeCODOrder();
@@ -93,7 +104,45 @@ export default function PaymentPage() {
       // surfaced persistently via the OrderConflictsNotice below — the
       // toast is still useful as an immediate signal, but the banner is
       // what actually tells the customer what changed and how to recover.
-      handleError(error, t('checkout.orderFailed', "Couldn't place your order. Please try again."));
+      // Checked directly off the error's own shape (same check
+      // CheckoutContext's extractConflicts uses), not the `conflicts`
+      // state above — that state was only just set (if at all) inside
+      // payOnline/placeCODOrder moments ago and hasn't re-rendered into
+      // this closure yet.
+      const hasConflicts = !!error?.response?.data?.errors?.conflicts;
+      if (hasConflicts) {
+        handleError(error, t('checkout.orderFailed', "Couldn't place your order. Please try again."));
+        return;
+      }
+
+      // Online payment, tagged by paymentService.openRazorpayCheckout /
+      // CheckoutContext.payOnline (see RazorpayCheckoutError). Both are
+      // *definite* outcomes — no amount was charged either way, and the
+      // draft order/Razorpay order underneath is untouched (see
+      // payment.controller.js's createOrderid reuse-or-reconcile) — so
+      // both are safe to just retry from right here:
+      //  - 'cancelled'      the customer backed out themselves before
+      //                     attempting anything. Nothing went wrong, so
+      //                     this gets a neutral (not error-styled) banner
+      //                     plus a plain info toast, not an error one.
+      //  - 'gateway_failed' Razorpay definitively rejected the attempt
+      //                     (card declined, UPI failed, etc.) — surfaced
+      //                     as an actual alert banner, since the customer
+      //                     needs to actually read and act on it (e.g.
+      //                     try a different card, or switch to COD)
+      //                     before trying again.
+      if (error?.reason === 'cancelled') {
+        setPaymentNotice({ variant: 'cancelled', message: null });
+        toast.info(t('checkout.paymentCancelledToast', 'Payment cancelled. No amount was charged.'));
+      } else if (error?.reason === 'gateway_failed') {
+        setPaymentNotice({ variant: 'failed', message: error.message });
+      } else {
+        // Ambiguous failure that reconciliation (in payOnline) couldn't
+        // resolve either way — COD's own placement error, a plain network
+        // failure, etc. Same toast as before; not definite enough to
+        // brand as a payment outcome specifically.
+        handleError(error, t('checkout.orderFailed', "Couldn't place your order. Please try again."));
+      }
     }
   };
 
@@ -116,6 +165,14 @@ export default function PaymentPage() {
           conflicts={conflicts}
           onRefresh={handleRefreshOrder}
           isRefreshing={isRefreshingOrder}
+        />
+      )}
+
+      {paymentNotice && (
+        <PaymentStatusNotice
+          variant={paymentNotice.variant}
+          message={paymentNotice.message}
+          onDismiss={() => setPaymentNotice(null)}
         />
       )}
 
@@ -146,7 +203,10 @@ export default function PaymentPage() {
             type="radio"
             name="paymentMethod"
             checked={method === 'online'}
-            onChange={() => setMethod('online')}
+            onChange={() => {
+              setPaymentNotice(null);
+              setMethod('online');
+            }}
           />
           <span className="text-sm font-medium text-gray-800">
             {t('checkout.payOnline', 'Pay online (UPI / Card / Netbanking)')}
@@ -157,7 +217,10 @@ export default function PaymentPage() {
             type="radio"
             name="paymentMethod"
             checked={method === 'cod'}
-            onChange={() => setMethod('cod')}
+            onChange={() => {
+              setPaymentNotice(null);
+              setMethod('cod');
+            }}
           />
           <span className="text-sm font-medium text-gray-800">
             {t('checkout.payCod', 'Cash on Delivery')}
@@ -185,7 +248,9 @@ export default function PaymentPage() {
             ? t('checkout.placingOrder', 'Placing your order…')
             : method === 'cod'
               ? t('checkout.placeOrder', 'Place Order')
-              : t('checkout.payAmount', 'Pay ₹{{amount}}', { amount: (draftOrder.total ?? 0).toFixed(2) })}
+              : paymentNotice
+                ? t('checkout.retryPayment', 'Retry payment')
+                : t('checkout.payAmount', 'Pay ₹{{amount}}', { amount: (draftOrder.total ?? 0).toFixed(2) })}
         </button>
       </div>
     </div>

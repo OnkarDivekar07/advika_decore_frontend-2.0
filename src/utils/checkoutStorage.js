@@ -25,6 +25,17 @@
 //   - reviewConfirmed    — has the review step been seen for that address
 //   - step               — which checkout step the UI was last on
 //   - paymentMethod      — 'online' | 'cod' radio selection
+//   - pendingPaymentOrderId — the draft order's own id, set right before a
+//                          COD/online payment attempt that can actually
+//                          move money (see CheckoutContext's
+//                          placeCODOrder/payOnline). Just an id, same
+//                          sensitivity as selectedAddressId — used solely
+//                          to let a refresh mid-payment ask the backend
+//                          "did *this* order end up paid?" before falling
+//                          back to the normal draft-order restore path,
+//                          which would otherwise treat an already-
+//                          confirmed order as gone and risk spinning up
+//                          (and letting the customer pay for) a duplicate.
 //
 // Never persisted here, on principle, even if a caller tries to pass it —
 // see STORABLE_KEYS below, which silently drops anything not in the
@@ -43,7 +54,13 @@ const CHECKOUT_STATE_KEY = 'checkoutState';
 // what stops a future caller from accidentally sessionStorage-ing
 // something it shouldn't (a draft order, a totals object, a payment
 // token) just by spreading too much state into the call.
-const STORABLE_KEYS = ['selectedAddressId', 'reviewConfirmed', 'step', 'paymentMethod'];
+const STORABLE_KEYS = [
+  'selectedAddressId',
+  'reviewConfirmed',
+  'step',
+  'paymentMethod',
+  'pendingPaymentOrderId',
+];
 const VALID_STEPS = ['address', 'review', 'payment'];
 const VALID_PAYMENT_METHODS = ['online', 'cod'];
 
@@ -59,6 +76,9 @@ const sanitize = (parsed) => {
   const out = {};
   if (typeof parsed.selectedAddressId === 'string' && parsed.selectedAddressId) {
     out.selectedAddressId = parsed.selectedAddressId;
+  }
+  if (typeof parsed.pendingPaymentOrderId === 'string' && parsed.pendingPaymentOrderId) {
+    out.pendingPaymentOrderId = parsed.pendingPaymentOrderId;
   }
   out.reviewConfirmed = !!parsed.reviewConfirmed;
   out.step = VALID_STEPS.includes(parsed.step) ? parsed.step : 'address';

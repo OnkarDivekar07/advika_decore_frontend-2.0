@@ -21,6 +21,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { useNavigate } from 'react-router-dom';
 import * as addressService from '@/services/addressService';
 import * as orderService from '@/services/orderService';
 import * as paymentService from '@/services/paymentService';
@@ -36,6 +37,8 @@ const CheckoutContext = createContext(null);
 export const STEPS = ['address', 'review', 'payment'];
 
 export function CheckoutProvider({ children }) {
+  const navigate = useNavigate();
+
   // Read once, synchronously, before any effects run — this is what makes
   // isRestoring's initial value (below) accurate on the very first render,
   // so a page that bounces on "nothing to show yet" (PaymentPage) knows to
@@ -90,7 +93,9 @@ export function CheckoutProvider({ children }) {
   // provider hasn't finished trying to restore/re-validate yet — a normal
   // (non-refreshed) checkout visit starts with nothing saved, so this is
   // `false` for it from the very first render and never costs it anything.
-  const [isRestoring, setIsRestoring] = useState(!!savedStateRef.current?.selectedAddressId);
+  const [isRestoring, setIsRestoring] = useState(
+    !!(savedStateRef.current?.selectedAddressId || savedStateRef.current?.pendingPaymentOrderId)
+  );
 
   const extractConflicts = (error) => error?.response?.data?.errors?.conflicts ?? null;
 
@@ -245,10 +250,65 @@ export function CheckoutProvider({ children }) {
     restoreAttemptedRef.current = true;
 
     const saved = savedStateRef.current;
-    if (!saved?.selectedAddressId) return; // isRestoring already starts false in this case
+    if (!saved?.selectedAddressId && !saved?.pendingPaymentOrderId) return; // isRestoring already starts false in this case
 
     (async () => {
       try {
+        // A refresh (or crash/reload) that landed while a payment attempt
+        // was in flight — see placeCODOrder/payOnline below, which save
+        // this id right before the request that can actually move money —
+        // has to be checked BEFORE anything else here. The normal restore
+        // path further down only ever looks for an order with
+        // status:'draft'; once *this* attempt has actually gone through
+        // (COD confirmed synchronously but the response never made it
+        // back, or Razorpay's webhook reconciled the payment before this
+        // tab reloaded — see payment.service.js), the backend has already
+        // flipped that order to 'confirmed', so it's no longer 'draft'.
+        // Left unchecked, that makes refreshDraftOrder below treat the
+        // paid order as if it never existed and spin up a brand-new draft
+        // from whatever's still in the cart (cart-clearing is a queued,
+        // async job — see clearCartQueue — so it isn't guaranteed to have
+        // run yet either). That's not just a confusing "pay again" screen
+        // for an order the customer already paid for — if they actually
+        // do pay again, it's a real double charge. Checking the specific
+        // order id first, and jumping straight to its success page if
+        // it's already paid, is what closes that gap.
+        if (saved.pendingPaymentOrderId) {
+          try {
+            const order = await orderService.getOrderById(saved.pendingPaymentOrderId);
+            // 'confirmed' — not paymentStatus === 'paid' — is the right
+            // gate here: it's the one status both a captured online
+            // payment AND a placed COD order reach (COD's own paymentStatus
+            // is 'cod_pending', never 'paid' — see payment.service.js's
+            // handleCODOrder), so checking paymentStatus alone would miss
+            // exactly the COD half of this same race.
+            if (order?.status === 'confirmed') {
+              clearSavedCheckoutState();
+              navigate(`/order/success/${order.id}`, {
+                replace: true,
+                state: {
+                  order,
+                  paymentMethod: order.paymentStatus === 'cod_pending' ? 'cod' : 'online',
+                  paymentStatus: order.paymentStatus,
+                },
+              });
+              return;
+            }
+            // Still 'draft' — either the attempt never actually went
+            // through (still 'pending'/'failed', or a plain abandoned
+            // attempt), or it did but hasn't been reconciled yet (webhook
+            // in flight). Either way it's safe to fall through to the
+            // normal restore below, which will find and re-validate it
+            // exactly like any other draft order.
+          } catch {
+            // Couldn't check (offline, or the order genuinely no longer
+            // exists/isn't this user's) — fall through to the normal
+            // restore rather than getting stuck on this alone.
+          }
+        }
+
+        if (!saved.selectedAddressId) return;
+
         const list = await loadAddresses();
         const stillExists = list.some((a) => a.id === saved.selectedAddressId);
         if (stillExists) {
@@ -278,7 +338,7 @@ export function CheckoutProvider({ children }) {
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loadAddresses, refreshDraftOrder]);
+  }, [loadAddresses, refreshDraftOrder, navigate]);
 
   const goToStep = useCallback((next) => {
     if (!STEPS.includes(next)) return;
@@ -317,6 +377,14 @@ export function CheckoutProvider({ children }) {
   const placeCODOrder = useCallback(async () => {
     if (!draftOrder) throw new Error('No draft order to place.');
     setIsPlacingOrder(true);
+    // Recorded before the request that actually confirms the order, so a
+    // refresh that lands after the backend committed it but before this
+    // tab ever saw the response has something to check on restore (see
+    // the restore effect above) instead of treating the now-confirmed
+    // order as gone. Cleared below on success via clearSavedCheckoutState;
+    // left in place on failure is harmless — the restore check is a cheap
+    // no-op against a still-'draft' order.
+    saveCheckoutState({ pendingPaymentOrderId: draftOrder.id });
     try {
       // Idempotent server-side (see payment.service.js's handleCODOrder) —
       // a retry after a dropped response (order placed, but the response
@@ -345,6 +413,16 @@ export function CheckoutProvider({ children }) {
     async ({ customerName, customerPhone }) => {
       if (!draftOrder) throw new Error('No draft order to pay for.');
       setIsPlacingOrder(true);
+      // Same reasoning as placeCODOrder above, but the window this covers
+      // matters even more here: once the Razorpay modal's handler fires,
+      // money has moved even though this promise hasn't resolved yet, and
+      // a refresh anywhere between then and /verify completing (network
+      // drop, closed tab, or simply the customer refreshing) has to be
+      // able to tell "already paid" from "still a plain draft" on restore
+      // — see the restore effect above. Recorded up front rather than
+      // right before openRazorpayCheckout so it's in place even if the
+      // very createRazorpayOrder call below is what a refresh interrupts.
+      saveCheckoutState({ pendingPaymentOrderId: draftOrder.id });
       try {
         // Can 409 here if the draft has gone stale since it was last
         // fetched (see payment.controller.js's createOrderid — it runs
@@ -394,11 +472,24 @@ export function CheckoutProvider({ children }) {
         // real state before telling the customer it failed: that's what
         // would otherwise send them to retry and risk paying twice.
         // Skipped for an explicit cancel/failure Razorpay itself reported
-        // (see paymentService.openRazorpayCheckout) — those never reached
-        // a state where money could have moved, so there's nothing to
-        // reconcile and no reason to spend an extra round trip on it.
+        // (see paymentService.openRazorpayCheckout's RazorpayCheckoutError)
+        // — those never reached a state where money could have moved (or
+        // Razorpay has already told us definitively it didn't), so
+        // there's nothing to reconcile and no reason to spend an extra
+        // round trip on it.
         const isDefiniteFailure =
-          error?.message === 'Payment cancelled.' || error?.message === 'Payment failed.';
+          error?.reason === 'cancelled' || error?.reason === 'gateway_failed';
+
+        if (error?.reason === 'cancelled') {
+          // Fire-and-forget — this is bookkeeping for the backend's payment
+          // state machine (see payment.service.js's cancelPaymentAttempt),
+          // not something the customer needs to wait on or that should turn
+          // an already-handled local cancel into a surfaced error if it
+          // fails. If it doesn't land, the order still resolves on its own
+          // via the backend's stale-attempt sweep (reconcileStalePaymentAttempts).
+          paymentService.cancelPaymentAttempt(draftOrder.id).catch(() => {});
+        }
+
         if (!isDefiniteFailure) {
           try {
             const reconciled = await orderService.getOrderById(draftOrder.id);
@@ -411,6 +502,15 @@ export function CheckoutProvider({ children }) {
             // The recovery check itself failed (e.g. also offline) — fall
             // through to the normal error path below.
           }
+        }
+
+        // Tag the order id onto whatever we throw (conflict errors bypass
+        // this via the early `throw error` above) so PaymentPage can show
+        // a "retry this order" affordance without having to thread
+        // draftOrder through the catch block itself. Harmless to add on a
+        // plain Error too — it's just an extra property callers may ignore.
+        if (error && typeof error === 'object') {
+          error.orderId = error.orderId || draftOrder.id;
         }
 
         throw error;
