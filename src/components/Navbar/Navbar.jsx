@@ -2,7 +2,7 @@
 import React, { useState, useCallback, useContext, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { FiHome, FiHeart, FiShoppingCart, FiUser, FiSearch, FiX, FiMenu, FiLogOut, FiGrid, FiMapPin } from 'react-icons/fi';
+import { FiHome, FiHeart, FiShoppingCart, FiUser, FiSearch, FiX, FiMenu, FiLogOut, FiGrid, FiMapPin, FiPackage } from 'react-icons/fi';
 import { FaTruck } from 'react-icons/fa';
 import { AuthContext } from '@/contexts/AuthContext';
 
@@ -43,7 +43,10 @@ export default function Navbar() {
   // top strip doesn't get crowded on small screens; it still appears in
   // the desktop nav and the mobile dropdown below.
   const accountLinks = isAuthenticated
-    ? [{ to: '/addresses', icon: <FiMapPin />, label: t('addresses.navLabel', 'Addresses') }]
+    ? [
+        { to: '/orders', icon: <FiPackage />, label: t('orders.navLabel', 'My Orders') },
+        { to: '/addresses', icon: <FiMapPin />, label: t('addresses.navLabel', 'Addresses') },
+      ]
     : [];
 
   const handleLogout = useCallback(() => {

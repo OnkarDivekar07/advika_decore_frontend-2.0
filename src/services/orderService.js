@@ -39,6 +39,23 @@ export const getDraftOrder = async () => {
 };
 
 /**
+ * Fetches a paginated page of the logged-in user's placed orders ("My
+ * Orders") — GET /api/order/history. Never includes the in-progress draft
+ * order getDraftOrder above returns; only orders that have actually been
+ * placed (pending/confirmed/shipped/delivered/cancelled/returned), newest
+ * first (see order.service.js#getUserOrderHistory).
+ *
+ * @param {{ page?: number, limit?: number }} [params]
+ * @returns {Promise<{ orders: object[], meta: { total: number, page: number, limit: number, totalPages: number } }>}
+ */
+export const getOrderHistory = async ({ page = 1, limit = 10 } = {}) => {
+  const { data } = await apiClient.get('/api/order/history', {
+    params: { page, limit },
+  });
+  return { orders: data.data ?? [], meta: data.meta ?? {} };
+};
+
+/**
  * Fetches a single order by id — owner-or-admin (see order.routes.js /
  * order.controller.js's getOrderById). This is the ONE authoritative
  * source for a placed order's final state (status, paymentStatus, address,

@@ -27,6 +27,7 @@ import Spinner from '@/components/Shared/Spinner';
 import ShipmentStatusCard from '@/components/Shipping/ShipmentStatusCard';
 import OrderSummaryCard from '@/components/Checkout/OrderSummaryCard';
 import AddressCard from '@/components/Address/AddressCard';
+import PaymentInfoCard from '@/components/Orders/PaymentInfoCard';
 import { useCart } from '@/contexts/CartContext';
 import * as orderService from '@/services/orderService';
 
@@ -52,7 +53,7 @@ export default function OrderSuccessPage() {
   const { t } = useTranslation();
   const { orderId } = useParams();
   const location = useLocation();
-  const { paymentMethod: methodHint } = location.state || {};
+  const { paymentMethod: methodHint, fromHistory } = location.state || {};
   const { retryLoadCart } = useCart();
 
   // 'loading' | 'ready' | 'notFound' | 'forbidden' | 'error'
@@ -213,7 +214,15 @@ export default function OrderSuccessPage() {
             ? t('orderSuccess.failedTitle', 'Payment failed')
             : isProcessing
               ? t('orderSuccess.processingTitle', "We're confirming your payment")
-              : t('orderSuccess.title', 'Order placed!')}
+              /* Arrived here from My Orders (see OrderCard) rather than
+                 straight off checkout — "Order placed!" reads oddly for
+                 an order that may have been placed days ago, so use a
+                 neutral title for that case while still reusing this
+                 same page (and everything below it) as the one place an
+                 order's full detail/status/shipment lives. */
+              : fromHistory
+                ? t('orderSuccess.detailsTitle', 'Order Details')
+                : t('orderSuccess.title', 'Order placed!')}
         </h1>
         <p className="text-gray-500 text-sm mb-8">
           {isFailed
@@ -272,6 +281,12 @@ export default function OrderSuccessPage() {
               <AddressCard address={order.address} />
             </div>
           )}
+          <PaymentInfoCard
+            order={order}
+            paymentMethod={paymentMethod}
+            isFailed={isFailed}
+            isProcessing={isProcessing}
+          />
           <OrderSummaryCard order={order} />
         </div>
 
