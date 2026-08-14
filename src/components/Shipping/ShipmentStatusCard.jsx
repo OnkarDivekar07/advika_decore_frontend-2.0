@@ -1,24 +1,29 @@
 // src/components/Shipping/ShipmentStatusCard.jsx
 //
 // Shows the current shipment status for an order (see shippingService.js /
-// shipping.routes.js). The backend polls Ekart live on every GET /track
-// call and persists whatever it gets back — the Ekart webhook is the real
-// source of truth for status changes, same role the Razorpay webhook
-// plays for payment (checkout-architecture.md §1) — so this component
-// never derives status itself, only displays the last thing the backend
-// returned and offers a manual refresh.
+// shipping.routes.js), fronted by OrderTrackingTimeline's visual
+// Placed -> Confirmed -> Shipped -> Out for Delivery -> Delivered stepper
+// (PHASE 12 — order tracking). The backend polls Ekart live on every
+// GET /track call and persists whatever it gets back — the Ekart webhook
+// is the real source of truth for status changes, same role the Razorpay
+// webhook plays for payment (checkout-architecture.md §1) — so this
+// component never derives status itself, only displays the last thing the
+// backend returned and offers a manual refresh.
 //
 // A confirmed order doesn't get a Shipment record until an admin
 // triggers shipment creation, so "no shipment yet" is the normal state
-// right after checkout, not an error — rendered as a quiet placeholder
-// rather than an error state.
+// right after checkout, not an error — the timeline still renders in that
+// case (driven by `orderStatus` alone, since that's already known from the
+// order detail fetch one level up), just without the tracking-id/location/
+// ETA detail rows a live Shipment record would add.
 import React, { useCallback, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
-import { FiTruck, FiRefreshCw, FiPackage, FiCalendar } from 'react-icons/fi';
+import { FiRefreshCw, FiCalendar } from 'react-icons/fi';
 import * as shippingService from '@/services/shippingService';
 import { handleError } from '@/utils/errorHandler';
 import { formatDeliveryDate } from '@/utils/formatDeliveryDate';
+import OrderTrackingTimeline from '@/components/Shipping/OrderTrackingTimeline';
 
 // Once a shipment has reached one of these, "estimated delivery" no longer
 // means anything useful — it's either already happened or isn't going to.
@@ -54,7 +59,7 @@ const STATUS_DEFAULTS = {
   CANCELLED: 'Cancelled',
 };
 
-export default function ShipmentStatusCard({ orderId }) {
+export default function ShipmentStatusCard({ orderId, orderStatus }) {
   const { t } = useTranslation();
   // 'loading' | 'ready' | 'notFound' | 'error'
   const [state, setState] = useState('loading');
@@ -108,17 +113,31 @@ export default function ShipmentStatusCard({ orderId }) {
 
   if (state === 'loading') {
     return (
-      <div className="card p-5 text-left mx-auto max-w-md mt-4 text-sm text-gray-400">
-        {t('checkout.loadingShipment', 'Checking shipment status…')}
+      <div className="card p-5 text-left mx-auto max-w-md mt-4">
+        <div className="animate-pulse flex flex-col gap-4">
+          <div className="flex items-center justify-between">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="w-8 h-8 rounded-full bg-gray-100" />
+            ))}
+          </div>
+          <div className="h-3 w-2/3 bg-gray-100 rounded" />
+        </div>
+        <p className="sr-only">{t('checkout.loadingShipment', 'Checking shipment status…')}</p>
       </div>
     );
   }
 
   if (state === 'notFound') {
+    // No Shipment row yet (admin hasn't dispatched it) — still render the
+    // timeline from orderStatus alone so tracking doesn't look "broken"
+    // between checkout and dispatch, just visibly not there yet.
     return (
-      <div className="card p-5 text-left mx-auto max-w-md mt-4 flex items-center gap-3 text-sm text-gray-500">
-        <FiPackage className="w-5 h-5 shrink-0" aria-hidden />
-        {t('checkout.shipmentPending', "We'll share tracking details once your order ships.")}
+      <div className="card p-5 text-left mx-auto max-w-md mt-4 flex flex-col gap-4">
+        <OrderTrackingTimeline orderStatus={orderStatus} shipmentStatus={null} />
+        <div className="flex items-center gap-2 text-sm text-gray-500 border-t border-gray-100 pt-3">
+          <FiCalendar className="w-4 h-4 shrink-0" aria-hidden />
+          {t('checkout.shipmentPending', "We'll share tracking details once your order ships.")}
+        </div>
       </div>
     );
   }
@@ -140,11 +159,8 @@ export default function ShipmentStatusCard({ orderId }) {
 
   return (
     <div className="card p-5 text-left mx-auto max-w-md mt-4">
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <FiTruck className="w-5 h-5 text-[var(--clr-primary)]" aria-hidden />
-          <span className="font-semibold text-gray-900">{statusLabel}</span>
-        </div>
+      <div className="flex items-center justify-between mb-4">
+        <span className="font-semibold text-gray-900">{statusLabel}</span>
         <button
           type="button"
           onClick={handleRefresh}
@@ -156,7 +172,9 @@ export default function ShipmentStatusCard({ orderId }) {
         </button>
       </div>
 
-      <div className="text-sm text-gray-600 flex flex-col gap-1">
+      <OrderTrackingTimeline orderStatus={orderStatus} shipmentStatus={shipment.status} />
+
+      <div className="text-sm text-gray-600 flex flex-col gap-1 mt-4 pt-3 border-t border-gray-100">
         {/* estimatedDeliveryDate is set on the shipment when it's created,
             and kept fresh by the backend if Ekart later revises it (see
             shipping.service.js) — shown here only while it's still
@@ -212,4 +230,11 @@ export default function ShipmentStatusCard({ orderId }) {
 
 ShipmentStatusCard.propTypes = {
   orderId: PropTypes.string.isRequired,
+  // Order.status (see prisma/schema.prisma) — used to render the
+  // Placed/Confirmed portion of the tracking timeline even before a
+  // Shipment record exists, and as the fallback source of truth once
+  // a shipment reaches a terminal state. Optional for backward
+  // compatibility with any other caller of this card; the timeline
+  // degrades gracefully (starts at "Placed") when omitted.
+  orderStatus: PropTypes.string,
 };

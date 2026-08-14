@@ -26,7 +26,8 @@
     "buyNow": "Buy It Now",
     "addToCart": "Add to Cart",
     "addingToCart": "Adding…",
-    "processing": "Processing…"
+    "processing": "Processing…",
+    "retry": "Retry"
   },
   "cart": {
     "title": "Your Cart",
@@ -145,5 +146,89 @@
     "retry": "Try Again",
     "back": "Back",
     "buyNowFailed": "Couldn't start checkout. Please try again."
+  },
+  "orders": {
+    "title": "My Orders",
+    "subtitle": "Track and review everything you have ordered.",
+    "navLabel": "My Orders",
+    "orderId": "Order ID",
+    "placedOn": "Placed on {{date}}",
+    "itemCount": "{{count}} item",
+    "itemCount_plural": "{{count}} items",
+    "viewDetails": "View Details",
+    "resultsCount": "Showing {{shown}} of {{total}} orders",
+    "loadMore": "Load More",
+    "loadingMore": "Loading…",
+    "empty": "You haven't placed any orders yet.",
+    "startShopping": "Start Shopping",
+    "loadError": "We couldn't load your orders.",
+    "status": {
+      "pending": "Pending",
+      "confirmed": "Confirmed",
+      "shipped": "Shipped",
+      "delivered": "Delivered",
+      "cancelled": "Cancelled",
+      "returned": "Returned",
+      "unknown": "Unknown"
+    },
+    "statusStep": {
+      "placed": "Placed",
+      "confirmed": "Confirmed",
+      "shipped": "Shipped",
+      "delivered": "Delivered",
+      "cancelledNote": "This order was cancelled.",
+      "returnedNote": "This order was returned.",
+      "timelineLabel": "Order status"
+    },
+    "paymentStatus": {
+      "paid": "Paid",
+      "codPending": "Pay on Delivery",
+      "processing": "Payment Processing",
+      "failed": "Payment Failed",
+      "refunded": "Refunded",
+      "unknown": "Unknown"
+    }
+  },
+  "checkout": {
+    "total": "Total",
+    "itemFallback": "Item",
+    "retry": "Retry",
+    "shipmentStatus": {
+      "created": "Shipment created",
+      "pickedUp": "Picked up",
+      "inTransit": "In transit",
+      "outForDelivery": "Out for delivery",
+      "delivered": "Delivered",
+      "deliveryFailed": "Delivery attempt failed",
+      "rtoInitiated": "Returning to sender",
+      "rtoDelivered": "Returned",
+      "cancelled": "Cancelled"
+    },
+    "confirmCancelShipment": "Cancel this shipment?",
+    "loadingShipment": "Checking shipment status…",
+    "shipmentPending": "We'll share tracking details once your order ships.",
+    "shipmentCheckFailed": "Couldn't load shipment status.",
+    "refreshShipment": "Refresh shipment status",
+    "estimatedDelivery": "Estimated delivery",
+    "trackingId": "Tracking ID",
+    "lastLocation": "Last update",
+    "lastSynced": "As of",
+    "cancellingShipment": "Cancelling…",
+    "cancelShipment": "Cancel shipment"
+  },
+  "tracking": {
+    "timelineLabel": "Order tracking",
+    "step": {
+      "placed": "Order Placed",
+      "paymentConfirmed": "Payment Confirmed",
+      "processing": "Processing",
+      "packed": "Packed",
+      "shipped": "Shipped",
+      "outForDelivery": "Out for Delivery",
+      "delivered": "Delivered"
+    },
+    "cancelledNote": "This order was cancelled.",
+    "returnedNote": "This item was returned to the seller.",
+    "deliveryAttemptFailed": "A delivery attempt didn't succeed. Another attempt will be made."
   }
 }

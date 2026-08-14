@@ -294,7 +294,7 @@ export default function OrderSuccessPage() {
             (see shipping.service.js) — skip the check while payment is
             still being confirmed/failed rather than surfacing a
             guaranteed 404. */}
-        {canShowShipment && <ShipmentStatusCard orderId={order.id} />}
+        {canShowShipment && <ShipmentStatusCard orderId={order.id} orderStatus={order.status} />}
 
         <div className="flex flex-col sm:flex-row gap-3 justify-center mt-8">
           {isFailed && (

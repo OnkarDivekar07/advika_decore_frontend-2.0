@@ -25,7 +25,8 @@
   "buttons": {
     "buyNow": "अभी खरीदें",
     "addToCart": "कार्ट में डालें",
-    "processing": "प्रक्रिया जारी है…"
+    "processing": "प्रक्रिया जारी है…",
+    "retry": "पुनः प्रयास करें"
   },
   "cart": {
     "title": "आपकी गाड़ी",
@@ -137,5 +138,89 @@
     "viewProduct": "{{name}} देखें",
     "errorLoadingProduct": "उत्पाद लोड करने में विफल। कृपया पुनः प्रयास करें।",
     "buyNowFailed": "चेकआउट शुरू नहीं हो सका। कृपया पुनः प्रयास करें।"
+  },
+  "orders": {
+    "title": "मेरे ऑर्डर",
+    "subtitle": "अपने सभी ऑर्डर देखें और ट्रैक करें।",
+    "navLabel": "मेरे ऑर्डर",
+    "orderId": "ऑर्डर आईडी",
+    "placedOn": "{{date}} को दिया गया",
+    "itemCount": "{{count}} वस्तु",
+    "itemCount_plural": "{{count}} वस्तुएं",
+    "viewDetails": "विवरण देखें",
+    "resultsCount": "{{total}} में से {{shown}} ऑर्डर दिखाए जा रहे हैं",
+    "loadMore": "और लोड करें",
+    "loadingMore": "लोड हो रहा है…",
+    "empty": "आपने अभी तक कोई ऑर्डर नहीं दिया है।",
+    "startShopping": "खरीदारी शुरू करें",
+    "loadError": "हम आपके ऑर्डर लोड नहीं कर सके।",
+    "status": {
+      "pending": "लंबित",
+      "confirmed": "पुष्टि हो गई",
+      "shipped": "भेज दिया गया",
+      "delivered": "डिलीवर हो गया",
+      "cancelled": "रद्द",
+      "returned": "वापस किया गया",
+      "unknown": "अज्ञात"
+    },
+    "statusStep": {
+      "placed": "ऑर्डर दिया",
+      "confirmed": "पुष्टि हो गई",
+      "shipped": "भेज दिया गया",
+      "delivered": "डिलीवर हो गया",
+      "cancelledNote": "यह ऑर्डर रद्द कर दिया गया था।",
+      "returnedNote": "यह ऑर्डर वापस कर दिया गया था।",
+      "timelineLabel": "ऑर्डर की स्थिति"
+    },
+    "paymentStatus": {
+      "paid": "भुगतान हो गया",
+      "codPending": "डिलीवरी पर भुगतान",
+      "processing": "भुगतान प्रक्रिया में",
+      "failed": "भुगतान विफल",
+      "refunded": "राशि वापस कर दी गई",
+      "unknown": "अज्ञात"
+    }
+  },
+  "checkout": {
+    "total": "कुल",
+    "itemFallback": "वस्तु",
+    "retry": "पुनः प्रयास करें",
+    "shipmentStatus": {
+      "created": "शिपमेंट बनाया गया",
+      "pickedUp": "पिकअप हो गया",
+      "inTransit": "मार्ग में है",
+      "outForDelivery": "डिलीवरी के लिए निकल गया",
+      "delivered": "डिलीवर हो गया",
+      "deliveryFailed": "डिलीवरी का प्रयास विफल रहा",
+      "rtoInitiated": "प्रेषक को वापस भेजा जा रहा है",
+      "rtoDelivered": "वापस कर दिया गया",
+      "cancelled": "रद्द"
+    },
+    "confirmCancelShipment": "क्या इस शिपमेंट को रद्द करें?",
+    "loadingShipment": "शिपमेंट की स्थिति जांची जा रही है…",
+    "shipmentPending": "आपका ऑर्डर भेजे जाने पर हम ट्रैकिंग विवरण साझा करेंगे।",
+    "shipmentCheckFailed": "शिपमेंट की स्थिति लोड नहीं हो सकी।",
+    "refreshShipment": "शिपमेंट स्थिति रीफ्रेश करें",
+    "estimatedDelivery": "अनुमानित डिलीवरी",
+    "trackingId": "ट्रैकिंग आईडी",
+    "lastLocation": "अंतिम अपडेट",
+    "lastSynced": "स्थिति समय",
+    "cancellingShipment": "रद्द किया जा रहा है…",
+    "cancelShipment": "शिपमेंट रद्द करें"
+  },
+  "tracking": {
+    "timelineLabel": "ऑर्डर ट्रैकिंग",
+    "step": {
+      "placed": "ऑर्डर दिया गया",
+      "paymentConfirmed": "भुगतान की पुष्टि हो गई",
+      "processing": "प्रोसेसिंग हो रही है",
+      "packed": "पैक कर दिया गया",
+      "shipped": "भेज दिया गया",
+      "outForDelivery": "डिलीवरी के लिए निकल गया",
+      "delivered": "डिलीवर हो गया"
+    },
+    "cancelledNote": "यह ऑर्डर रद्द कर दिया गया था।",
+    "returnedNote": "यह वस्तु विक्रेता को वापस कर दी गई थी।",
+    "deliveryAttemptFailed": "डिलीवरी का एक प्रयास सफल नहीं हुआ। एक और प्रयास किया जाएगा।"
   }
 }
