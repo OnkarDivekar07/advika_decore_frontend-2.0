@@ -193,12 +193,20 @@ export default function PaymentPage() {
 
       <OrderSummaryCard order={draftOrder} />
 
-      {/* Payment method */}
+      {/* Payment method — selected state mirrors AddressCard's pattern
+          (primary border + ring) so which method is chosen is clear at a
+          glance instead of relying on spotting a small native radio dot. */}
       <section className="card p-5 flex flex-col gap-3">
         <h2 className="font-display text-lg font-bold text-gray-900">
           {t('checkout.paymentMethod', 'Payment Method')}
         </h2>
-        <label className="flex items-center gap-3 p-3 rounded-lg border border-[var(--clr-border)] cursor-pointer">
+        <label
+          className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+            method === 'online'
+              ? 'border-[var(--clr-primary)] ring-1 ring-[var(--clr-primary)] bg-[var(--clr-primary)]/5'
+              : 'border-[var(--clr-border)] hover:bg-gray-50'
+          }`}
+        >
           <input
             type="radio"
             name="paymentMethod"
@@ -207,12 +215,19 @@ export default function PaymentPage() {
               setPaymentNotice(null);
               setMethod('online');
             }}
+            className="w-4 h-4 accent-[var(--clr-primary-dark)]"
           />
           <span className="text-sm font-medium text-gray-800">
             {t('checkout.payOnline', 'Pay online (UPI / Card / Netbanking)')}
           </span>
         </label>
-        <label className="flex items-center gap-3 p-3 rounded-lg border border-[var(--clr-border)] cursor-pointer">
+        <label
+          className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+            method === 'cod'
+              ? 'border-[var(--clr-primary)] ring-1 ring-[var(--clr-primary)] bg-[var(--clr-primary)]/5'
+              : 'border-[var(--clr-border)] hover:bg-gray-50'
+          }`}
+        >
           <input
             type="radio"
             name="paymentMethod"
@@ -221,6 +236,7 @@ export default function PaymentPage() {
               setPaymentNotice(null);
               setMethod('cod');
             }}
+            className="w-4 h-4 accent-[var(--clr-primary-dark)]"
           />
           <span className="text-sm font-medium text-gray-800">
             {t('checkout.payCod', 'Cash on Delivery')}
@@ -228,12 +244,17 @@ export default function PaymentPage() {
         </label>
       </section>
 
-      <div className="flex flex-col sm:flex-row gap-3">
+      {/* Back / Pay — pinned to the bottom of the viewport on mobile, same
+          pattern as the address and review steps, so the final "Pay"
+          action never requires scrolling past the order summary + method
+          picker to reach it. */}
+      <div className="pb-24 sm:pb-0" />
+      <div className="fixed inset-x-0 bottom-0 z-30 bg-white/95 backdrop-blur border-t border-[var(--clr-border)] px-4 py-3 pb-safe flex flex-col gap-2 sm:static sm:inset-auto sm:z-auto sm:bg-transparent sm:backdrop-blur-none sm:border-0 sm:px-0 sm:py-0 sm:flex-row sm:mt-4">
         <button
           type="button"
           onClick={() => navigate('/checkout/review')}
           disabled={isPlacingOrder}
-          className="btn btn-outline sm:w-auto px-6 py-3 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+          className="btn btn-outline sm:w-auto px-6 py-3 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed order-2 sm:order-1"
         >
           <FiArrowLeft className="w-4 h-4" aria-hidden />
           {t('checkout.back', 'Back')}
@@ -242,7 +263,7 @@ export default function PaymentPage() {
           type="button"
           onClick={handlePlaceOrder}
           disabled={!canPay || isPlacingOrder || !!conflicts}
-          className="btn btn-primary flex-1 py-3 text-base disabled:opacity-60 disabled:cursor-not-allowed"
+          className="btn btn-primary flex-1 py-3 text-base disabled:opacity-60 disabled:cursor-not-allowed order-1 sm:order-2"
         >
           {isPlacingOrder
             ? t('checkout.placingOrder', 'Placing your order…')

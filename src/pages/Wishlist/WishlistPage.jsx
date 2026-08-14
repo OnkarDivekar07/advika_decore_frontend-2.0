@@ -44,7 +44,7 @@ export default function WishlistPage() {
           </div>
         ) : items.length === 0 ? (
           <div className="card p-8 flex flex-col items-center text-center gap-3">
-            <FiHeart className="w-10 h-10 text-gray-300" aria-hidden />
+            <FiHeart className="w-12 h-12 text-gray-300" aria-hidden />
             <p className="text-gray-600">
               {t('wishlist.empty', "You haven't saved anything yet.")}
             </p>

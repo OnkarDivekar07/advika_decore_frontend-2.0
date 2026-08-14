@@ -96,7 +96,12 @@ export default function ProductCard({ product }) {
           className={`absolute top-2 right-2 p-2 rounded-full backdrop-blur-sm shadow-sm transition-colors focus-visible:opacity-100 disabled:opacity-60 ${
             wishlisted
               ? 'bg-white text-red-500 opacity-100'
-              : 'bg-white/80 text-gray-500 hover:text-red-500 hover:bg-white opacity-0 group-hover:opacity-100'
+              // Always visible on touch/mobile — "opacity-0 until hover"
+              // only makes sense on a pointer that can hover in the
+              // first place; on a phone it made this control invisible
+              // (and therefore undiscoverable) at all times. Only fades
+              // in on hover from md and up, where a mouse is likely.
+              : 'bg-white/80 text-gray-500 hover:text-red-500 hover:bg-white opacity-100 md:opacity-0 md:group-hover:opacity-100'
           }`}
         >
           <FiHeart className="w-4 h-4" fill={wishlisted ? 'currentColor' : 'none'} />

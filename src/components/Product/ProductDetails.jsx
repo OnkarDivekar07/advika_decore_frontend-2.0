@@ -219,23 +219,32 @@ export default function ProductDetails({ product }) {
         )}
       </div>
 
-      {/* CTA */}
-      {stock.available ? (
-        <ActionButtons
-          onBuyNow={handleBuyNow}
-          onAddToCart={handleAddToCart}
-          isAddingToCart={isAddingToCart}
-          isBuyNowPending={isBuyNowPending}
-        />
-      ) : (
-        <button
-          type="button"
-          disabled
-          className="btn btn-outline w-full py-3 text-sm sm:text-base opacity-60 cursor-not-allowed"
-        >
-          {t('productDetail.outOfStock', 'Out of Stock')}
-        </button>
-      )}
+      {/* CTA — on mobile this pins to the bottom of the viewport instead
+          of sitting after the description/quantity/delivery info above,
+          so it's reachable without scrolling all the way down a long
+          product page. The spacer reserves room so the last bit of
+          content isn't hidden behind it; both revert to the normal
+          in-flow layout from md up, where the gallery+details columns
+          are short enough that this isn't needed. */}
+      <div className="h-20 md:hidden" aria-hidden />
+      <div className="fixed inset-x-0 bottom-0 z-30 bg-white/95 backdrop-blur border-t border-[var(--clr-border)] px-4 py-3 pb-safe md:static md:inset-auto md:z-auto md:bg-transparent md:backdrop-blur-none md:border-0 md:px-0 md:py-0">
+        {stock.available ? (
+          <ActionButtons
+            onBuyNow={handleBuyNow}
+            onAddToCart={handleAddToCart}
+            isAddingToCart={isAddingToCart}
+            isBuyNowPending={isBuyNowPending}
+          />
+        ) : (
+          <button
+            type="button"
+            disabled
+            className="btn btn-outline w-full py-3 text-sm sm:text-base opacity-60 cursor-not-allowed"
+          >
+            {t('productDetail.outOfStock', 'Out of Stock')}
+          </button>
+        )}
+      </div>
     </section>
   );
 }

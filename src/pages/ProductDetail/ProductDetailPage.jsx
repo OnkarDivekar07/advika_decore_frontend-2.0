@@ -80,7 +80,7 @@ export default function ProductDetailPage() {
         )}
         {error && !loading && (
           <div className="flex flex-col items-center text-center gap-3 py-20">
-            <FiAlertCircle className="w-10 h-10 text-red-400" aria-hidden />
+            <FiAlertCircle className="w-12 h-12 text-red-400" aria-hidden />
             <p className="text-red-500 font-medium">{error}</p>
             <button onClick={() => fetchProduct()} className="btn btn-outline mt-1">
               <FiRefreshCw className="w-4 h-4" aria-hidden />

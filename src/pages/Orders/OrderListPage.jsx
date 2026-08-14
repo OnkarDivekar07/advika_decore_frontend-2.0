@@ -102,7 +102,7 @@ export default function OrderListPage() {
           </div>
         ) : status === STATUS_EMPTY ? (
           <div className="card p-8 flex flex-col items-center text-center gap-3">
-            <FiPackage className="w-10 h-10 text-gray-300" aria-hidden />
+            <FiPackage className="w-12 h-12 text-gray-300" aria-hidden />
             <p className="text-gray-600">
               {t('orders.empty', "You haven't placed any orders yet.")}
             </p>

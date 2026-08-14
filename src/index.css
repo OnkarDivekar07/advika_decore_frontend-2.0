@@ -61,77 +61,100 @@ a { color: inherit; text-decoration: none; }
 
 .animate-fade-up { animation: fadeUp 0.35s ease both; }
 
-/* ─── Skeleton loader ─────────────────────────── */
-.skeleton {
-  background: linear-gradient(90deg, #eaeaea 25%, #f5f5f5 50%, #eaeaea 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-  border-radius: var(--radius-card);
-}
+/* ─── Component classes ───────────────────────────
+   Wrapped in @layer components so they sit BEFORE Tailwind's utilities
+   layer in the compiled stylesheet. Without this, plain CSS written
+   below the @tailwind directives is emitted after (and therefore beats,
+   at equal specificity) utility classes like `py-3` or `text-sm` used
+   throughout the app to size individual buttons — every "px-8", "py-3",
+   "text-xs" override on a .btn instance silently did nothing. Layering
+   these correctly is what makes those per-instance size/spacing
+   overrides actually take effect. ────────────────────────────────── */
+@layer components {
+  /* ─── Skeleton loader ───────────────────────── */
+  .skeleton {
+    background: linear-gradient(90deg, #eaeaea 25%, #f5f5f5 50%, #eaeaea 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: var(--radius-card);
+  }
 
-/* ─── Card ────────────────────────────────────── */
-.card {
-  background: var(--clr-surface);
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow-card);
-  transition: box-shadow var(--transition-base), transform var(--transition-base);
-}
-.card:hover {
-  box-shadow: var(--shadow-card-hover);
-  transform: translateY(-3px);
-}
+  /* ─── Card ──────────────────────────────────── */
+  .card {
+    background: var(--clr-surface);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+    transition: box-shadow var(--transition-base), transform var(--transition-base);
+  }
+  .card:hover {
+    box-shadow: var(--shadow-card-hover);
+    transform: translateY(-3px);
+  }
 
-/* ─── Buttons ─────────────────────────────────── */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.4rem;
-  font-weight: 600;
-  font-size: 0.9rem;
-  padding: 0.7rem 1.5rem;
-  border-radius: 8px;
-  border: 2px solid transparent;
-  transition: background var(--transition-fast), color var(--transition-fast),
-              border-color var(--transition-fast), box-shadow var(--transition-fast);
-  letter-spacing: 0.01em;
-  white-space: nowrap;
-}
-.btn:focus-visible { outline: 3px solid var(--clr-primary); outline-offset: 2px; }
-.btn-primary { background: var(--clr-primary); color: #111; }
-.btn-primary:hover { background: var(--clr-primary-dark); }
-.btn-outline { background: transparent; color: var(--clr-ink); border-color: var(--clr-ink); }
-.btn-outline:hover { background: var(--clr-ink); color: #fff; }
+  /* ─── Buttons ───────────────────────────────── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+    padding: 0.7rem 1.5rem;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    transition: background var(--transition-fast), color var(--transition-fast),
+                border-color var(--transition-fast), box-shadow var(--transition-fast),
+                opacity var(--transition-fast);
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+  }
+  .btn:focus-visible { outline: 3px solid var(--clr-primary); outline-offset: 2px; }
+  /* Safety net for any button that forgets the disabled: utility classes —
+     every button in the app also sets these explicitly, this just keeps a
+     stray one from ever rendering as if it were still interactive. */
+  .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+  .btn-primary { background: var(--clr-primary); color: #111; }
+  .btn-primary:hover:not(:disabled) { background: var(--clr-primary-dark); }
+  .btn-outline { background: transparent; color: var(--clr-ink); border-color: var(--clr-ink); }
+  .btn-outline:hover:not(:disabled) { background: var(--clr-ink); color: #fff; }
 
-/* ─── Section title ───────────────────────────── */
-.section-title {
-  font-family: var(--font-display);
-  font-size: clamp(1.5rem, 3vw, 2rem);
-  font-weight: 800;
-  color: var(--clr-ink);
-  display: inline-block;
-}
-.section-title::after {
-  content: '';
-  display: block;
-  margin-top: 5px;
-  height: 4px;
-  width: 44px;
-  background: var(--clr-primary);
-  border-radius: 4px;
-}
+  /* ─── Section title ─────────────────────────── */
+  .section-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    font-weight: 800;
+    color: var(--clr-ink);
+    display: inline-block;
+  }
+  .section-title::after {
+    content: '';
+    display: block;
+    margin-top: 5px;
+    height: 4px;
+    width: 44px;
+    background: var(--clr-primary);
+    border-radius: 4px;
+  }
 
-/* ─── Scroll strip ────────────────────────────── */
-.scroll-strip {
-  display: flex;
-  gap: 1.25rem;
-  overflow-x: auto;
-  padding-bottom: 1rem;
-  scroll-snap-type: x mandatory;
-  -webkit-overflow-scrolling: touch;
+  /* ─── Scroll strip ──────────────────────────── */
+  .scroll-strip {
+    display: flex;
+    gap: 1.25rem;
+    overflow-x: auto;
+    padding-bottom: 1rem;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+  }
+  .scroll-strip::-webkit-scrollbar { display: none; }
+  .scroll-strip > * { scroll-snap-align: start; flex-shrink: 0; }
 }
-.scroll-strip::-webkit-scrollbar { display: none; }
-.scroll-strip > * { scroll-snap-align: start; flex-shrink: 0; }
 
 /* ─── Focus ring ──────────────────────────────── */
 :focus-visible { outline: 2px solid var(--clr-primary); outline-offset: 2px; }
+
+/* ─── Safe-area padding (mobile sticky bars) ──────
+   Used by any bar pinned to the bottom of the viewport (mobile checkout
+   CTA, mobile PDP add-to-cart bar) so it isn't obscured by a phone's
+   home-indicator / gesture area. Falls back to a fixed value on devices
+   without env(safe-area-inset-*) support. */
+.pb-safe { padding-bottom: max(0.75rem, env(safe-area-inset-bottom)); }

@@ -204,7 +204,15 @@ export default function AddressSelectionPage() {
         </button>
       )}
 
-      <div className="mt-4">
+      {/* Continue CTA — on mobile this pins to the bottom of the viewport
+          instead of sitting after a potentially long address list, so it
+          never requires scrolling past every saved address to find it
+          (padding-bottom below reserves room so the list's last item
+          isn't hidden behind the bar). Reverts to a normal inline button
+          from sm up, where the page is short enough that this isn't a
+          problem. */}
+      <div className="pb-20 sm:pb-0" />
+      <div className="fixed inset-x-0 bottom-0 z-30 bg-white/95 backdrop-blur border-t border-[var(--clr-border)] px-4 py-3 pb-safe sm:static sm:inset-auto sm:z-auto sm:bg-transparent sm:backdrop-blur-none sm:border-0 sm:px-0 sm:py-0 sm:mt-4">
         <button
           type="button"
           onClick={handleContinue}

@@ -1,6 +1,6 @@
 // src/components/Navbar/Navbar.jsx
-import React, { useState, useCallback, useContext, useMemo } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useCallback, useContext, useMemo, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { FiHome, FiHeart, FiShoppingCart, FiUser, FiSearch, FiX, FiMenu, FiLogOut, FiGrid, FiMapPin, FiPackage } from 'react-icons/fi';
 import { FaTruck } from 'react-icons/fa';
@@ -29,11 +29,41 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
+  const location = useLocation();
   const { isAuthenticated, logout } = useContext(AuthContext);
   const { count: wishlistCount } = useWishlist();
 
   const toggleMenu = useCallback(() => setMenuOpen(prev => !prev), []);
   const closeMenu  = useCallback(() => setMenuOpen(false), []);
+
+  // Current page indicator for both the desktop nav and the mobile
+  // dropdown — '/' only matches the home page exactly (otherwise it'd
+  // stay "active" everywhere), everything else matches its own subtree
+  // so e.g. /product/123 still highlights "Shop".
+  const isActivePath = useCallback(
+    (path) => (path === '/' ? location.pathname === '/' : location.pathname.startsWith(path)),
+    [location.pathname]
+  );
+
+  // The mobile dropdown renders as a fixed overlay (see below) rather
+  // than pushing page content down, so opening it shouldn't also let the
+  // page scroll behind it — same lock FilterDrawer uses — and Escape
+  // should close it like any other transient panel.
+  useEffect(() => {
+    if (!menuOpen) return undefined;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const onKeyDown = (e) => { if (e.key === 'Escape') closeMenu(); };
+    window.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [menuOpen, closeMenu]);
+
+  // A route change (e.g. tapping a link) always closes the menu, but this
+  // also catches back/forward navigation while it's open.
+  useEffect(() => { closeMenu(); }, [location.pathname, closeMenu]);
 
   // Profile icon doubles as the login entry point when signed out — the
   // "Profile" page itself is behind auth, so send anonymous users to
@@ -91,29 +121,45 @@ export default function Navbar() {
 
         {/* Desktop nav links */}
         <nav className="hidden md:flex items-center gap-1" aria-label="Main navigation">
-          {navLinks.map(({ to, icon, label, badge }) => (
-            <Link
-              key={to}
-              to={to}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-700 hover:text-[var(--clr-primary-dark)] hover:bg-gray-50 transition-colors"
-            >
-              <span className="relative text-base" aria-hidden>
-                {icon}
-                <NavIconBadge count={badge} />
-              </span>
-              {label}
-            </Link>
-          ))}
-          {accountLinks.map(({ to, icon, label }) => (
-            <Link
-              key={to}
-              to={to}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-700 hover:text-[var(--clr-primary-dark)] hover:bg-gray-50 transition-colors"
-            >
-              <span className="text-base" aria-hidden>{icon}</span>
-              {label}
-            </Link>
-          ))}
+          {navLinks.map(({ to, icon, label, badge }) => {
+            const active = isActivePath(to);
+            return (
+              <Link
+                key={to}
+                to={to}
+                aria-current={active ? 'page' : undefined}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  active
+                    ? 'text-[var(--clr-primary-dark)] bg-[var(--clr-primary)]/10'
+                    : 'text-gray-700 hover:text-[var(--clr-primary-dark)] hover:bg-gray-50'
+                }`}
+              >
+                <span className="relative text-base" aria-hidden>
+                  {icon}
+                  <NavIconBadge count={badge} />
+                </span>
+                {label}
+              </Link>
+            );
+          })}
+          {accountLinks.map(({ to, icon, label }) => {
+            const active = isActivePath(to);
+            return (
+              <Link
+                key={to}
+                to={to}
+                aria-current={active ? 'page' : undefined}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  active
+                    ? 'text-[var(--clr-primary-dark)] bg-[var(--clr-primary)]/10'
+                    : 'text-gray-700 hover:text-[var(--clr-primary-dark)] hover:bg-gray-50'
+                }`}
+              >
+                <span className="text-base" aria-hidden>{icon}</span>
+                {label}
+              </Link>
+            );
+          })}
           {isAuthenticated && (
             <button
               onClick={handleLogout}
@@ -143,17 +189,28 @@ export default function Navbar() {
         </form>
 
         {/* Mobile: icon strip + hamburger */}
-        <div className="flex md:hidden items-center gap-3 text-xl text-gray-700">
-          {navLinks.slice(1).map(({ to, icon, label, badge }) => (
-            <Link key={to} to={to} aria-label={label} className="relative hover:text-red-600 transition-colors">
-              {icon}
-              <NavIconBadge count={badge} />
-            </Link>
-          ))}
+        <div className="flex md:hidden items-center gap-4">
+          {navLinks.slice(1).map(({ to, icon, label, badge }) => {
+            const active = isActivePath(to);
+            return (
+              <Link
+                key={to}
+                to={to}
+                aria-label={label}
+                aria-current={active ? 'page' : undefined}
+                className={`relative text-xl leading-none transition-colors ${
+                  active ? 'text-[var(--clr-primary-dark)]' : 'text-gray-700 hover:text-red-600'
+                }`}
+              >
+                {icon}
+                <NavIconBadge count={badge} />
+              </Link>
+            );
+          })}
           <button
             onClick={toggleMenu}
-            className="p-1 rounded-md hover:text-red-600 transition-colors"
-            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+            className="p-1 -mr-1 rounded-md text-xl leading-none text-gray-700 hover:text-red-600 transition-colors"
+            aria-label={menuOpen ? t('nav.closeMenu', 'Close menu') : t('nav.openMenu', 'Open menu')}
             aria-expanded={menuOpen}
           >
             {menuOpen ? <FiX /> : <FiMenu />}
@@ -161,55 +218,82 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile dropdown */}
+      {/* Mobile dropdown — a fixed overlay rather than an inline block,
+          so opening/closing it never shifts the page content underneath
+          (the old inline-flow version pushed everything below the header
+          down by the dropdown's height). Body scroll is locked and
+          Escape closes it while open — see the effect above. */}
       {menuOpen && (
-        <div className="md:hidden bg-white border-t border-[var(--clr-border)] px-4 py-4 space-y-1 animate-fade-up">
-          {/* Mobile search */}
-          <form onSubmit={handleSearch} className="flex items-center bg-gray-100 rounded-full px-3.5 py-2 gap-2 mb-3" role="search">
-            <FiSearch className="text-gray-400 shrink-0" aria-hidden />
-            <input
-              type="search"
-              placeholder={t('search.navPlaceholder', 'Search products…')}
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              className="bg-transparent outline-none text-sm text-gray-800 placeholder-gray-400 w-full"
-              aria-label={t('search.title', 'Search Products')}
-            />
-          </form>
-          {navLinks.map(({ to, icon, label, badge }) => (
-            <Link
-              key={to}
-              to={to}
-              onClick={closeMenu}
-              className="flex items-center gap-3 px-2 py-3 rounded-lg text-base font-medium text-gray-700 hover:text-[var(--clr-primary-dark)] hover:bg-gray-50 transition-colors"
-            >
-              <span className="relative text-lg" aria-hidden>
-                {icon}
-                <NavIconBadge count={badge} />
-              </span>
-              {label}
-            </Link>
-          ))}
-          {accountLinks.map(({ to, icon, label }) => (
-            <Link
-              key={to}
-              to={to}
-              onClick={closeMenu}
-              className="flex items-center gap-3 px-2 py-3 rounded-lg text-base font-medium text-gray-700 hover:text-[var(--clr-primary-dark)] hover:bg-gray-50 transition-colors"
-            >
-              <span className="text-lg" aria-hidden>{icon}</span>
-              {label}
-            </Link>
-          ))}
-          {isAuthenticated && (
-            <button
-              onClick={handleLogout}
-              className="w-full flex items-center gap-3 px-2 py-3 rounded-lg text-base font-medium text-gray-700 hover:text-red-600 hover:bg-gray-50 transition-colors"
-            >
-              <span className="text-lg" aria-hidden><FiLogOut /></span>
-              Logout
-            </button>
-          )}
+        <div className="md:hidden fixed inset-0 z-40" role="dialog" aria-modal="true" aria-label={t('nav.mainMenu', 'Main menu')}>
+          {/* Backdrop */}
+          <div className="absolute inset-0 bg-black/30 animate-fade-up" onClick={closeMenu} aria-hidden />
+
+          {/* Panel — pinned just below the sticky header, scrolls on its
+              own if content ever exceeds the viewport height. */}
+          <div className="absolute inset-x-0 top-16 max-h-[calc(100vh-4rem)] overflow-y-auto bg-white border-t border-[var(--clr-border)] shadow-lg px-4 py-4 space-y-1 animate-fade-up">
+            {/* Mobile search */}
+            <form onSubmit={handleSearch} className="flex items-center bg-gray-100 rounded-full px-3.5 py-2 gap-2 mb-3" role="search">
+              <FiSearch className="text-gray-400 shrink-0" aria-hidden />
+              <input
+                type="search"
+                placeholder={t('search.navPlaceholder', 'Search products…')}
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                className="bg-transparent outline-none text-sm text-gray-800 placeholder-gray-400 w-full"
+                aria-label={t('search.title', 'Search Products')}
+              />
+            </form>
+            {navLinks.map(({ to, icon, label, badge }) => {
+              const active = isActivePath(to);
+              return (
+                <Link
+                  key={to}
+                  to={to}
+                  onClick={closeMenu}
+                  aria-current={active ? 'page' : undefined}
+                  className={`flex items-center gap-3 px-2 py-3 rounded-lg text-base font-medium transition-colors ${
+                    active
+                      ? 'text-[var(--clr-primary-dark)] bg-[var(--clr-primary)]/10'
+                      : 'text-gray-700 hover:text-[var(--clr-primary-dark)] hover:bg-gray-50'
+                  }`}
+                >
+                  <span className="relative text-lg" aria-hidden>
+                    {icon}
+                    <NavIconBadge count={badge} />
+                  </span>
+                  {label}
+                </Link>
+              );
+            })}
+            {accountLinks.map(({ to, icon, label }) => {
+              const active = isActivePath(to);
+              return (
+                <Link
+                  key={to}
+                  to={to}
+                  onClick={closeMenu}
+                  aria-current={active ? 'page' : undefined}
+                  className={`flex items-center gap-3 px-2 py-3 rounded-lg text-base font-medium transition-colors ${
+                    active
+                      ? 'text-[var(--clr-primary-dark)] bg-[var(--clr-primary)]/10'
+                      : 'text-gray-700 hover:text-[var(--clr-primary-dark)] hover:bg-gray-50'
+                  }`}
+                >
+                  <span className="text-lg" aria-hidden>{icon}</span>
+                  {label}
+                </Link>
+              );
+            })}
+            {isAuthenticated && (
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center gap-3 px-2 py-3 rounded-lg text-base font-medium text-gray-700 hover:text-red-600 hover:bg-gray-50 transition-colors"
+              >
+                <span className="text-lg" aria-hidden><FiLogOut /></span>
+                Logout
+              </button>
+            )}
+          </div>
         </div>
       )}
     </header>

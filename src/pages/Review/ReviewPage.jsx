@@ -281,11 +281,31 @@ export default function ReviewPage() {
           into this total by the backend's delivery API. */}
       <OrderSummaryCard order={draftOrder} title={t('checkout.reviewOrder', 'Review your order')} />
 
-      <div className="flex flex-col sm:flex-row gap-3">
+      {/* Why the button below is disabled, when it's the shipping check
+          rather than canProceedToReview/conflicts holding it back —
+          those two already explain themselves elsewhere (the spinner
+          screen above, and OrderConflictsNotice). Unserviceable points
+          at the fix (a different address) rather than a retry, matching
+          the ServiceabilityMessage shown in the address card above. */}
+      {canProceedToReview && shippingUnserviceable && (
+        <p className="text-xs text-amber-600 text-center sm:text-right">
+          {t(
+            'checkout.cannotProceedUnserviceable',
+            "We can't confirm delivery to this address. Choose a different address to continue."
+          )}
+        </p>
+      )}
+
+      {/* Back / Proceed — pinned to the bottom of the viewport on mobile
+          so the primary CTA is always reachable without scrolling past
+          the full order summary above (see AddressSelectionPage for the
+          same pattern used on the previous step). */}
+      <div className="pb-24 sm:pb-0" />
+      <div className="fixed inset-x-0 bottom-0 z-30 bg-white/95 backdrop-blur border-t border-[var(--clr-border)] px-4 py-3 pb-safe flex flex-col gap-2 sm:static sm:inset-auto sm:z-auto sm:bg-transparent sm:backdrop-blur-none sm:border-0 sm:px-0 sm:py-0 sm:flex-row sm:mt-4">
         <button
           type="button"
           onClick={() => navigate('/checkout')}
-          className="btn btn-outline sm:w-auto px-6 py-3 flex items-center justify-center gap-2"
+          className="btn btn-outline sm:w-auto px-6 py-3 flex items-center justify-center gap-2 order-2 sm:order-1"
         >
           <FiArrowLeft className="w-4 h-4" aria-hidden />
           {t('checkout.back', 'Back')}
@@ -294,28 +314,13 @@ export default function ReviewPage() {
           type="button"
           onClick={handleProceed}
           disabled={!canProceedToReview || !!conflicts || shippingBlocksProceed}
-          className="btn btn-primary flex-1 py-3 disabled:opacity-60 disabled:cursor-not-allowed"
+          className="btn btn-primary flex-1 py-3 disabled:opacity-60 disabled:cursor-not-allowed order-1 sm:order-2"
         >
           {shippingCheckPending
             ? t('checkout.checkingServiceability', 'Checking delivery availability…')
             : t('checkout.proceedToPayment', 'Proceed to Payment')}
         </button>
       </div>
-
-      {/* Why the button above is disabled, when it's the shipping check
-          rather than canProceedToReview/conflicts holding it back —
-          those two already explain themselves elsewhere (the spinner
-          screen above, and OrderConflictsNotice). Unserviceable points
-          at the fix (a different address) rather than a retry, matching
-          the ServiceabilityMessage shown in the address card above. */}
-      {canProceedToReview && shippingUnserviceable && (
-        <p className="text-xs text-amber-600 -mt-2 text-center sm:text-right">
-          {t(
-            'checkout.cannotProceedUnserviceable',
-            "We can't confirm delivery to this address. Choose a different address to continue."
-          )}
-        </p>
-      )}
     </div>
   );
 }

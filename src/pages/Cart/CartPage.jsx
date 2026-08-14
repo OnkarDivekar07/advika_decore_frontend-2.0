@@ -49,7 +49,7 @@ export default function CartPage() {
           </div>
         ) : loadError ? (
           <div className="flex flex-col items-center justify-center py-24 gap-5 text-center">
-            <FiAlertTriangle className="w-14 h-14 text-red-300" aria-hidden />
+            <FiAlertTriangle className="w-12 h-12 text-red-300" aria-hidden />
             <div>
               <p className="text-gray-700 text-lg font-medium">
                 {t('cart.loadError', "We couldn't load your cart.")}
@@ -68,7 +68,7 @@ export default function CartPage() {
           </div>
         ) : cartItems.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 gap-5 text-center">
-            <FiShoppingBag className="w-14 h-14 text-gray-300" aria-hidden />
+            <FiShoppingBag className="w-12 h-12 text-gray-300" aria-hidden />
             <p className="text-gray-500 text-lg">{t('cart.empty', 'Your cart is empty.')}</p>
             <Link to="/" className="btn btn-primary px-6">
               {t('cart.continueShopping', 'Continue Shopping')}

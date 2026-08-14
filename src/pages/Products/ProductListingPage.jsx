@@ -287,7 +287,7 @@ export default function ProductListingPage() {
 
             {status === STATUS_ERROR && (
               <div className="flex flex-col items-center text-center gap-3 py-20">
-                <FiAlertCircle className="w-10 h-10 text-red-400" aria-hidden />
+                <FiAlertCircle className="w-12 h-12 text-red-400" aria-hidden />
                 <p className="text-gray-600">{t('products.error', 'Something went wrong while loading products.')}</p>
                 <button onClick={retry} className="btn btn-outline mt-1">
                   <FiRefreshCw className="w-4 h-4" aria-hidden />
@@ -298,7 +298,7 @@ export default function ProductListingPage() {
 
             {status === STATUS_EMPTY && (
               <div className="flex flex-col items-center text-center gap-3 py-20">
-                <FiPackage className="w-10 h-10 text-gray-300" aria-hidden />
+                <FiPackage className="w-12 h-12 text-gray-300" aria-hidden />
                 <h2 className="text-lg font-semibold text-gray-700">
                   {t('products.noResultsTitle', 'No products found')}
                 </h2>

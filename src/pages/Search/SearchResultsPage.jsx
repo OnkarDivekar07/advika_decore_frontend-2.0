@@ -98,7 +98,7 @@ export default function SearchResultsPage() {
         {/* Body */}
         {status === STATUS_IDLE && (
           <div className="flex flex-col items-center text-center gap-3 py-20 text-gray-400">
-            <FiSearch className="w-10 h-10" aria-hidden />
+            <FiSearch className="w-12 h-12" aria-hidden />
             <p className="text-sm">{t('search.idle', 'Start typing to find products.')}</p>
           </div>
         )}
@@ -107,7 +107,7 @@ export default function SearchResultsPage() {
 
         {status === STATUS_ERROR && (
           <div className="flex flex-col items-center text-center gap-3 py-20">
-            <FiAlertCircle className="w-10 h-10 text-red-400" aria-hidden />
+            <FiAlertCircle className="w-12 h-12 text-red-400" aria-hidden />
             <p className="text-gray-600">{t('search.error', 'Something went wrong while searching.')}</p>
             <button onClick={retry} className="btn btn-outline mt-1">
               <FiRefreshCw className="w-4 h-4" aria-hidden />
@@ -118,7 +118,7 @@ export default function SearchResultsPage() {
 
         {status === STATUS_EMPTY && (
           <div className="flex flex-col items-center text-center gap-3 py-20">
-            <FiSearch className="w-10 h-10 text-gray-300" aria-hidden />
+            <FiSearch className="w-12 h-12 text-gray-300" aria-hidden />
             <h2 className="text-lg font-semibold text-gray-700">
               {t('search.noResultsTitle', 'No products found')}
             </h2>
