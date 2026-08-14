@@ -126,6 +126,20 @@ export const AuthProvider = ({ children }) => {
     endSession(null); // explicit logout — no "session expired" toast
   }, [endSession]);
 
+  // Merges partial fields into the cached identity (and re-persists it) —
+  // used by the account/profile area after a name or phone change so the
+  // rest of the app (which only ever reads `user` from this context) sees
+  // the update immediately, without requiring a re-login. Never touches
+  // the token: neither field is embedded in it (see generateToken.js), so
+  // a phone/name change never invalidates the current session.
+  const updateUser = useCallback((patch) => {
+    setUser((prev) => {
+      const next = { ...(prev || {}), ...patch };
+      saveUser(next);
+      return next;
+    });
+  }, []);
+
   // requestOtp/confirmOtp take a full E.164 phone (e.g. "+91XXXXXXXXXX"),
   // matching how PhoneOtpModal/OTPVerificationPage call them.
   // authService.sendOtp/verifyOtp expect the bare 10-digit number and add
@@ -158,6 +172,7 @@ export const AuthProvider = ({ children }) => {
         isRestoring,
         login,
         logout,
+        updateUser,
         requestOtp,
         confirmOtp,
       }}

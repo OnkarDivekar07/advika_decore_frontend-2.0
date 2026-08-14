@@ -8,6 +8,7 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { AuthGateProvider } from '@/contexts/AuthGateContext';
 import { PricingProvider } from '@/contexts/PricingContext';
 import { CartProvider } from '@/contexts/CartContext';
+import { WishlistProvider } from '@/contexts/WishlistContext';
 import AppRoutes from './routes/AppRoutes';
 
 export default function App() {
@@ -22,6 +23,10 @@ export default function App() {
             AuthProvider. It doesn't need the router, but sits above it so
             every routed page — including Checkout — shares one cart. */}
         <CartProvider>
+          {/* WishlistProvider only needs AuthContext (for isAuthenticated),
+              not the router — sits alongside CartProvider so every routed
+              page shares one wishlist, same reasoning as the cart. */}
+          <WishlistProvider>
           <LanguageProvider>
             <Router>
               <AuthGateProvider>
@@ -40,6 +45,7 @@ export default function App() {
               />
             </Router>
           </LanguageProvider>
+          </WishlistProvider>
         </CartProvider>
       </PricingProvider>
     </AuthProvider>

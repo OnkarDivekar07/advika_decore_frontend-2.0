@@ -6,26 +6,51 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import ImageWithFallback from '@/components/Shared/ImageWithFallback';
 import { useCart } from '@/contexts/CartContext';
+import { useWishlist } from '@/contexts/WishlistContext';
 import { getLocalized } from '@/utils/i18nUtils';
 
 export default function ProductCard({ product }) {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { addItem } = useCart();
+  const { isWishlisted, toggle: toggleWishlist } = useWishlist();
   const [isAdding, setIsAdding] = useState(false);
+  const [isWishlistPending, setIsWishlistPending] = useState(false);
 
   const lang = i18n.language || 'en';
   const name = getLocalized(product?.name, lang) || t('productDetail.unnamedProduct', 'Unnamed product');
   const imageUrl = product?.images?.[0] || null;
+  const wishlisted = isWishlisted(product.id);
 
   const handleNavigate = useCallback(() => {
     navigate(`/product/${product.id}`);
   }, [navigate, product.id]);
 
-  const handleWishlist = useCallback((e) => {
-    e.stopPropagation();
-    // wishlist logic placeholder
-  }, []);
+  const handleWishlist = useCallback(
+    async (e) => {
+      e.stopPropagation();
+      if (isWishlistPending) return;
+      // Wishlisting a product never requires signing in — same as
+      // adding to cart (see handleAddToCart below): the guest wishlist
+      // lives in localStorage and is merged into the account's wishlist
+      // automatically at login (see WishlistContext.jsx). Only checkout
+      // is gated behind auth.
+      setIsWishlistPending(true);
+      try {
+        await toggleWishlist(product);
+        toast.success(
+          wishlisted
+            ? t('productDetail.removedFromWishlist', 'Removed from wishlist.')
+            : t('productDetail.addedToWishlist', 'Added to wishlist!')
+        );
+      } catch {
+        // WishlistContext already surfaced a toast — nothing else to do.
+      } finally {
+        setIsWishlistPending(false);
+      }
+    },
+    [isWishlistPending, toggleWishlist, product, wishlisted, t]
+  );
 
   const handleAddToCart = useCallback(
     async (e) => {
@@ -64,12 +89,17 @@ export default function ProductCard({ product }) {
         />
         {/* Wishlist overlay */}
         <button
-          title="Add to Wishlist"
-          aria-label="Add to Wishlist"
+          title={wishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'}
+          aria-label={wishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'}
           onClick={handleWishlist}
-          className="absolute top-2 right-2 p-2 rounded-full bg-white/80 backdrop-blur-sm text-gray-500 hover:text-red-500 hover:bg-white shadow-sm transition-colors opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
+          disabled={isWishlistPending}
+          className={`absolute top-2 right-2 p-2 rounded-full backdrop-blur-sm shadow-sm transition-colors focus-visible:opacity-100 disabled:opacity-60 ${
+            wishlisted
+              ? 'bg-white text-red-500 opacity-100'
+              : 'bg-white/80 text-gray-500 hover:text-red-500 hover:bg-white opacity-0 group-hover:opacity-100'
+          }`}
         >
-          <FiHeart className="w-4 h-4" />
+          <FiHeart className="w-4 h-4" fill={wishlisted ? 'currentColor' : 'none'} />
         </button>
       </div>
 

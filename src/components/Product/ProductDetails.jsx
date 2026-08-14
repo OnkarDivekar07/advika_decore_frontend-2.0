@@ -8,6 +8,7 @@ import ActionButtons from '../Shared/ActionButtons';
 import DeliveryChargeEstimate from '../Shipping/DeliveryChargeEstimate';
 import PincodeServiceabilityCheck from '../Shipping/PincodeServiceabilityCheck';
 import { useCart } from '@/contexts/CartContext';
+import { useWishlist } from '@/contexts/WishlistContext';
 import { useAuthGate } from '@/contexts/AuthGateContext';
 import { toast } from 'react-toastify';
 import { getLocalized } from '@/utils/i18nUtils';
@@ -47,12 +48,14 @@ export default function ProductDetails({ product }) {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { addItem, setBuyNow } = useCart();
+  const { isWishlisted, toggle: toggleWishlist } = useWishlist();
   const { requireAuth } = useAuthGate();
   const lang = i18n.language || 'en';
 
   const [quantity, setQuantity] = useState(1);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [isBuyNowPending, setIsBuyNowPending] = useState(false);
+  const [isWishlistPending, setIsWishlistPending] = useState(false);
 
   const stock = useMemo(() => getStockInfo(product), [product]);
   const unit = useMemo(() => getProductUnit(product, lang), [product, lang]);
@@ -121,17 +124,49 @@ export default function ProductDetails({ product }) {
     }
   };
 
+  const wishlisted = isWishlisted(product.id);
+
+  const handleToggleWishlist = async () => {
+    if (isWishlistPending) return;
+    // Wishlisting never requires signing in up front — same as Add to
+    // Cart just above: the guest wishlist lives in localStorage and is
+    // merged into the account automatically at login (see
+    // WishlistContext.jsx). Only checkout is gated behind auth.
+    setIsWishlistPending(true);
+    try {
+      await toggleWishlist(product);
+      toast.success(
+        wishlisted
+          ? t('productDetail.removedFromWishlist', 'Removed from wishlist.')
+          : t('productDetail.addedToWishlist', 'Added to wishlist!')
+      );
+    } catch {
+      // WishlistContext already surfaced a toast — nothing else to do.
+    } finally {
+      setIsWishlistPending(false);
+    }
+  };
+
   return (
     <section className="md:w-1/2 flex flex-col gap-6">
       {/* Name & wishlist */}
       <div className="flex items-start justify-between gap-4">
         <h1 className="font-display font-bold text-2xl sm:text-3xl text-gray-900 leading-tight">{name}</h1>
         <button
-          onClick={() => toast.info(t('productDetail.addedToWishlist', 'Added to wishlist!'))}
-          className="p-2 rounded-full text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors shrink-0 mt-0.5"
-          aria-label={t('productDetail.addToWishlist', 'Add to wishlist')}
+          onClick={handleToggleWishlist}
+          disabled={isWishlistPending}
+          className={`p-2 rounded-full transition-colors shrink-0 mt-0.5 disabled:opacity-60 ${
+            wishlisted
+              ? 'text-red-500 bg-red-50 hover:bg-red-100'
+              : 'text-gray-400 hover:text-red-500 hover:bg-red-50'
+          }`}
+          aria-label={
+            wishlisted
+              ? t('productDetail.removeFromWishlist', 'Remove from wishlist')
+              : t('productDetail.addToWishlist', 'Add to wishlist')
+          }
         >
-          <FiHeart className="w-5 h-5" />
+          <FiHeart className="w-5 h-5" fill={wishlisted ? 'currentColor' : 'none'} />
         </button>
       </div>
 

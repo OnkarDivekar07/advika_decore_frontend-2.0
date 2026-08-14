@@ -5,6 +5,24 @@ import { useTranslation } from 'react-i18next';
 import { FiHome, FiHeart, FiShoppingCart, FiUser, FiSearch, FiX, FiMenu, FiLogOut, FiGrid, FiMapPin, FiPackage } from 'react-icons/fi';
 import { FaTruck } from 'react-icons/fa';
 import { AuthContext } from '@/contexts/AuthContext';
+import { useWishlist } from '@/contexts/WishlistContext';
+
+// Small numeric badge pinned to the top-right of a nav icon — kept as its
+// own tiny component since it's rendered in three separate places below
+// (desktop nav, mobile icon strip, mobile dropdown) and should look
+// identical in all three. Caps the displayed count at 99+ so a large
+// wishlist never breaks the circle's layout.
+function NavIconBadge({ count }) {
+  if (!count) return null;
+  return (
+    <span
+      className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-1 rounded-full bg-red-500 text-white text-[10px] font-bold leading-4 text-center"
+      aria-hidden
+    >
+      {count > 99 ? '99+' : count}
+    </span>
+  );
+}
 
 export default function Navbar() {
   const { t } = useTranslation();
@@ -12,6 +30,7 @@ export default function Navbar() {
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
   const { isAuthenticated, logout } = useContext(AuthContext);
+  const { count: wishlistCount } = useWishlist();
 
   const toggleMenu = useCallback(() => setMenuOpen(prev => !prev), []);
   const closeMenu  = useCallback(() => setMenuOpen(false), []);
@@ -22,12 +41,12 @@ export default function Navbar() {
   const navLinks = useMemo(() => ([
     { to: '/',         icon: <FiHome />,        label: 'Home' },
     { to: '/products', icon: <FiGrid />,         label: 'Shop' },
-    { to: '/wishlist', icon: <FiHeart />,        label: 'Wishlist' },
+    { to: '/wishlist', icon: <FiHeart />,        label: 'Wishlist', badge: wishlistCount },
     { to: '/cart',     icon: <FiShoppingCart />, label: 'Cart' },
     isAuthenticated
       ? { to: '/profile',          icon: <FiUser />, label: 'Profile' }
       : { to: '/otp-verification', icon: <FiUser />, label: 'Login' },
-  ]), [isAuthenticated]);
+  ]), [isAuthenticated, wishlistCount]);
 
   const handleSearch = useCallback((e) => {
     e.preventDefault();
@@ -72,13 +91,16 @@ export default function Navbar() {
 
         {/* Desktop nav links */}
         <nav className="hidden md:flex items-center gap-1" aria-label="Main navigation">
-          {navLinks.map(({ to, icon, label }) => (
+          {navLinks.map(({ to, icon, label, badge }) => (
             <Link
               key={to}
               to={to}
               className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-700 hover:text-[var(--clr-primary-dark)] hover:bg-gray-50 transition-colors"
             >
-              <span className="text-base" aria-hidden>{icon}</span>
+              <span className="relative text-base" aria-hidden>
+                {icon}
+                <NavIconBadge count={badge} />
+              </span>
               {label}
             </Link>
           ))}
@@ -122,9 +144,10 @@ export default function Navbar() {
 
         {/* Mobile: icon strip + hamburger */}
         <div className="flex md:hidden items-center gap-3 text-xl text-gray-700">
-          {navLinks.slice(1).map(({ to, icon, label }) => (
-            <Link key={to} to={to} aria-label={label} className="hover:text-red-600 transition-colors">
+          {navLinks.slice(1).map(({ to, icon, label, badge }) => (
+            <Link key={to} to={to} aria-label={label} className="relative hover:text-red-600 transition-colors">
               {icon}
+              <NavIconBadge count={badge} />
             </Link>
           ))}
           <button
@@ -153,14 +176,17 @@ export default function Navbar() {
               aria-label={t('search.title', 'Search Products')}
             />
           </form>
-          {navLinks.map(({ to, icon, label }) => (
+          {navLinks.map(({ to, icon, label, badge }) => (
             <Link
               key={to}
               to={to}
               onClick={closeMenu}
               className="flex items-center gap-3 px-2 py-3 rounded-lg text-base font-medium text-gray-700 hover:text-[var(--clr-primary-dark)] hover:bg-gray-50 transition-colors"
             >
-              <span className="text-lg" aria-hidden>{icon}</span>
+              <span className="relative text-lg" aria-hidden>
+                {icon}
+                <NavIconBadge count={badge} />
+              </span>
               {label}
             </Link>
           ))}

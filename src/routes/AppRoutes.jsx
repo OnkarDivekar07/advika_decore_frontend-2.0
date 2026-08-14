@@ -16,6 +16,8 @@ const PaymentPage        = lazy(() => import('@/pages/Payment/PaymentPage'));
 const OrderSuccessPage   = lazy(() => import('@/pages/OrderSuccess/OrderSuccessPage'));
 const SearchResultsPage = lazy(() => import('@/pages/Search/SearchResultsPage'));
 const ProductListingPage = lazy(() => import('@/pages/Products/ProductListingPage'));
+const UserProfilePage = lazy(() => import('@/pages/UserProfile/UserProfilePage'));
+const WishlistPage = lazy(() => import('@/pages/Wishlist/WishlistPage'));
 const NotFound          = lazy(() => import('@/pages/NotFound'));
 
 function PageLoader() {
@@ -55,9 +57,8 @@ export default function AppRoutes() {
         <Route path="/orders" element={<OrderListPage />} />
         <Route path="/search"      element={<SearchResultsPage />} />
         <Route path="/products"    element={<ProductListingPage />} />
-        {/* Uncomment when pages are ready */}
-        {/* <Route path="/profile"    element={<UserProfilePage />} /> */}
-        {/* <Route path="/wishlist"   element={<WishlistPage />} /> */}
+        <Route path="/profile"    element={<UserProfilePage />} />
+        <Route path="/wishlist"   element={<WishlistPage />} />
         <Route path="*"            element={<NotFound />} />
       </Routes>
     </Suspense>
