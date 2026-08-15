@@ -56,7 +56,7 @@ export default function OrderSummaryCard({ order, title }) {
 
       <div className="flex justify-between text-sm text-gray-600">
         <span className="flex items-center gap-1.5">
-          <FiTruck className="w-3.5 h-3.5 shrink-0 text-gray-400" aria-hidden />
+          <FiTruck className="w-3.5 h-3.5 shrink-0 text-gray-500" aria-hidden />
           {t('cart.deliveryCharge', 'Delivery Charge')}
         </span>
         {deliveryCharge > 0 ? (

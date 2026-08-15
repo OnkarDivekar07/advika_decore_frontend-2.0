@@ -70,8 +70,10 @@ export default function Categories() {
           return (
             <button
               key={cat}
+              id={`category-tab-${cat}`}
               role="tab"
               aria-selected={isActive}
+              aria-controls="category-tabpanel"
               onClick={() => handleSelect(cat)}
               className={`px-4 py-2 rounded-full text-sm font-semibold border-2 transition-all duration-200 ${
                 isActive
@@ -87,9 +89,13 @@ export default function Categories() {
 
       {/* Products grid */}
       <div
-        className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-5 transition-opacity duration-200 ${fade ? 'opacity-100' : 'opacity-0'}`}
+        id="category-tabpanel"
         role="tabpanel"
+        aria-labelledby={`category-tab-${active}`}
+        aria-busy={loading}
+        className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-5 transition-opacity duration-200 ${fade ? 'opacity-100' : 'opacity-0'}`}
       >
+        {loading && <span className="sr-only" role="status">{t('common.loading', 'Loading…')}</span>}
         {loading
           ? Array.from({ length: 4 }).map((_, i) => <div key={i} className="skeleton aspect-[3/4]" />)
           : current.length > 0

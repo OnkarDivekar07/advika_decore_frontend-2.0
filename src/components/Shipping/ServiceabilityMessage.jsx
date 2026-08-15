@@ -32,7 +32,7 @@ export default function ServiceabilityMessage({
 
   if (status === 'checking') {
     return (
-      <p className={`text-xs text-gray-400 ${className}`}>
+      <p className={`text-xs text-gray-500 ${className}`} role="status">
         {t('checkout.checkingServiceability', 'Checking delivery availability…')}
       </p>
     );
@@ -40,7 +40,7 @@ export default function ServiceabilityMessage({
 
   if (status === 'ready' && data?.serviceable) {
     return (
-      <p className={`text-xs text-green-600 flex items-center gap-1 ${className}`}>
+      <p className={`text-xs text-green-600 flex items-center gap-1 ${className}`} role="status">
         <FiCheckCircle className="w-3.5 h-3.5 shrink-0" aria-hidden />
         {(() => {
           // Prefer the concrete date the backend computed (see the
@@ -68,7 +68,7 @@ export default function ServiceabilityMessage({
 
   if (status === 'ready' && !data?.serviceable) {
     return (
-      <p className={`text-xs text-amber-600 flex items-center gap-1 ${className}`}>
+      <p className={`text-xs text-amber-600 flex items-center gap-1 ${className}`} role="status">
         <FiAlertCircle className="w-3.5 h-3.5 shrink-0" aria-hidden />
         {getNotServiceableMessage(t, data?.reason)}
       </p>
@@ -82,7 +82,7 @@ export default function ServiceabilityMessage({
     // (e.g. ReviewPage.jsx) may block progression on, so it always needs a
     // clear, actionable way out of it rather than a dead end.
     return (
-      <p className={`text-xs text-amber-600 flex items-center gap-1.5 flex-wrap ${className}`}>
+      <p className={`text-xs text-amber-600 flex items-center gap-1.5 flex-wrap ${className}`} role="status">
         <span className="flex items-center gap-1">
           <FiAlertCircle className="w-3.5 h-3.5 shrink-0" aria-hidden />
           {t('checkout.shipmentCheckFailed', "Couldn't check delivery for this pincode.")}

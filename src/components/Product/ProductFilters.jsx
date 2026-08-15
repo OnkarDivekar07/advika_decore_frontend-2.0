@@ -68,7 +68,7 @@ export default function ProductFilters({
               priceRangeError ? 'border-red-300' : 'border-gray-200'
             }`}
           >
-            <span className="text-gray-400 text-sm">₹</span>
+            <span className="text-gray-500 text-sm">₹</span>
             <input
               type="number"
               inputMode="numeric"
@@ -78,16 +78,17 @@ export default function ProductFilters({
               onChange={(e) => onMinPriceChange(e.target.value)}
               aria-label={t('products.min', 'Min')}
               aria-invalid={priceRangeError || undefined}
+              aria-describedby={priceRangeError ? 'price-range-error' : undefined}
               className="w-full bg-transparent outline-none text-sm text-gray-800 placeholder-gray-400"
             />
           </div>
-          <span className="text-gray-400 text-sm">–</span>
+          <span className="text-gray-500 text-sm">–</span>
           <div
             className={`flex items-center gap-1 flex-1 rounded-lg border px-2.5 py-2 focus-within:border-primary ${
               priceRangeError ? 'border-red-300' : 'border-gray-200'
             }`}
           >
-            <span className="text-gray-400 text-sm">₹</span>
+            <span className="text-gray-500 text-sm">₹</span>
             <input
               type="number"
               inputMode="numeric"
@@ -97,12 +98,13 @@ export default function ProductFilters({
               onChange={(e) => onMaxPriceChange(e.target.value)}
               aria-label={t('products.max', 'Max')}
               aria-invalid={priceRangeError || undefined}
+              aria-describedby={priceRangeError ? 'price-range-error' : undefined}
               className="w-full bg-transparent outline-none text-sm text-gray-800 placeholder-gray-400"
             />
           </div>
         </div>
         {priceRangeError && (
-          <p className="flex items-center gap-1.5 text-xs text-red-600" role="alert">
+          <p id="price-range-error" className="flex items-center gap-1.5 text-xs text-red-600" role="alert">
             <FiAlertCircle className="w-3.5 h-3.5 shrink-0" aria-hidden />
             {t('products.priceRangeError', 'Min price cannot be greater than max price.')}
           </p>

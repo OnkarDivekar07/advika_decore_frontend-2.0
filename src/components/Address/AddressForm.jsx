@@ -6,7 +6,7 @@
 // in checkout (see checkout-architecture.md §2). Reused as-is by both the
 // checkout address step (AddressSelectionPage) and the standalone address
 // book (AddressBookPage) — nothing here is checkout-specific.
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
 import {
@@ -20,6 +20,11 @@ import { useServiceabilityCheck } from '@/features/shipping/hooks/useServiceabil
 import ServiceabilityMessage from '@/components/Shipping/ServiceabilityMessage';
 
 const DELIVERY_INSTRUCTIONS_MAX = 200;
+
+// Order fields appear in the form — used to find the *first* invalid one
+// (in visual/DOM order) so focus can be moved there on a failed submit,
+// rather than leaving a keyboard/screen-reader user to hunt for it.
+const FIELD_ORDER = ['name', 'phone', 'houseArea', 'area', 'landmark', 'pincode', 'city', 'state', 'deliveryInstructions'];
 
 const emptyForm = {
   name: '',
@@ -82,6 +87,20 @@ export default function AddressForm({
     setErrors((prev) => ({ ...prev, [field]: undefined }));
   };
 
+  // Every field below needs a stable, unique id so its <label> can use
+  // htmlFor (screen readers otherwise never learn a field's name — they
+  // were purely visual before) and so its error message can be wired up
+  // via aria-describedby/aria-invalid. isEditing changes which fields
+  // exist (never their identity), so it's safe to bake into the prefix
+  // without causing ids to shift under the user while they type.
+  const idPrefix = isEditing ? 'addr-edit' : 'addr-new';
+  const fieldId = (field) => `${idPrefix}-${field}`;
+  const errorId = (field) => `${idPrefix}-${field}-error`;
+  const describedBy = (field) => (errors[field] ? errorId(field) : undefined);
+
+  const fieldRefs = useRef({});
+  const registerField = (field) => (el) => { fieldRefs.current[field] = el; };
+
   const validate = () => {
     const next = {};
     if (form.name.trim().length < 2) next.name = t('checkout.errors.name', 'Enter a valid name.');
@@ -98,12 +117,20 @@ export default function AddressForm({
       );
     }
     setErrors(next);
-    return Object.keys(next).length === 0;
+    return next;
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!validate()) return;
+    const validationErrors = validate();
+    if (Object.keys(validationErrors).length > 0) {
+      // Move focus to the first invalid field (in form order) instead of
+      // leaving a keyboard/screen-reader user to hunt through the form
+      // for whichever fields turned red.
+      const firstInvalidField = FIELD_ORDER.find((field) => validationErrors[field]);
+      fieldRefs.current[firstInvalidField]?.focus();
+      return;
+    }
     onSubmit({
       name: form.name.trim(),
       phone: toE164(form.phone),
@@ -127,73 +154,91 @@ export default function AddressForm({
     <form onSubmit={handleSubmit} className="card p-5 flex flex-col gap-4" noValidate>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label className="text-sm font-medium text-gray-700 mb-1 block">
+          <label htmlFor={fieldId('name')} className="text-sm font-medium text-gray-700 mb-1 block">
             {t('checkout.fields.name', 'Full name')}
           </label>
           <input
+            id={fieldId('name')}
+            ref={registerField('name')}
             className={inputClass('name')}
             value={form.name}
             onChange={(e) => setField('name', e.target.value)}
             maxLength={80}
             autoComplete="name"
+            aria-invalid={!!errors.name}
+            aria-describedby={describedBy('name')}
           />
-          {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name}</p>}
+          {errors.name && <p id={errorId('name')} role="alert" className="text-xs text-red-500 mt-1">{errors.name}</p>}
         </div>
 
         <div>
-          <label className="text-sm font-medium text-gray-700 mb-1 block">
+          <label htmlFor={fieldId('phone')} className="text-sm font-medium text-gray-700 mb-1 block">
             {t('checkout.fields.phone', 'Mobile number')}
           </label>
           <div className={`flex items-center rounded-lg border ${errors.phone ? 'border-red-400' : 'border-[var(--clr-border)]'}`}>
-            <span className="pl-3 pr-1 text-sm text-gray-500">+91</span>
+            <span className="pl-3 pr-1 text-sm text-gray-500" aria-hidden>+91</span>
             <input
+              id={fieldId('phone')}
+              ref={registerField('phone')}
               className="flex-1 rounded-lg px-2 py-2 text-sm focus:outline-none"
               value={form.phone}
               onChange={(e) => setField('phone', sanitizePhoneInput(e.target.value))}
               inputMode="numeric"
               maxLength={10}
               autoComplete="tel-national"
+              aria-invalid={!!errors.phone}
+              aria-describedby={describedBy('phone')}
             />
           </div>
-          {errors.phone && <p className="text-xs text-red-500 mt-1">{errors.phone}</p>}
+          {errors.phone && <p id={errorId('phone')} role="alert" className="text-xs text-red-500 mt-1">{errors.phone}</p>}
         </div>
       </div>
 
       <div>
-        <label className="text-sm font-medium text-gray-700 mb-1 block">
+        <label htmlFor={fieldId('houseArea')} className="text-sm font-medium text-gray-700 mb-1 block">
           {t('checkout.fields.houseArea', 'House no., building, street')}
         </label>
         <input
+          id={fieldId('houseArea')}
+          ref={registerField('houseArea')}
           className={inputClass('houseArea')}
           value={form.houseArea}
           onChange={(e) => setField('houseArea', e.target.value)}
           maxLength={200}
           autoComplete="address-line1"
+          aria-invalid={!!errors.houseArea}
+          aria-describedby={describedBy('houseArea')}
         />
-        {errors.houseArea && <p className="text-xs text-red-500 mt-1">{errors.houseArea}</p>}
+        {errors.houseArea && <p id={errorId('houseArea')} role="alert" className="text-xs text-red-500 mt-1">{errors.houseArea}</p>}
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label className="text-sm font-medium text-gray-700 mb-1 block">
+          <label htmlFor={fieldId('area')} className="text-sm font-medium text-gray-700 mb-1 block">
             {t('checkout.fields.area', 'Area / locality')}
           </label>
           <input
+            id={fieldId('area')}
+            ref={registerField('area')}
             className={inputClass('area')}
             value={form.area}
             onChange={(e) => setField('area', e.target.value)}
             maxLength={100}
             placeholder={t('checkout.fields.areaPlaceholder', 'e.g. Kothrud')}
             autoComplete="address-line2"
+            aria-invalid={!!errors.area}
+            aria-describedby={describedBy('area')}
           />
-          {errors.area && <p className="text-xs text-red-500 mt-1">{errors.area}</p>}
+          {errors.area && <p id={errorId('area')} role="alert" className="text-xs text-red-500 mt-1">{errors.area}</p>}
         </div>
 
         <div>
-          <label className="text-sm font-medium text-gray-700 mb-1 block">
+          <label htmlFor={fieldId('landmark')} className="text-sm font-medium text-gray-700 mb-1 block">
             {t('checkout.fields.landmark', 'Landmark (optional)')}
           </label>
           <input
+            id={fieldId('landmark')}
+            ref={registerField('landmark')}
             className={inputClass('landmark')}
             value={form.landmark}
             onChange={(e) => setField('landmark', e.target.value)}
@@ -204,18 +249,22 @@ export default function AddressForm({
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div>
-          <label className="text-sm font-medium text-gray-700 mb-1 block">
+          <label htmlFor={fieldId('pincode')} className="text-sm font-medium text-gray-700 mb-1 block">
             {t('checkout.fields.pincode', 'Pincode')}
           </label>
           <input
+            id={fieldId('pincode')}
+            ref={registerField('pincode')}
             className={inputClass('pincode')}
             value={form.pincode}
             onChange={(e) => setField('pincode', sanitizePincodeInput(e.target.value))}
             inputMode="numeric"
             maxLength={6}
             autoComplete="postal-code"
+            aria-invalid={!!errors.pincode}
+            aria-describedby={describedBy('pincode')}
           />
-          {errors.pincode && <p className="text-xs text-red-500 mt-1">{errors.pincode}</p>}
+          {errors.pincode && <p id={errorId('pincode')} role="alert" className="text-xs text-red-500 mt-1">{errors.pincode}</p>}
           {!errors.pincode && (
             <ServiceabilityMessage
               status={serviceability.status}
@@ -227,38 +276,48 @@ export default function AddressForm({
           )}
         </div>
         <div>
-          <label className="text-sm font-medium text-gray-700 mb-1 block">
+          <label htmlFor={fieldId('city')} className="text-sm font-medium text-gray-700 mb-1 block">
             {t('checkout.fields.city', 'City')}
           </label>
           <input
+            id={fieldId('city')}
+            ref={registerField('city')}
             className={inputClass('city')}
             value={form.city}
             onChange={(e) => setField('city', e.target.value)}
             maxLength={80}
             autoComplete="address-level2"
+            aria-invalid={!!errors.city}
+            aria-describedby={describedBy('city')}
           />
-          {errors.city && <p className="text-xs text-red-500 mt-1">{errors.city}</p>}
+          {errors.city && <p id={errorId('city')} role="alert" className="text-xs text-red-500 mt-1">{errors.city}</p>}
         </div>
         <div>
-          <label className="text-sm font-medium text-gray-700 mb-1 block">
+          <label htmlFor={fieldId('state')} className="text-sm font-medium text-gray-700 mb-1 block">
             {t('checkout.fields.state', 'State')}
           </label>
           <input
+            id={fieldId('state')}
+            ref={registerField('state')}
             className={inputClass('state')}
             value={form.state}
             onChange={(e) => setField('state', e.target.value)}
             maxLength={80}
             autoComplete="address-level1"
+            aria-invalid={!!errors.state}
+            aria-describedby={describedBy('state')}
           />
-          {errors.state && <p className="text-xs text-red-500 mt-1">{errors.state}</p>}
+          {errors.state && <p id={errorId('state')} role="alert" className="text-xs text-red-500 mt-1">{errors.state}</p>}
         </div>
       </div>
 
       <div>
-        <label className="text-sm font-medium text-gray-700 mb-1 block">
+        <label htmlFor={fieldId('deliveryInstructions')} className="text-sm font-medium text-gray-700 mb-1 block">
           {t('checkout.fields.deliveryInstructions', 'Delivery instructions (optional)')}
         </label>
         <textarea
+          id={fieldId('deliveryInstructions')}
+          ref={registerField('deliveryInstructions')}
           className={inputClass('deliveryInstructions')}
           value={form.deliveryInstructions}
           onChange={(e) => setField('deliveryInstructions', e.target.value)}
@@ -268,22 +327,29 @@ export default function AddressForm({
             'checkout.fields.deliveryInstructionsPlaceholder',
             'e.g. Leave with the security guard, call before arriving'
           )}
+          aria-invalid={!!errors.deliveryInstructions}
+          aria-describedby={
+            [errors.deliveryInstructions ? errorId('deliveryInstructions') : null, `${fieldId('deliveryInstructions')}-count`]
+              .filter(Boolean)
+              .join(' ')
+          }
         />
         <div className="flex items-center justify-between mt-1">
           {errors.deliveryInstructions ? (
-            <p className="text-xs text-red-500">{errors.deliveryInstructions}</p>
+            <p id={errorId('deliveryInstructions')} role="alert" className="text-xs text-red-500">{errors.deliveryInstructions}</p>
           ) : (
             <span />
           )}
-          <p className="text-xs text-gray-400">
+          <p id={`${fieldId('deliveryInstructions')}-count`} className="text-xs text-gray-500">
             {form.deliveryInstructions.length}/{DELIVERY_INSTRUCTIONS_MAX}
           </p>
         </div>
       </div>
 
       {!hideDefaultToggle && (
-        <label className="flex items-center gap-2 text-sm text-gray-700 select-none">
+        <label htmlFor={fieldId('isDefault')} className="flex items-center gap-2 text-sm text-gray-700 select-none">
           <input
+            id={fieldId('isDefault')}
             type="checkbox"
             className="w-4 h-4 rounded border-[var(--clr-border)] text-[var(--clr-primary)] focus:ring-[var(--clr-primary)]"
             checked={isLockedDefault ? true : form.isDefault}

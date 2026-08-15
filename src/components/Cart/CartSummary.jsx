@@ -68,7 +68,7 @@ export default function CartSummary({ items }) {
         </div>
         <div className="flex justify-between text-gray-600">
           <span className="flex items-center gap-1.5">
-            <FiTruck className="w-3.5 h-3.5 shrink-0 text-gray-400" aria-hidden />
+            <FiTruck className="w-3.5 h-3.5 shrink-0 text-gray-500" aria-hidden />
             {t('cart.deliveryCharge', 'Delivery Charge')}
           </span>
           {deliveryCharge > 0 ? (
@@ -118,7 +118,7 @@ export default function CartSummary({ items }) {
             <button
               type="button"
               onClick={handleRemoveCoupon}
-              className="text-gray-400 hover:text-gray-600"
+              className="text-gray-500 hover:text-gray-600"
               aria-label={t('cart.removeCoupon', 'Remove coupon')}
             >
               <FiX className="w-4 h-4" aria-hidden />
@@ -126,13 +126,19 @@ export default function CartSummary({ items }) {
           </div>
         ) : (
           <form onSubmit={handleApplyCoupon} className="flex gap-2">
+            <label htmlFor="cart-coupon-input" className="sr-only">
+              {t('cart.couponPlaceholder', 'Have a coupon?')}
+            </label>
             <input
+              id="cart-coupon-input"
               type="text"
               value={couponInput}
               onChange={(e) => setCouponInput(e.target.value)}
               placeholder={t('cart.couponPlaceholder', 'Have a coupon?')}
               className="flex-1 min-w-0 rounded-lg border border-[var(--clr-border)] px-3 py-2 text-sm"
               disabled={coupon.status === 'applying'}
+              aria-invalid={coupon.status === 'error'}
+              aria-describedby={coupon.status === 'error' ? 'cart-coupon-error' : undefined}
             />
             <button
               type="submit"
@@ -144,7 +150,7 @@ export default function CartSummary({ items }) {
           </form>
         )}
         {coupon.status === 'error' && coupon.error && (
-          <p className="text-xs text-red-600 mt-1.5">{coupon.error}</p>
+          <p id="cart-coupon-error" role="alert" className="text-xs text-red-600 mt-1.5">{coupon.error}</p>
         )}
       </div>
 

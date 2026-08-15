@@ -16,6 +16,7 @@ import { useTranslation } from 'react-i18next';
 import { FiX, FiPhone, FiShield, FiAlertCircle } from 'react-icons/fi';
 import { useOtpFlow, STEP_PHONE, STEP_OTP } from '@/features/auth/hooks/useOtpFlow';
 import { translateOtpResult } from '@/features/auth/utils/otpMessages';
+import useModalA11y from '@/hooks/useModalA11y';
 
 const formatMmSs = (totalSeconds) => {
   const m = Math.floor(totalSeconds / 60);
@@ -26,6 +27,7 @@ const formatMmSs = (totalSeconds) => {
 export default function PhoneOtpModal({ isOpen, onClose, onVerified }) {
   const { t } = useTranslation();
   const otpInputRef = useRef(null);
+  const phoneInputRef = useRef(null);
   const flow = useOtpFlow({ onVerified });
   const {
     step,
@@ -58,6 +60,13 @@ export default function PhoneOtpModal({ isOpen, onClose, onVerified }) {
     if (step === STEP_OTP) otpInputRef.current?.focus();
   }, [step]);
 
+  // Focus trap, Escape-to-close, background scroll lock, and focus
+  // move-in/restore-on-close, shared with every other dialog in the app
+  // (see useModalA11y). Initial focus goes to the phone number field —
+  // when the modal (re)opens it's always on the phone step (reset() runs
+  // above), so this is a stable, always-present target.
+  const dialogRef = useModalA11y({ isOpen, onClose, initialFocusRef: phoneInputRef });
+
   if (!isOpen) return null;
 
   const handleSend = async (e) => {
@@ -85,6 +94,7 @@ export default function PhoneOtpModal({ isOpen, onClose, onVerified }) {
 
   return (
     <div
+      ref={dialogRef}
       className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 px-4"
       role="dialog"
       aria-modal="true"
@@ -94,7 +104,7 @@ export default function PhoneOtpModal({ isOpen, onClose, onVerified }) {
         <button
           onClick={onClose}
           aria-label={t('otp.close', 'Close')}
-          className="absolute top-3 right-3 p-2 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+          className="absolute top-3 right-3 p-2 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
         >
           <FiX className="w-5 h-5" />
         </button>
@@ -122,6 +132,7 @@ export default function PhoneOtpModal({ isOpen, onClose, onVerified }) {
               </span>
               <input
                 id="phone-input"
+                ref={phoneInputRef}
                 type="tel"
                 inputMode="numeric"
                 autoComplete="tel-national"

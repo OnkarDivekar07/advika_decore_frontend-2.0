@@ -37,18 +37,18 @@ export default function CartPage() {
   return (
     <>
       <Navbar />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12" id="main-content" tabIndex={-1}>
         <h1 className="section-title mb-8">{t('cart.title', 'Your Cart')}</h1>
 
         {isSyncing ? (
-          <div className="flex flex-col items-center justify-center py-24 gap-4 text-center">
+          <div className="flex flex-col items-center justify-center py-24 gap-4 text-center" role="status">
             <Spinner size={40} />
             <p className="text-gray-500 text-sm">
               {t('cart.syncing', 'Syncing your cart…')}
             </p>
           </div>
         ) : loadError ? (
-          <div className="flex flex-col items-center justify-center py-24 gap-5 text-center">
+          <div className="flex flex-col items-center justify-center py-24 gap-5 text-center" role="alert">
             <FiAlertTriangle className="w-12 h-12 text-red-300" aria-hidden />
             <div>
               <p className="text-gray-700 text-lg font-medium">

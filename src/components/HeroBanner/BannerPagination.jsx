@@ -15,12 +15,23 @@ export default function BannerPagination({ total, current, onChange }) {
           aria-selected={idx === current}
           aria-label={`Go to slide ${idx + 1}`}
           onClick={() => onChange(idx)}
-          className={`rounded-full transition-all duration-300 focus-visible:outline-2 focus-visible:outline-white ${
-            idx === current
-              ? 'w-6 h-2.5 bg-[var(--clr-primary)]'
-              : 'w-2.5 h-2.5 bg-white/50 hover:bg-white/80'
-          }`}
-        />
+          // p-2.5 -m-2.5: the visible dot stays exactly its original
+          // small size (see the inner span below), but the actual tap
+          // target grows to ~24px square either way — WCAG 2.2's 2.5.8
+          // minimum — via padding that's cancelled back out with a
+          // matching negative margin so it doesn't push neighboring
+          // dots apart or change the pagination bar's footprint.
+          className="p-2 -m-2 flex items-center justify-center focus-visible:outline-2 focus-visible:outline-white rounded-full"
+        >
+          <span
+            aria-hidden
+            className={`block rounded-full transition-all duration-300 ${
+              idx === current
+                ? 'w-6 h-2.5 bg-[var(--clr-primary)]'
+                : 'w-2.5 h-2.5 bg-white/50 hover:bg-white/80'
+            }`}
+          />
+        </button>
       ))}
     </div>
   );

@@ -246,7 +246,7 @@ export default function ReviewPage() {
                   step — re-asks the same check, doesn't just clear the
                   local error and hope. */}
               {shippingCheckPending && (
-                <p className="text-xs text-gray-400 mt-1.5 flex items-center gap-1.5">
+                <p className="text-xs text-gray-500 mt-1.5 flex items-center gap-1.5" role="status">
                   <Spinner size={12} />
                   {t('checkout.checkingServiceability', 'Checking delivery availability…')}
                 </p>
@@ -288,7 +288,7 @@ export default function ReviewPage() {
           at the fix (a different address) rather than a retry, matching
           the ServiceabilityMessage shown in the address card above. */}
       {canProceedToReview && shippingUnserviceable && (
-        <p className="text-xs text-amber-600 text-center sm:text-right">
+        <p className="text-xs text-amber-600 text-center sm:text-right" role="alert">
           {t(
             'checkout.cannotProceedUnserviceable',
             "We can't confirm delivery to this address. Choose a different address to continue."

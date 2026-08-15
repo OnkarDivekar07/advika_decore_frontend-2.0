@@ -70,7 +70,7 @@ export default function OrderListPage() {
   return (
     <>
       <Navbar />
-      <main className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+      <main className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12" id="main-content" tabIndex={-1}>
         <div className="flex flex-wrap items-end justify-between gap-2 mb-2">
           <h1 className="section-title">{t('orders.title', 'My Orders')}</h1>
           {meta?.total > 0 && (
@@ -91,7 +91,7 @@ export default function OrderListPage() {
             <Spinner size={40} />
           </div>
         ) : status === STATUS_ERROR ? (
-          <div className="flex flex-col items-center justify-center py-16 gap-4 text-center">
+          <div className="flex flex-col items-center justify-center py-16 gap-4 text-center" role="alert">
             <FiAlertTriangle className="w-12 h-12 text-red-300" aria-hidden />
             <p className="text-gray-600">
               {t('orders.loadError', "We couldn't load your orders.")}

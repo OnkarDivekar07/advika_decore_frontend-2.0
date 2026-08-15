@@ -22,11 +22,12 @@ export default function PincodeServiceabilityCheck({ label, showCodNote, classNa
 
   return (
     <div className={`flex flex-col gap-1.5 ${className}`}>
-      <label className="text-sm font-semibold text-gray-700">
+      <label htmlFor="pincode-check-input" className="text-sm font-semibold text-gray-700">
         {label ?? t('productDetail.checkDelivery', 'Check delivery date')}
       </label>
       <div className="flex gap-2 max-w-xs">
         <input
+          id="pincode-check-input"
           type="text"
           inputMode="numeric"
           value={pincode}

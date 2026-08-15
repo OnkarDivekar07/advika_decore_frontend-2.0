@@ -32,7 +32,8 @@ export default function NewArrivals() {
       <div className="mb-7">
         <h2 className="section-title">{t('homepage.newArrivals')}</h2>
       </div>
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-5">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-5" aria-busy={loading}>
+        {loading && <span className="sr-only" role="status">{t('common.loading', 'Loading…')}</span>}
         {loading
           ? Array.from({ length: SKELETON_COUNT }).map((_, idx) => (
               <div key={idx} className="skeleton aspect-[3/4]" />

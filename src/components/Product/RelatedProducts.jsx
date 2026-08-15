@@ -1,6 +1,6 @@
 // src/components/Product/RelatedProducts.jsx
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { getRelatedProducts } from '@/services/productsService';
 import { getLocalized } from '@/utils/i18nUtils';
@@ -12,7 +12,6 @@ const SKELETON_COUNT = 4;
 export default function RelatedProducts({ currentProductId }) {
   const [related, setRelated] = useState([]);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const lang = i18n.language || 'en';
 
@@ -43,18 +42,21 @@ export default function RelatedProducts({ currentProductId }) {
               const name = getLocalized(product.name, lang) || t('productDetail.unnamedProduct', 'Unnamed product');
               const image = product.images?.[0] || null;
               return (
-                <article
+                // A real <Link> instead of a div/article with
+                // role="button" + onClick/onKeyDown — gets native
+                // keyboard operability (Enter *and* Space, which the old
+                // manual handler didn't cover) and a real accessible
+                // role for free, with no nested-interactive-control
+                // concerns since there are no buttons inside it.
+                <Link
                   key={product.id}
-                  onClick={() => navigate(`/product/${product.id}`)}
-                  className="card w-44 sm:w-52 cursor-pointer overflow-hidden shrink-0"
-                  tabIndex={0}
-                  onKeyDown={e => e.key === 'Enter' && navigate(`/product/${product.id}`)}
-                  role="button"
+                  to={`/product/${product.id}`}
+                  className="card w-44 sm:w-52 overflow-hidden shrink-0 block"
                   aria-label={t('productDetail.viewProduct', 'View {{name}}', { name })}
                 >
                   <ImageWithFallback
                     src={image}
-                    alt={name}
+                    alt=""
                     className="w-full aspect-square object-cover"
                     loading="lazy"
                   />
@@ -62,7 +64,7 @@ export default function RelatedProducts({ currentProductId }) {
                     <p className="text-sm font-semibold text-gray-800 line-clamp-2">{name}</p>
                     <p className="text-primary font-bold mt-1 text-sm">₹{product.price}</p>
                   </div>
-                </article>
+                </Link>
               );
             })
         }

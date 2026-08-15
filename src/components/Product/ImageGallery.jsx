@@ -33,12 +33,15 @@ export default function ImageGallery({ images = [] }) {
 
       {/* Thumbnails */}
       {validImages.length > 1 && (
-        <div className="flex gap-3 overflow-x-auto pb-1 scroll-strip" role="list">
+        <div
+          className="flex gap-3 overflow-x-auto pb-1 scroll-strip"
+          role="group"
+          aria-label={t('productDetail.thumbnailsGroup', 'Product image thumbnails')}
+        >
           {validImages.map((thumb, index) => (
             <button
               key={index}
               type="button"
-              role="listitem"
               onClick={() => setActiveIndex(index)}
               aria-label={t('productDetail.viewImageN', 'View image {{n}}', { n: index + 1 })}
               aria-pressed={index === activeIndex}

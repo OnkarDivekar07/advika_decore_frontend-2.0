@@ -43,10 +43,10 @@ const VARIANTS = {
   cancelled: {
     icon: FiInfo,
     section: 'border-gray-300 bg-gray-50',
-    icon_color: 'text-gray-400',
+    icon_color: 'text-gray-500',
     title_color: 'text-gray-800',
     body_color: 'text-gray-600',
-    dismiss_color: 'text-gray-400 hover:text-gray-600',
+    dismiss_color: 'text-gray-500 hover:text-gray-600',
     titleKey: ['checkout.paymentCancelledTitle', 'Payment cancelled'],
     bodyKey: [
       'checkout.paymentCancelledBody',

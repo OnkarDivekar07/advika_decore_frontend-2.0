@@ -57,6 +57,7 @@ export default function OrderCard({ order }) {
     <Link
       to={`/order/success/${order.id}`}
       state={{ fromHistory: true }}
+      aria-label={t('orders.viewOrderDetails', 'View details for order {{id}}', { id: order.id })}
       className="card p-4 sm:p-5 flex flex-col gap-4 hover:shadow-md transition-shadow"
     >
       <div className="flex items-start justify-between gap-3">
@@ -64,7 +65,7 @@ export default function OrderCard({ order }) {
           <p className="text-xs text-gray-500">{t('orders.orderId', 'Order ID')}</p>
           <p className="font-mono text-sm text-gray-900 truncate">{order.id}</p>
           {placedOn && (
-            <p className="text-xs text-gray-400 mt-1">
+            <p className="text-xs text-gray-500 mt-1">
               {t('orders.placedOn', 'Placed on {{date}}', { date: placedOn })}
             </p>
           )}

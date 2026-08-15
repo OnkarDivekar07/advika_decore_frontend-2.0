@@ -63,7 +63,7 @@ export default function ProductDetailPage() {
   return (
     <>
       <Navbar />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8" id="main-content" tabIndex={-1}>
         <button
           type="button"
           onClick={handleBack}
@@ -79,7 +79,7 @@ export default function ProductDetailPage() {
           </div>
         )}
         {error && !loading && (
-          <div className="flex flex-col items-center text-center gap-3 py-20">
+          <div className="flex flex-col items-center text-center gap-3 py-20" role="alert">
             <FiAlertCircle className="w-12 h-12 text-red-400" aria-hidden />
             <p className="text-red-500 font-medium">{error}</p>
             <button onClick={() => fetchProduct()} className="btn btn-outline mt-1">

@@ -84,7 +84,7 @@ export default function OTPVerificationPage() {
   return (
     <>
       <Navbar />
-      <main className="max-w-md mx-auto px-4 sm:px-6 py-12 sm:py-20">
+      <main className="max-w-md mx-auto px-4 sm:px-6 py-12 sm:py-20" id="main-content" tabIndex={-1}>
         <div className="card p-6 sm:p-8">
           <div className="flex flex-col items-center text-center gap-2 mb-6">
             <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
@@ -188,7 +188,7 @@ export default function OTPVerificationPage() {
               <button
                 type="button"
                 onClick={handleResend}
-                className="text-sm text-[var(--clr-primary)] disabled:text-gray-400 disabled:cursor-not-allowed self-center"
+                className="text-sm text-[var(--clr-primary)] disabled:text-gray-500 disabled:cursor-not-allowed self-center"
                 disabled={isSubmitting || cooldown > 0}
               >
                 {cooldown > 0

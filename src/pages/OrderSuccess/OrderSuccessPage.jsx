@@ -122,9 +122,9 @@ export default function OrderSuccessPage() {
     return (
       <>
         <Navbar />
-        <main className="max-w-2xl mx-auto px-4 sm:px-6 py-12 sm:py-16 flex flex-col items-center gap-4">
+        <main className="max-w-2xl mx-auto px-4 sm:px-6 py-12 sm:py-16 flex flex-col items-center gap-4" id="main-content" tabIndex={-1}>
           <Spinner size={40} />
-          <p className="text-sm text-gray-400">
+          <p className="text-sm text-gray-500">
             {t('orderSuccess.loading', 'Loading your order…')}
           </p>
         </main>
@@ -136,7 +136,7 @@ export default function OrderSuccessPage() {
     return (
       <>
         <Navbar />
-        <main className="max-w-2xl mx-auto px-4 sm:px-6 py-12 sm:py-16 text-center">
+        <main className="max-w-2xl mx-auto px-4 sm:px-6 py-12 sm:py-16 text-center" id="main-content" tabIndex={-1}>
           <FiAlertTriangle className="w-12 h-12 text-amber-400 mx-auto mb-4" aria-hidden />
           <h1 className="section-title mb-2">
             {state === 'notFound'
@@ -200,7 +200,7 @@ export default function OrderSuccessPage() {
   return (
     <>
       <Navbar />
-      <main className="max-w-2xl mx-auto px-4 sm:px-6 py-12 sm:py-16 text-center">
+      <main className="max-w-2xl mx-auto px-4 sm:px-6 py-12 sm:py-16 text-center" id="main-content" tabIndex={-1}>
         {isFailed ? (
           <FiXCircle className="w-16 h-16 text-rose-500 mx-auto mb-4" aria-hidden />
         ) : isProcessing ? (

@@ -1,70 +1,19 @@
 // src/components/Product/FilterDrawer.jsx
-import React, { useEffect, useRef } from 'react';
+import React, { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FiX } from 'react-icons/fi';
 import ProductFilters from './ProductFilters';
-
-const FOCUSABLE_SELECTOR =
-  'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
+import useModalA11y from '@/hooks/useModalA11y';
 
 export default function FilterDrawer({ open, onClose, resultCount, ...filterProps }) {
   const { t } = useTranslation();
-  const dialogRef = useRef(null);
   const closeButtonRef = useRef(null);
-  const previouslyFocusedRef = useRef(null);
 
-  // Lock background scroll while the drawer is open, and let Escape close it.
-  useEffect(() => {
-    if (!open) return undefined;
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    const onKeyDown = (e) => {
-      if (e.key === 'Escape') {
-        onClose();
-        return;
-      }
-      // Basic focus trap: keep Tab/Shift+Tab cycling within the dialog
-      // instead of leaking focus out to the (visually hidden, but still
-      // reachable) page content behind it.
-      if (e.key !== 'Tab' || !dialogRef.current) return;
-      const focusable = Array.from(dialogRef.current.querySelectorAll(FOCUSABLE_SELECTOR)).filter(
-        (el) => el.offsetParent !== null
-      );
-      if (focusable.length === 0) return;
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-      if (e.shiftKey && document.activeElement === first) {
-        e.preventDefault();
-        last.focus();
-      } else if (!e.shiftKey && document.activeElement === last) {
-        e.preventDefault();
-        first.focus();
-      }
-    };
-    window.addEventListener('keydown', onKeyDown);
-    return () => {
-      document.body.style.overflow = prevOverflow;
-      window.removeEventListener('keydown', onKeyDown);
-    };
-  }, [open, onClose]);
-
-  // Move focus into the dialog on open (to its close button, a stable
-  // and always-present target), and restore it to whatever triggered
-  // the drawer once it closes — so keyboard/screen-reader users aren't
-  // dropped back at the top of the page.
-  useEffect(() => {
-    if (open) {
-      previouslyFocusedRef.current = document.activeElement;
-      // Deferred one tick so the sheet has mounted before we try to focus it.
-      const id = requestAnimationFrame(() => closeButtonRef.current?.focus());
-      return () => cancelAnimationFrame(id);
-    }
-    if (previouslyFocusedRef.current instanceof HTMLElement) {
-      previouslyFocusedRef.current.focus();
-    }
-    previouslyFocusedRef.current = null;
-    return undefined;
-  }, [open]);
+  // Focus trap, Escape-to-close, background scroll lock, and focus
+  // move-in/restore-on-close — shared with every other dialog in the app,
+  // see useModalA11y. Initial focus goes to the close button, a stable
+  // and always-present target.
+  const dialogRef = useModalA11y({ isOpen: open, onClose, initialFocusRef: closeButtonRef });
 
   if (!open) return null;
 

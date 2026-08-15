@@ -117,7 +117,7 @@ export default function OrderTrackingTimeline({ orderStatus, shipmentStatus }) {
       : t('tracking.returnedNote', 'This item was returned to the seller.');
     return (
       <div className="flex items-center gap-2 text-sm text-gray-600 py-1">
-        <Icon className={`w-5 h-5 shrink-0 ${isCancelled ? 'text-red-500' : 'text-gray-400'}`} aria-hidden />
+        <Icon className={`w-5 h-5 shrink-0 ${isCancelled ? 'text-red-500' : 'text-gray-500'}`} aria-hidden />
         <span>{label}</span>
       </div>
     );
@@ -149,7 +149,7 @@ export default function OrderTrackingTimeline({ orderStatus, shipmentStatus }) {
           const Icon = step.icon;
           return (
             <React.Fragment key={step.key}>
-              <div className="flex flex-col items-center gap-1.5 min-w-[46px]" role="listitem">
+              <div className="flex flex-col items-center gap-1.5 min-w-[46px]" role="listitem" aria-current={isCurrent ? 'step' : undefined}>
                 <div
                   className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center border-2 shrink-0 transition-colors ${
                     isComplete
@@ -165,7 +165,7 @@ export default function OrderTrackingTimeline({ orderStatus, shipmentStatus }) {
                 </div>
                 <span
                   className={`text-[9px] sm:text-[10px] text-center leading-tight ${
-                    isComplete ? 'text-gray-900 font-medium' : 'text-gray-400'
+                    isComplete ? 'text-gray-900 font-medium' : 'text-gray-500'
                   }`}
                 >
                   {t(step.labelKey, step.fallback)}

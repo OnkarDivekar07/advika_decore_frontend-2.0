@@ -54,7 +54,7 @@ export default function CheckoutPage() {
   return (
     <>
       <Navbar />
-      <main className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+      <main className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12" id="main-content" tabIndex={-1}>
         <h1 className="section-title mb-2">{t('checkout.title', 'Checkout')}</h1>
         <p className="text-sm text-gray-500 mb-8">
           Verified as +91 {user?.phone}
@@ -94,7 +94,7 @@ export default function CheckoutPage() {
           </div>
         </div>
 
-        <p className="text-sm text-gray-400 mt-6">
+        <p className="text-sm text-gray-500 mt-6">
           Address and payment are coming in the next module.
         </p>
       </main>

@@ -120,7 +120,7 @@ export default function UserProfilePage() {
   return (
     <>
       <Navbar />
-      <main className="max-w-2xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+      <main className="max-w-2xl mx-auto px-4 sm:px-6 py-8 sm:py-12" id="main-content" tabIndex={-1}>
         <h1 className="section-title mb-6">{t('account.title', 'My Account')}</h1>
 
         {status === 'loading' || status === 'idle' ? (
@@ -128,7 +128,7 @@ export default function UserProfilePage() {
             <Spinner size={40} />
           </div>
         ) : status === 'error' ? (
-          <div className="card p-8 flex flex-col items-center text-center gap-3">
+          <div className="card p-8 flex flex-col items-center text-center gap-3" role="alert">
             <p className="text-gray-600">{t('account.loadError', "We couldn't load your account.")}</p>
             <button onClick={load} className="btn btn-outline px-6">
               {t('buttons.retry', 'Retry')}
@@ -151,6 +151,7 @@ export default function UserProfilePage() {
                           value={nameDraft}
                           onChange={(e) => setNameDraft(e.target.value)}
                           maxLength={80}
+                          aria-label={t('account.editName', 'Edit name')}
                           className="rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm w-40 sm:w-48 focus:outline-none focus:ring-2 focus:ring-[var(--clr-primary)]/40"
                         />
                         <button
@@ -180,7 +181,7 @@ export default function UserProfilePage() {
                   <button
                     onClick={startEditName}
                     aria-label={t('account.editName', 'Edit name')}
-                    className="p-2 text-gray-400 hover:text-gray-600 shrink-0"
+                    className="p-2 text-gray-500 hover:text-gray-600 shrink-0"
                   >
                     <FiEdit2 className="w-4 h-4" />
                   </button>
@@ -190,11 +191,12 @@ export default function UserProfilePage() {
               <div className="border-t border-gray-100 mt-4 pt-4">
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex items-center gap-2 text-sm text-gray-700">
-                    <FiPhone className="w-4 h-4 text-gray-400" aria-hidden />
+                    <FiPhone className="w-4 h-4 text-gray-500" aria-hidden />
                     <span>+91 {profile?.phone}</span>
                   </div>
                   <button
                     onClick={() => setIsChangingPhone((v) => !v)}
+                    aria-expanded={isChangingPhone}
                     className="text-xs font-medium text-[var(--clr-primary-dark)] hover:underline"
                   >
                     {isChangingPhone
@@ -243,6 +245,7 @@ export default function UserProfilePage() {
             <section className="card overflow-hidden">
               <button
                 onClick={() => setIsSettingsOpen((v) => !v)}
+                aria-expanded={isSettingsOpen}
                 className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 transition-colors text-left"
               >
                 <span className="p-2 rounded-full bg-[var(--clr-primary)]/10 text-[var(--clr-primary-dark)] shrink-0">
@@ -268,6 +271,7 @@ export default function UserProfilePage() {
                       <button
                         key={code}
                         onClick={() => changeLanguage(code)}
+                        aria-pressed={language === code}
                         className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
                           language === code
                             ? 'bg-[var(--clr-primary)] text-[#111] border-[var(--clr-primary)]'

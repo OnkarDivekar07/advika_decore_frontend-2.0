@@ -91,7 +91,7 @@ export default function CartItem({ item, onQuantityChange, onRemove }) {
             {t('cart.stockLimitReached', 'Only {{count}} left in stock.', { count: stock.quantity })}
           </p>
         ) : stock.isLow ? (
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-gray-500">
             {t('cart.lowStockHint', '{{count}} left in stock', { count: stock.quantity })}
           </p>
         ) : null}
@@ -103,7 +103,7 @@ export default function CartItem({ item, onQuantityChange, onRemove }) {
         <button
           onClick={() => onRemove(item.id)}
           aria-label={t('cart.removeItem', { item: itemName, defaultValue: `Remove ${itemName}` })}
-          className="p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+          className="p-2 rounded-lg text-gray-500 hover:text-red-600 hover:bg-red-50 transition-colors"
         >
           <FiTrash2 className="w-4 h-4" />
         </button>

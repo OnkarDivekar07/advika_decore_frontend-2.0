@@ -74,19 +74,19 @@ export default function WishlistCard({ product, onRemove, isRemoving }) {
 
   const body = (
     <>
-      <div className="relative w-24 h-24 sm:w-28 sm:h-28 shrink-0 rounded-lg overflow-hidden bg-gray-50 flex items-center justify-center">
+      <div className="relative w-24 h-24 sm:w-28 sm:h-28 shrink-0 rounded-lg overflow-hidden bg-gray-50 flex items-center justify-center pointer-events-none">
         {isUnavailable ? (
           <FiAlertCircle className="w-8 h-8 text-gray-300" aria-hidden />
         ) : (
-          <ImageWithFallback src={imageUrl} alt={name} className="w-full h-full object-cover" loading="lazy" />
+          <ImageWithFallback src={imageUrl} alt="" className="w-full h-full object-cover" loading="lazy" />
         )}
       </div>
 
       <div className="min-w-0 flex-1 flex flex-col">
         <div className="flex items-start justify-between gap-2">
           <h3
-            className={`text-sm sm:text-base font-semibold leading-snug line-clamp-2 ${
-              isUnavailable ? 'text-gray-400 italic' : 'text-gray-800'
+            className={`text-sm sm:text-base font-semibold leading-snug line-clamp-2 pointer-events-none ${
+              isUnavailable ? 'text-gray-500 italic' : 'text-gray-800'
             }`}
           >
             {name}
@@ -95,7 +95,7 @@ export default function WishlistCard({ product, onRemove, isRemoving }) {
             onClick={handleRemove}
             disabled={isRemoving}
             aria-label={t('wishlist.remove', 'Remove from wishlist')}
-            className="p-1.5 rounded-full text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors shrink-0 disabled:opacity-60"
+            className="relative z-10 pointer-events-auto p-1.5 rounded-full text-gray-500 hover:text-red-500 hover:bg-red-50 transition-colors shrink-0 disabled:opacity-60"
           >
             {isRemoving ? (
               <FiLoader className="w-4 h-4 animate-spin" aria-hidden />
@@ -106,22 +106,22 @@ export default function WishlistCard({ product, onRemove, isRemoving }) {
         </div>
 
         {isUnavailable ? (
-          <p className="text-xs text-gray-400 mt-1">
+          <p className="text-xs text-gray-500 mt-1 pointer-events-none">
             {t('wishlist.unavailableHint', 'This item can no longer be ordered.')}
           </p>
         ) : (
           <>
             {hasValidPrice && (
-              <p className="text-base font-bold text-gray-900 mt-1">₹{formatPrice(priceValue)}</p>
+              <p className="text-base font-bold text-gray-900 mt-1 pointer-events-none">₹{formatPrice(priceValue)}</p>
             )}
 
             {!stock.available && (
-              <p className="text-xs font-semibold text-red-600 mt-1">
+              <p className="text-xs font-semibold text-red-600 mt-1 pointer-events-none">
                 {t('productDetail.outOfStock', 'Out of Stock')}
               </p>
             )}
             {stock.available && stock.isLow && (
-              <p className="text-xs font-semibold text-amber-600 mt-1">
+              <p className="text-xs font-semibold text-amber-600 mt-1 pointer-events-none">
                 {stock.quantity != null
                   ? t('productDetail.lowStock', 'Only {{count}} left in stock', { count: stock.quantity })
                   : t('productDetail.lowStockGeneric', 'Low stock')}
@@ -136,7 +136,7 @@ export default function WishlistCard({ product, onRemove, isRemoving }) {
                   ? t('productDetail.outOfStock', 'Out of Stock')
                   : t('wishlist.moveToCart', 'Move to Cart')
               }
-              className="btn btn-primary text-xs sm:text-sm py-1.5 sm:py-2 px-3 mt-auto self-start disabled:opacity-60 disabled:cursor-not-allowed"
+              className="relative z-10 pointer-events-auto btn btn-primary text-xs sm:text-sm py-1.5 sm:py-2 px-3 mt-auto self-start disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {isMoving ? (
                 <FiLoader className="w-3.5 h-3.5 animate-spin" aria-hidden />
@@ -158,11 +158,19 @@ export default function WishlistCard({ product, onRemove, isRemoving }) {
   }
 
   return (
-    <Link
-      to={`/product/${product.id}`}
-      className="card flex gap-3 p-3 sm:p-4 hover:shadow-md transition-shadow"
-    >
+    // relative + a full-card stretched <Link> (absolute, z-0) rather than
+    // wrapping the whole card (including the Remove / Move-to-cart
+    // <button>s) in the <Link> itself — nesting real buttons inside an
+    // <a> isn't valid HTML and browsers handle the resulting DOM
+    // inconsistently. The two buttons opt back into pointer events and
+    // sit above the link (z-10) so they stay independently clickable.
+    <div className="relative card flex gap-3 p-3 sm:p-4 hover:shadow-md transition-shadow">
+      <Link
+        to={`/product/${product.id}`}
+        className="absolute inset-0 z-0 rounded-[inherit]"
+        aria-label={name}
+      />
       {body}
-    </Link>
+    </div>
   );
 }

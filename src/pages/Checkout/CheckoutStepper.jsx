@@ -37,13 +37,13 @@ export default function CheckoutStepper() {
                     ? 'bg-[var(--clr-primary)] text-[#111]'
                     : isDone
                       ? 'bg-[var(--clr-ink)] text-white'
-                      : 'bg-gray-100 text-gray-400'
+                      : 'bg-gray-100 text-gray-500'
                 }`}
               >
                 {isDone ? <FiCheck className="w-4 h-4" /> : index + 1}
               </span>
               <span
-                className={`text-xs sm:text-sm font-medium truncate ${isActive ? 'text-gray-900' : 'text-gray-400'}`}
+                className={`text-xs sm:text-sm font-medium truncate ${isActive ? 'text-gray-900' : 'text-gray-500'}`}
               >
                 {t(`checkout.step.${step.label}`, step.fallback)}
               </span>

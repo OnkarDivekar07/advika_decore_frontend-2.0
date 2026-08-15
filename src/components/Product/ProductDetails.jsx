@@ -158,7 +158,7 @@ export default function ProductDetails({ product }) {
           className={`p-2 rounded-full transition-colors shrink-0 mt-0.5 disabled:opacity-60 ${
             wishlisted
               ? 'text-red-500 bg-red-50 hover:bg-red-100'
-              : 'text-gray-400 hover:text-red-500 hover:bg-red-50'
+              : 'text-gray-500 hover:text-red-500 hover:bg-red-50'
           }`}
           aria-label={
             wishlisted

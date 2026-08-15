@@ -114,7 +114,7 @@ export default function ShipmentStatusCard({ orderId, orderStatus }) {
   if (state === 'loading') {
     return (
       <div className="card p-5 text-left mx-auto max-w-md mt-4">
-        <div className="animate-pulse flex flex-col gap-4">
+        <div className="animate-pulse flex flex-col gap-4" aria-hidden="true">
           <div className="flex items-center justify-between">
             {Array.from({ length: 5 }).map((_, i) => (
               <div key={i} className="w-8 h-8 rounded-full bg-gray-100" />
@@ -122,7 +122,7 @@ export default function ShipmentStatusCard({ orderId, orderStatus }) {
           </div>
           <div className="h-3 w-2/3 bg-gray-100 rounded" />
         </div>
-        <p className="sr-only">{t('checkout.loadingShipment', 'Checking shipment status…')}</p>
+        <p className="sr-only" role="status">{t('checkout.loadingShipment', 'Checking shipment status…')}</p>
       </div>
     );
   }
@@ -166,7 +166,7 @@ export default function ShipmentStatusCard({ orderId, orderStatus }) {
           onClick={handleRefresh}
           disabled={isRefreshing}
           aria-label={t('checkout.refreshShipment', 'Refresh shipment status')}
-          className="p-1.5 rounded-md text-gray-400 hover:text-[var(--clr-primary)] hover:bg-gray-50 disabled:opacity-50"
+          className="p-1.5 rounded-md text-gray-500 hover:text-[var(--clr-primary)] hover:bg-gray-50 disabled:opacity-50"
         >
           <FiRefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} aria-hidden />
         </button>
@@ -182,7 +182,7 @@ export default function ShipmentStatusCard({ orderId, orderStatus }) {
         {!TERMINAL_STATUSES.has(shipment.status) && formatDeliveryDate(shipment.estimatedDeliveryDate) && (
           <div className="flex justify-between">
             <span className="flex items-center gap-1.5">
-              <FiCalendar className="w-3.5 h-3.5 shrink-0 text-gray-400" aria-hidden />
+              <FiCalendar className="w-3.5 h-3.5 shrink-0 text-gray-500" aria-hidden />
               {t('checkout.estimatedDelivery', 'Estimated delivery')}
             </span>
             <span className="font-medium text-gray-900">

@@ -21,9 +21,10 @@ const DEBOUNCE_MS = 400;
 
 function ResultsSkeleton() {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-5">
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-5" aria-busy="true">
+      <span className="sr-only" role="status">Searching…</span>
       {Array.from({ length: SKELETON_COUNT }).map((_, i) => (
-        <div key={i} className="skeleton aspect-[3/4]" />
+        <div key={i} className="skeleton aspect-[3/4]" aria-hidden="true" />
       ))}
     </div>
   );
@@ -67,12 +68,12 @@ export default function SearchResultsPage() {
   return (
     <>
       <Navbar />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-10" id="main-content" tabIndex={-1}>
         {/* Search box */}
         <div className="mb-7">
           <h1 className="section-title mb-4">{t('search.title', 'Search Products')}</h1>
           <div className="flex items-center gap-2 rounded-full border-2 border-gray-200 focus-within:border-primary bg-white px-4 py-3 max-w-xl transition-colors">
-            <FiSearch className="text-gray-400 shrink-0" aria-hidden />
+            <FiSearch className="text-gray-500 shrink-0" aria-hidden />
             <input
               ref={inputRef}
               type="search"
@@ -87,7 +88,7 @@ export default function SearchResultsPage() {
               <button
                 onClick={handleClear}
                 aria-label={t('search.clear', 'Clear search')}
-                className="p-1 rounded-full text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors shrink-0"
+                className="p-1 rounded-full text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors shrink-0"
               >
                 <FiX className="w-4 h-4" />
               </button>
@@ -97,7 +98,7 @@ export default function SearchResultsPage() {
 
         {/* Body */}
         {status === STATUS_IDLE && (
-          <div className="flex flex-col items-center text-center gap-3 py-20 text-gray-400">
+          <div className="flex flex-col items-center text-center gap-3 py-20 text-gray-500">
             <FiSearch className="w-12 h-12" aria-hidden />
             <p className="text-sm">{t('search.idle', 'Start typing to find products.')}</p>
           </div>
@@ -106,7 +107,7 @@ export default function SearchResultsPage() {
         {status === STATUS_LOADING && <ResultsSkeleton />}
 
         {status === STATUS_ERROR && (
-          <div className="flex flex-col items-center text-center gap-3 py-20">
+          <div className="flex flex-col items-center text-center gap-3 py-20" role="alert">
             <FiAlertCircle className="w-12 h-12 text-red-400" aria-hidden />
             <p className="text-gray-600">{t('search.error', 'Something went wrong while searching.')}</p>
             <button onClick={retry} className="btn btn-outline mt-1">

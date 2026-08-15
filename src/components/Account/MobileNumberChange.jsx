@@ -74,7 +74,7 @@ export default function MobileNumberChange({ currentPhone, onChanged, onClose })
           type="button"
           onClick={onClose}
           aria-label={t('buttons.close', 'Close')}
-          className="p-1 text-gray-400 hover:text-gray-600"
+          className="p-1 text-gray-500 hover:text-gray-600"
         >
           <FiX className="w-4 h-4" />
         </button>
@@ -109,7 +109,10 @@ export default function MobileNumberChange({ currentPhone, onChanged, onClose })
           </div>
 
           {feedback && (
-            <p className={`text-xs ${feedback.type === 'error' ? 'text-red-600' : 'text-gray-500'}`}>
+            <p
+              role={feedback.type === 'error' ? 'alert' : 'status'}
+              className={`text-xs ${feedback.type === 'error' ? 'text-red-600' : 'text-gray-500'}`}
+            >
               {feedback.text}
             </p>
           )}
@@ -144,13 +147,16 @@ export default function MobileNumberChange({ currentPhone, onChanged, onClose })
           />
 
           {isOtpLikelyExpired && (
-            <p className="text-xs text-amber-600">
+            <p className="text-xs text-amber-600" role="status">
               {t('account.otpExpired', 'This OTP may have expired. Request a new one.')}
             </p>
           )}
 
           {feedback && (
-            <p className={`text-xs ${feedback.type === 'error' ? 'text-red-600' : 'text-gray-500'}`}>
+            <p
+              role={feedback.type === 'error' ? 'alert' : 'status'}
+              className={`text-xs ${feedback.type === 'error' ? 'text-red-600' : 'text-gray-500'}`}
+            >
               {feedback.text}
             </p>
           )}
@@ -179,7 +185,7 @@ export default function MobileNumberChange({ currentPhone, onChanged, onClose })
               type="button"
               onClick={handleResend}
               disabled={cooldown > 0 || isSubmitting}
-              className="text-[var(--clr-primary-dark)] hover:underline disabled:text-gray-400 disabled:no-underline"
+              className="text-[var(--clr-primary-dark)] hover:underline disabled:text-gray-500 disabled:no-underline"
             >
               {cooldown > 0
                 ? t('account.resendIn', 'Resend in {{count}}s', { count: cooldown })

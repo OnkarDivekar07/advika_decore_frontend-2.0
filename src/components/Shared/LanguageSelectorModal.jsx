@@ -1,5 +1,6 @@
 // src/components/Shared/LanguageSelectorModal.jsx
-import React, { useEffect } from 'react';
+import React from 'react';
+import useModalA11y from '@/hooks/useModalA11y';
 
 const LANGUAGES = [
   { code: 'en', label: 'English',  flag: '🇬🇧' },
@@ -8,13 +9,15 @@ const LANGUAGES = [
 ];
 
 const LanguageSelectorModal = ({ onSelectLanguage }) => {
-  useEffect(() => {
-    document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = ''; };
-  }, []);
+  // No onClose: this is a forced first-run choice with no dismiss action,
+  // so Escape intentionally does nothing here. Focus trap + background
+  // scroll lock still apply, shared with every other dialog in the app
+  // (see useModalA11y).
+  const dialogRef = useModalA11y({ isOpen: true });
 
   return (
     <div
+      ref={dialogRef}
       className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-up"
       role="dialog"
       aria-modal="true"

@@ -1,11 +1,12 @@
 // src/components/Navbar/Navbar.jsx
-import React, { useState, useCallback, useContext, useMemo, useEffect } from 'react';
+import React, { useState, useCallback, useContext, useMemo, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { FiHome, FiHeart, FiShoppingCart, FiUser, FiSearch, FiX, FiMenu, FiLogOut, FiGrid, FiMapPin, FiPackage } from 'react-icons/fi';
 import { FaTruck } from 'react-icons/fa';
 import { AuthContext } from '@/contexts/AuthContext';
 import { useWishlist } from '@/contexts/WishlistContext';
+import useModalA11y from '@/hooks/useModalA11y';
 
 // Small numeric badge pinned to the top-right of a nav icon — kept as its
 // own tiny component since it's rendered in three separate places below
@@ -35,6 +36,7 @@ export default function Navbar() {
 
   const toggleMenu = useCallback(() => setMenuOpen(prev => !prev), []);
   const closeMenu  = useCallback(() => setMenuOpen(false), []);
+  const menuButtonRef = useRef(null);
 
   // Current page indicator for both the desktop nav and the mobile
   // dropdown — '/' only matches the home page exactly (otherwise it'd
@@ -47,19 +49,10 @@ export default function Navbar() {
 
   // The mobile dropdown renders as a fixed overlay (see below) rather
   // than pushing page content down, so opening it shouldn't also let the
-  // page scroll behind it — same lock FilterDrawer uses — and Escape
-  // should close it like any other transient panel.
-  useEffect(() => {
-    if (!menuOpen) return undefined;
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    const onKeyDown = (e) => { if (e.key === 'Escape') closeMenu(); };
-    window.addEventListener('keydown', onKeyDown);
-    return () => {
-      document.body.style.overflow = prevOverflow;
-      window.removeEventListener('keydown', onKeyDown);
-    };
-  }, [menuOpen, closeMenu]);
+  // page scroll behind it. Escape closes it, Tab is trapped inside the
+  // panel, and focus moves in on open / back to the hamburger button on
+  // close — shared with every other dialog in the app (see useModalA11y).
+  const menuDialogRef = useModalA11y({ isOpen: menuOpen, onClose: closeMenu });
 
   // A route change (e.g. tapping a link) always closes the menu, but this
   // also catches back/forward navigation while it's open.
@@ -105,7 +98,18 @@ export default function Navbar() {
   }, [logout, closeMenu, navigate]);
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-white border-b border-[var(--clr-border)] shadow-sm">
+    <>
+      {/* Skip link — first focusable element on every page. Hidden until it
+          receives keyboard focus, then jumps a keyboard/screen-reader user
+          straight past the repeated header/nav to the page's main content
+          (see the `id="main-content"` target added to each page's <main>). */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:bg-white focus:text-gray-900 focus:px-4 focus:py-2 focus:rounded-lg focus:shadow-lg focus:outline focus:outline-2 focus:outline-[var(--clr-primary)]"
+      >
+        {t('nav.skipToContent', 'Skip to main content')}
+      </a>
+      <header className="sticky top-0 z-50 w-full bg-white border-b border-[var(--clr-border)] shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16 gap-4">
 
         {/* Logo */}
@@ -177,7 +181,7 @@ export default function Navbar() {
           className="hidden md:flex items-center bg-gray-100 hover:bg-gray-200 focus-within:bg-white focus-within:ring-2 focus-within:ring-primary rounded-full px-3.5 py-2 gap-2 transition-all w-52"
           role="search"
         >
-          <FiSearch className="text-gray-400 shrink-0" aria-hidden />
+          <FiSearch className="text-gray-500 shrink-0" aria-hidden />
           <input
             type="search"
             placeholder={t('search.navPlaceholder', 'Search products…')}
@@ -198,20 +202,31 @@ export default function Navbar() {
                 to={to}
                 aria-label={label}
                 aria-current={active ? 'page' : undefined}
-                className={`relative text-xl leading-none transition-colors ${
+                // p-1 -m-1: grows the actual tap target to ~28px square
+                // (WCAG 2.2 2.5.8 wants at least 24px) without changing
+                // the icon's visual size or the gap-4 spacing between
+                // items — the negative margin cancels the padding out
+                // visually, it only expands the hit area. The badge
+                // stays pinned to the inner (unpadded) span below so its
+                // position relative to the icon itself doesn't shift.
+                className={`inline-flex p-1 -m-1 text-xl leading-none transition-colors ${
                   active ? 'text-[var(--clr-primary-dark)]' : 'text-gray-700 hover:text-red-600'
                 }`}
               >
-                {icon}
-                <NavIconBadge count={badge} />
+                <span className="relative inline-flex">
+                  {icon}
+                  <NavIconBadge count={badge} />
+                </span>
               </Link>
             );
           })}
           <button
+            ref={menuButtonRef}
             onClick={toggleMenu}
             className="p-1 -mr-1 rounded-md text-xl leading-none text-gray-700 hover:text-red-600 transition-colors"
             aria-label={menuOpen ? t('nav.closeMenu', 'Close menu') : t('nav.openMenu', 'Open menu')}
             aria-expanded={menuOpen}
+            aria-haspopup="dialog"
           >
             {menuOpen ? <FiX /> : <FiMenu />}
           </button>
@@ -224,7 +239,7 @@ export default function Navbar() {
           down by the dropdown's height). Body scroll is locked and
           Escape closes it while open — see the effect above. */}
       {menuOpen && (
-        <div className="md:hidden fixed inset-0 z-40" role="dialog" aria-modal="true" aria-label={t('nav.mainMenu', 'Main menu')}>
+        <div ref={menuDialogRef} className="md:hidden fixed inset-0 z-40" role="dialog" aria-modal="true" aria-label={t('nav.mainMenu', 'Main menu')}>
           {/* Backdrop */}
           <div className="absolute inset-0 bg-black/30 animate-fade-up" onClick={closeMenu} aria-hidden />
 
@@ -233,7 +248,7 @@ export default function Navbar() {
           <div className="absolute inset-x-0 top-16 max-h-[calc(100vh-4rem)] overflow-y-auto bg-white border-t border-[var(--clr-border)] shadow-lg px-4 py-4 space-y-1 animate-fade-up">
             {/* Mobile search */}
             <form onSubmit={handleSearch} className="flex items-center bg-gray-100 rounded-full px-3.5 py-2 gap-2 mb-3" role="search">
-              <FiSearch className="text-gray-400 shrink-0" aria-hidden />
+              <FiSearch className="text-gray-500 shrink-0" aria-hidden />
               <input
                 type="search"
                 placeholder={t('search.navPlaceholder', 'Search products…')}
@@ -297,5 +312,6 @@ export default function Navbar() {
         </div>
       )}
     </header>
+    </>
   );
 }

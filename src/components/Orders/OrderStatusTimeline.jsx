@@ -55,7 +55,7 @@ export default function OrderStatusTimeline({ status }) {
     return (
       <div className="flex items-center gap-2 text-sm text-gray-600 py-1">
         <Icon
-          className={`w-4 h-4 shrink-0 ${status === 'cancelled' ? 'text-red-500' : 'text-gray-400'}`}
+          className={`w-4 h-4 shrink-0 ${status === 'cancelled' ? 'text-red-500' : 'text-gray-500'}`}
           aria-hidden
         />
         <span>{label}</span>
@@ -81,7 +81,7 @@ export default function OrderStatusTimeline({ status }) {
         const Icon = step.icon;
         return (
           <React.Fragment key={step.key}>
-            <div className="flex flex-col items-center gap-1 min-w-[56px]" role="listitem">
+            <div className="flex flex-col items-center gap-1 min-w-[56px]" role="listitem" aria-current={isCurrent ? 'step' : undefined}>
               <div
                 className={`w-7 h-7 rounded-full flex items-center justify-center border-2 shrink-0 transition-colors ${
                   isComplete
@@ -97,7 +97,7 @@ export default function OrderStatusTimeline({ status }) {
               </div>
               <span
                 className={`text-[10px] text-center leading-tight ${
-                  isComplete ? 'text-gray-900 font-medium' : 'text-gray-400'
+                  isComplete ? 'text-gray-900 font-medium' : 'text-gray-500'
                 }`}
               >
                 {t(step.labelKey, step.fallback)}

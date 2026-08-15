@@ -86,7 +86,7 @@ export default function AddressCard({
               type="button"
               onClick={stop(() => onEdit(address))}
               aria-label={t('checkout.editAddress', 'Edit address')}
-              className="p-1.5 rounded-md text-gray-400 hover:text-[var(--clr-primary)] hover:bg-gray-50"
+              className="p-1.5 rounded-md text-gray-500 hover:text-[var(--clr-primary)] hover:bg-gray-50"
             >
               <FiEdit2 className="w-4 h-4" aria-hidden />
             </button>
@@ -97,7 +97,7 @@ export default function AddressCard({
               onClick={stop(() => onDelete(address.id))}
               disabled={isDeleting}
               aria-label={t('checkout.deleteAddress', 'Delete address')}
-              className="p-1.5 rounded-md text-gray-400 hover:text-red-500 hover:bg-gray-50 disabled:opacity-50"
+              className="p-1.5 rounded-md text-gray-500 hover:text-red-500 hover:bg-gray-50 disabled:opacity-50"
             >
               <FiTrash2 className="w-4 h-4" aria-hidden />
             </button>
@@ -121,7 +121,15 @@ export default function AddressCard({
       tabIndex={0}
       onClick={() => onSelect(address.id)}
       onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') onSelect(address.id);
+        // A custom role="button" div doesn't get the browser's built-in
+        // "Space doesn't scroll the page" behaviour real <button>
+        // elements have, so without preventDefault, pressing Space here
+        // both selects the address *and* scrolls the page — a real
+        // keyboard-accessibility bug (WCAG 2.1.1), not just a nicety.
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onSelect(address.id);
+        }
       }}
       aria-pressed={isSelected}
       className={className}

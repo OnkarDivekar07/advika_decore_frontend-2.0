@@ -80,7 +80,7 @@ export default function AddressBookPage() {
   return (
     <>
       <Navbar />
-      <main className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+      <main className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12" id="main-content" tabIndex={-1}>
         <h1 className="section-title mb-2">{t('addresses.title', 'My Addresses')}</h1>
         <p className="text-sm text-gray-500 mb-6">
           {t('addresses.subtitle', 'Manage the addresses you deliver to and pick a default.')}
@@ -91,7 +91,7 @@ export default function AddressBookPage() {
             <Spinner size={40} />
           </div>
         ) : status === 'error' ? (
-          <div className="flex flex-col items-center justify-center py-16 gap-4 text-center">
+          <div className="flex flex-col items-center justify-center py-16 gap-4 text-center" role="alert">
             <FiAlertTriangle className="w-12 h-12 text-red-300" aria-hidden />
             <p className="text-gray-600">
               {t('addresses.loadError', "We couldn't load your addresses.")}

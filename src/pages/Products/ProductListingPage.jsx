@@ -35,9 +35,10 @@ function sortValueFromParams(sort, order) {
 
 function ResultsSkeleton() {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5" aria-busy="true">
+      <span className="sr-only" role="status">Loading products…</span>
       {Array.from({ length: SKELETON_COUNT }).map((_, i) => (
-        <div key={i} className="skeleton aspect-[3/4]" />
+        <div key={i} className="skeleton aspect-[3/4]" aria-hidden="true" />
       ))}
     </div>
   );
@@ -192,7 +193,7 @@ export default function ProductListingPage() {
   return (
     <>
       <Navbar />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-10" id="main-content" tabIndex={-1}>
         <div className="flex items-center justify-between gap-3 mb-6">
           <h1 className="section-title">{t('products.title', 'All Products')}</h1>
 
@@ -286,7 +287,7 @@ export default function ProductListingPage() {
             {status === STATUS_LOADING && <ResultsSkeleton />}
 
             {status === STATUS_ERROR && (
-              <div className="flex flex-col items-center text-center gap-3 py-20">
+              <div className="flex flex-col items-center text-center gap-3 py-20" role="alert">
                 <FiAlertCircle className="w-12 h-12 text-red-400" aria-hidden />
                 <p className="text-gray-600">{t('products.error', 'Something went wrong while loading products.')}</p>
                 <button onClick={retry} className="btn btn-outline mt-1">
