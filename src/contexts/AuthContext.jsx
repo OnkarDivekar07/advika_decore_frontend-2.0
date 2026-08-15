@@ -4,6 +4,7 @@ import React, {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from 'react';
@@ -163,23 +164,22 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => () => clearTimeout(logoutTimerRef.current), []);
 
-  return (
-    <AuthContext.Provider
-      value={{
-        token,
-        user,
-        isAuthenticated: !!token,
-        isRestoring,
-        login,
-        logout,
-        updateUser,
-        requestOtp,
-        confirmOtp,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
+  const value = useMemo(
+    () => ({
+      token,
+      user,
+      isAuthenticated: !!token,
+      isRestoring,
+      login,
+      logout,
+      updateUser,
+      requestOtp,
+      confirmOtp,
+    }),
+    [token, user, isRestoring, login, logout, updateUser, requestOtp, confirmOtp]
   );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 // eslint-disable-next-line react-refresh/only-export-components -- provider and hook are intentionally colocated

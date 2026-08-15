@@ -15,7 +15,7 @@ import { useCart } from '@/contexts/CartContext';
 import { getLocalized } from '@/utils/i18nUtils';
 import { getStockInfo, formatPrice } from '@/utils/productUtils';
 
-export default function WishlistCard({ product, onRemove, isRemoving }) {
+function WishlistCard({ product, onRemove, isRemoving }) {
   const { t, i18n } = useTranslation();
   const { addItem } = useCart();
   const [isMoving, setIsMoving] = useState(false);
@@ -174,3 +174,5 @@ export default function WishlistCard({ product, onRemove, isRemoving }) {
     </div>
   );
 }
+
+export default React.memo(WishlistCard);

@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import ImageWithFallback from '@/components/Shared/ImageWithFallback';
 import { getStockInfo } from '@/utils/productUtils';
 
-export default function CartItem({ item, onQuantityChange, onRemove }) {
+function CartItem({ item, onQuantityChange, onRemove }) {
   const { t, i18n } = useTranslation();
   const lang = i18n.language || 'en';
   const itemName = typeof item.name === 'object'
@@ -124,3 +124,8 @@ CartItem.propTypes = {
   onQuantityChange: PropTypes.func.isRequired,
   onRemove: PropTypes.func.isRequired,
 };
+
+const MemoizedCartItem = React.memo(CartItem);
+MemoizedCartItem.propTypes = CartItem.propTypes;
+
+export default MemoizedCartItem;

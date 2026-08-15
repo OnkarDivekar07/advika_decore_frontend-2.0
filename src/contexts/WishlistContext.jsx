@@ -297,25 +297,36 @@ export function WishlistProvider({ children }) {
     [isWishlisted, addItem, removeItem]
   );
 
-  return (
-    <WishlistContext.Provider
-      value={{
-        items,
-        mode,
-        isSyncing,
-        loadError,
-        retryLoad,
-        count,
-        isWishlisted,
-        addItem,
-        removeItem,
-        toggle,
-        mutatingIds,
-      }}
-    >
-      {children}
-    </WishlistContext.Provider>
+  const value = useMemo(
+    () => ({
+      items,
+      mode,
+      isSyncing,
+      loadError,
+      retryLoad,
+      count,
+      isWishlisted,
+      addItem,
+      removeItem,
+      toggle,
+      mutatingIds,
+    }),
+    [
+      items,
+      mode,
+      isSyncing,
+      loadError,
+      retryLoad,
+      count,
+      isWishlisted,
+      addItem,
+      removeItem,
+      toggle,
+      mutatingIds,
+    ]
   );
+
+  return <WishlistContext.Provider value={value}>{children}</WishlistContext.Provider>;
 }
 
 // eslint-disable-next-line react-refresh/only-export-components -- provider and hook are intentionally colocated

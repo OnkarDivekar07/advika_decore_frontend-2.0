@@ -9,7 +9,7 @@ import { useCart } from '@/contexts/CartContext';
 import { useWishlist } from '@/contexts/WishlistContext';
 import { getLocalized } from '@/utils/i18nUtils';
 
-export default function ProductCard({ product }) {
+function ProductCard({ product }) {
   const { t, i18n } = useTranslation();
   const { addItem } = useCart();
   const { isWishlisted, toggle: toggleWishlist } = useWishlist();
@@ -138,3 +138,5 @@ export default function ProductCard({ product }) {
     </article>
   );
 }
+
+export default React.memo(ProductCard);
