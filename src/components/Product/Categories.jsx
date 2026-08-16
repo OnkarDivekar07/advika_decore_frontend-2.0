@@ -13,10 +13,17 @@ export default function Categories() {
   const [active, setActive] = useState(CATEGORIES[0]);
   const [fade, setFade] = useState(true);
   const [loading, setLoading] = useState(true);
+  // Distinct from a category that's genuinely empty — a failed fetch
+  // shouldn't silently render every tab as "no products in this
+  // category" with no way to recover.
+  const [error, setError] = useState(false);
+  const [retryNonce, setRetryNonce] = useState(0);
   const fadeTimer = useRef(null);
 
   useEffect(() => {
     let cancelled = false;
+    setLoading(true);
+    setError(false);
     (async () => {
       try {
         const products = await fetchAllProducts();
@@ -29,13 +36,16 @@ export default function Categories() {
         });
         setProductsData(grouped);
       } catch (err) {
-        if (!cancelled) handleError(err);
+        if (!cancelled) {
+          setError(true);
+          handleError(err, 'Could not load categories.');
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
     })();
     return () => { cancelled = true; };
-  }, []);
+  }, [retryNonce]);
 
   const handleSelect = useCallback((cat) => {
     clearTimeout(fadeTimer.current);
@@ -98,9 +108,22 @@ export default function Categories() {
         {loading && <span className="sr-only" role="status">{t('common.loading', 'Loading…')}</span>}
         {loading
           ? Array.from({ length: 4 }).map((_, i) => <div key={i} className="skeleton aspect-[3/4]" />)
-          : current.length > 0
-            ? current.map(prod => <ProductCard key={prod.id} product={prod} />)
-            : <p className="col-span-full text-center text-gray-500 py-10">{t('homepage.noProducts', 'No products in this category.')}</p>
+          : error
+            ? (
+              <div className="col-span-full flex flex-col items-center gap-3 py-10 text-center">
+                <p className="text-gray-600">{t('homepage.loadError', "Couldn't load categories.")}</p>
+                <button
+                  type="button"
+                  onClick={() => setRetryNonce((n) => n + 1)}
+                  className="btn btn-outline px-6"
+                >
+                  {t('buttons.retry', 'Retry')}
+                </button>
+              </div>
+            )
+            : current.length > 0
+              ? current.map(prod => <ProductCard key={prod.id} product={prod} />)
+              : <p className="col-span-full text-center text-gray-500 py-10">{t('homepage.noProducts', 'No products in this category.')}</p>
         }
       </div>
     </section>

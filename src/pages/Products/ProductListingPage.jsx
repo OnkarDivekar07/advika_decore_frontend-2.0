@@ -7,6 +7,7 @@ import Navbar from '@/components/Navbar/Navbar';
 import ProductCard from '@/components/Product/ProductCard';
 import ProductFilters from '@/components/Product/ProductFilters';
 import FilterDrawer from '@/components/Product/FilterDrawer';
+import Seo from '@/components/Shared/Seo';
 import { useDebouncedValue } from '@/features/products/hooks/useDebouncedValue';
 import { sanitizePriceInput, validatePriceRange } from '@/utils/productUtils';
 import {
@@ -176,6 +177,31 @@ export default function ProductListingPage() {
 
   const { status, items, meta, hasMore, retry } = useProductListing(filters, page);
 
+  // --- SEO ------------------------------------------------------------
+  // Only a single selected category is treated as a "real" indexable
+  // facet page (e.g. /products?category=Truck) — a meaningful, stable
+  // destination worth its own canonical/title. Everything else (price
+  // range, in-stock toggle, sort order, pagination, or multiple
+  // categories at once) produces the same thin/duplicate content under
+  // combinatorially many URLs, so those variants canonicalize back to
+  // the clean base/category URL and are marked noindex rather than
+  // asking search engines to crawl every filter combination.
+  const isSingleCategory = selectedCategories.length === 1;
+  const hasNonCategoryFilters = !!minPriceUrl || !!maxPriceUrl || inStock || page > 1;
+  const seoCanonicalPath = isSingleCategory
+    ? `/products?category=${encodeURIComponent(selectedCategories[0])}`
+    : '/products';
+  const seoNoindex = hasNonCategoryFilters || selectedCategories.length > 1;
+  const seoCategoryLabel = isSingleCategory
+    ? t(`categories.${selectedCategories[0].toLowerCase().replace(/\s+/g, '')}`, selectedCategories[0])
+    : null;
+  const seoTitle = seoCategoryLabel
+    ? t('products.seoCategoryTitle', '{{category}} — Décor & Accessories', { category: seoCategoryLabel })
+    : t('products.seoTitle', 'All Products');
+  const seoDescription = seoCategoryLabel
+    ? t('products.seoCategoryDescription', 'Shop {{category}} décor and accessories.', { category: seoCategoryLabel })
+    : t('products.seoDescription', 'Browse vehicle décor and accessories for trucks, tempos, pickups, cars, two-wheelers, and tractors.');
+
   const filterPanelProps = {
     selectedCategories,
     onToggleCategory: toggleCategory,
@@ -193,6 +219,12 @@ export default function ProductListingPage() {
   return (
     <>
       <Navbar />
+      <Seo
+        title={seoTitle}
+        description={seoDescription}
+        canonicalPath={seoCanonicalPath}
+        noindex={seoNoindex}
+      />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-10" id="main-content" tabIndex={-1}>
         <div className="flex items-center justify-between gap-3 mb-6">
           <h1 className="section-title">{t('products.title', 'All Products')}</h1>

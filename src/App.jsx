@@ -1,6 +1,7 @@
 // src/App.jsx
 import React from 'react';
 import { BrowserRouter as Router } from 'react-router-dom';
+import { HelmetProvider } from 'react-helmet-async';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { LanguageProvider } from '@/contexts/LanguageContext';
@@ -9,10 +10,18 @@ import { AuthGateProvider } from '@/contexts/AuthGateContext';
 import { PricingProvider } from '@/contexts/PricingContext';
 import { CartProvider } from '@/contexts/CartContext';
 import { WishlistProvider } from '@/contexts/WishlistContext';
+import GlobalSeo from '@/components/Shared/GlobalSeo';
+import OfflineBanner from '@/components/Shared/OfflineBanner';
 import AppRoutes from './routes/AppRoutes';
 
 export default function App() {
   return (
+    // HelmetProvider sits at the very top — every <Seo>/<GlobalSeo> call
+    // anywhere in the tree needs to be inside it, and it has no
+    // dependency on the other providers below.
+    <HelmetProvider>
+    <GlobalSeo />
+    <OfflineBanner />
     <AuthProvider>
       {/* PricingProvider sits above CartProvider: CartContext's guest-mode
           summary fallback reads the backend-configured delivery rule via
@@ -49,5 +58,6 @@ export default function App() {
         </CartProvider>
       </PricingProvider>
     </AuthProvider>
+    </HelmetProvider>
   );
 }

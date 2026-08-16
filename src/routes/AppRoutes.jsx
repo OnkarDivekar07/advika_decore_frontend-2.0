@@ -33,7 +33,14 @@ export default function AppRoutes() {
     <Suspense fallback={<PageLoader />}>
       <Routes>
         <Route path="/"           element={<HomePage />} />
-        <Route path="/product/:id" element={<ProductDetailPage />} />
+        {/* :slug is optional and purely cosmetic — ProductDetailPage
+            always fetches by :id alone (see services/productsService),
+            so a missing/stale/mismatched slug still resolves correctly.
+            It exists only so links look like /product/123/blue-cover
+            instead of a bare id (see seo/seoUtils#buildProductPath),
+            which every internal <Link> now generates. Old bookmarked/
+            shared /product/:id links keep working unchanged. */}
+        <Route path="/product/:id/:slug?" element={<ProductDetailPage />} />
         <Route path="/cart"        element={<CartPage />} />
         <Route path="/otp-verification" element={<OTPVerificationPage />} />
         {/* CheckoutLayout mounts CheckoutProvider once for both nested

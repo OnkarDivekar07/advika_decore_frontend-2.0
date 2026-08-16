@@ -27,6 +27,7 @@ import {
   FiGlobe,
 } from 'react-icons/fi';
 import Navbar from '@/components/Navbar/Navbar';
+import Seo from '@/components/Shared/Seo';
 import Spinner from '@/components/Shared/Spinner';
 import MobileNumberChange from '@/components/Account/MobileNumberChange';
 import { useAuth } from '@/contexts/AuthContext';
@@ -120,6 +121,7 @@ export default function UserProfilePage() {
   return (
     <>
       <Navbar />
+      <Seo title={t('account.title', 'My Account')} noindex />
       <main className="max-w-2xl mx-auto px-4 sm:px-6 py-8 sm:py-12" id="main-content" tabIndex={-1}>
         <h1 className="section-title mb-6">{t('account.title', 'My Account')}</h1>
 

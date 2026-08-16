@@ -8,6 +8,7 @@ import ImageWithFallback from '@/components/Shared/ImageWithFallback';
 import { useCart } from '@/contexts/CartContext';
 import { useWishlist } from '@/contexts/WishlistContext';
 import { getLocalized } from '@/utils/i18nUtils';
+import { buildProductPath } from '@/seo/seoUtils';
 
 function ProductCard({ product }) {
   const { t, i18n } = useTranslation();
@@ -79,7 +80,7 @@ function ProductCard({ product }) {
     // than descendants of it. Visually this is unchanged.
     <article className="relative card group overflow-hidden flex flex-col">
       <Link
-        to={`/product/${product.id}`}
+        to={buildProductPath(product, name)}
         className="absolute inset-0 z-0 rounded-[inherit]"
         aria-label={`${t('productDetail.viewProduct', 'View')} ${name}`}
       />

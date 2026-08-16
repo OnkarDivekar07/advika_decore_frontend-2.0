@@ -14,6 +14,7 @@ import ImageWithFallback from '@/components/Shared/ImageWithFallback';
 import { useCart } from '@/contexts/CartContext';
 import { getLocalized } from '@/utils/i18nUtils';
 import { getStockInfo, formatPrice } from '@/utils/productUtils';
+import { buildProductPath } from '@/seo/seoUtils';
 
 function WishlistCard({ product, onRemove, isRemoving }) {
   const { t, i18n } = useTranslation();
@@ -166,7 +167,7 @@ function WishlistCard({ product, onRemove, isRemoving }) {
     // sit above the link (z-10) so they stay independently clickable.
     <div className="relative card flex gap-3 p-3 sm:p-4 hover:shadow-md transition-shadow">
       <Link
-        to={`/product/${product.id}`}
+        to={buildProductPath(product, name)}
         className="absolute inset-0 z-0 rounded-[inherit]"
         aria-label={name}
       />

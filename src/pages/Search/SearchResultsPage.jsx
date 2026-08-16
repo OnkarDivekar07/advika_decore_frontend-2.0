@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { FiSearch, FiX, FiAlertCircle, FiRefreshCw } from 'react-icons/fi';
 import Navbar from '@/components/Navbar/Navbar';
 import ProductCard from '@/components/Product/ProductCard';
+import Seo from '@/components/Shared/Seo';
 import { useDebouncedValue } from '@/features/products/hooks/useDebouncedValue';
 import {
   useProductSearch,
@@ -68,6 +69,16 @@ export default function SearchResultsPage() {
   return (
     <>
       <Navbar />
+      {/* Search result pages are query-driven, unbounded in number, and
+          largely duplicate content already indexable via /products or
+          the product pages themselves — noindex so they're not competing
+          with (or diluting ranking signals from) the canonical listing/
+          product pages, while `follow` still lets crawlers reach the
+          product links inside. */}
+      <Seo
+        title={urlQuery ? t('search.seoTitleWithQuery', 'Search results for "{{query}}"', { query: urlQuery }) : t('search.title', 'Search Products')}
+        noindex
+      />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-10" id="main-content" tabIndex={-1}>
         {/* Search box */}
         <div className="mb-7">

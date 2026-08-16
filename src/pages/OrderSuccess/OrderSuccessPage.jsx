@@ -24,6 +24,7 @@ import { useTranslation } from 'react-i18next';
 import { FiCheckCircle, FiClock, FiAlertTriangle, FiXCircle } from 'react-icons/fi';
 import Navbar from '@/components/Navbar/Navbar';
 import Spinner from '@/components/Shared/Spinner';
+import Seo from '@/components/Shared/Seo';
 import ShipmentStatusCard from '@/components/Shipping/ShipmentStatusCard';
 import OrderSummaryCard from '@/components/Checkout/OrderSummaryCard';
 import AddressCard from '@/components/Address/AddressCard';
@@ -122,6 +123,7 @@ export default function OrderSuccessPage() {
     return (
       <>
         <Navbar />
+        <Seo title={t('orderSuccess.loading', 'Loading your order…')} noindex />
         <main className="max-w-2xl mx-auto px-4 sm:px-6 py-12 sm:py-16 flex flex-col items-center gap-4" id="main-content" tabIndex={-1}>
           <Spinner size={40} />
           <p className="text-sm text-gray-500">
@@ -136,6 +138,7 @@ export default function OrderSuccessPage() {
     return (
       <>
         <Navbar />
+        <Seo title={t('orderSuccess.errorTitle', "Couldn't load your order")} noindex />
         <main className="max-w-2xl mx-auto px-4 sm:px-6 py-12 sm:py-16 text-center" id="main-content" tabIndex={-1}>
           <FiAlertTriangle className="w-12 h-12 text-amber-400 mx-auto mb-4" aria-hidden />
           <h1 className="section-title mb-2">
@@ -200,6 +203,18 @@ export default function OrderSuccessPage() {
   return (
     <>
       <Navbar />
+      <Seo
+        title={
+          isFailed
+            ? t('orderSuccess.failedTitle', 'Payment failed')
+            : isProcessing
+              ? t('orderSuccess.processingTitle', "We're confirming your payment")
+              : fromHistory
+                ? t('orderSuccess.detailsTitle', 'Order Details')
+                : t('orderSuccess.title', 'Order placed!')
+        }
+        noindex
+      />
       <main className="max-w-2xl mx-auto px-4 sm:px-6 py-12 sm:py-16 text-center" id="main-content" tabIndex={-1}>
         {isFailed ? (
           <FiXCircle className="w-16 h-16 text-rose-500 mx-auto mb-4" aria-hidden />

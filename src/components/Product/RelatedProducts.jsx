@@ -6,6 +6,7 @@ import { getRelatedProducts } from '@/services/productsService';
 import { getLocalized } from '@/utils/i18nUtils';
 import { handleError } from '@/utils/errorHandler';
 import ImageWithFallback from '@/components/Shared/ImageWithFallback';
+import { buildProductPath } from '@/seo/seoUtils';
 
 const SKELETON_COUNT = 4;
 
@@ -50,7 +51,7 @@ export default function RelatedProducts({ currentProductId }) {
                 // concerns since there are no buttons inside it.
                 <Link
                   key={product.id}
-                  to={`/product/${product.id}`}
+                  to={buildProductPath(product, name)}
                   className="card w-44 sm:w-52 overflow-hidden shrink-0 block"
                   aria-label={t('productDetail.viewProduct', 'View {{name}}', { name })}
                 >

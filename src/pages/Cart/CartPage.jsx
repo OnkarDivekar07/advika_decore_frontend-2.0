@@ -7,6 +7,7 @@ import Navbar from '@/components/Navbar/Navbar';
 import CartItem from '@/components/Cart/CartItem';
 import CartSummary from '@/components/Cart/CartSummary';
 import Spinner from '@/components/Shared/Spinner';
+import Seo from '@/components/Shared/Seo';
 import { useCart } from '@/contexts/CartContext';
 
 export default function CartPage() {
@@ -37,6 +38,7 @@ export default function CartPage() {
   return (
     <>
       <Navbar />
+      <Seo title={t('cart.title', 'Your Cart')} noindex />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12" id="main-content" tabIndex={-1}>
         <h1 className="section-title mb-8">{t('cart.title', 'Your Cart')}</h1>
 

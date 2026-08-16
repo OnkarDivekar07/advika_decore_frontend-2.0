@@ -6,6 +6,7 @@ import { toast } from 'react-toastify';
 import { FiPhone, FiShield, FiAlertCircle } from 'react-icons/fi';
 import Navbar from '@/components/Navbar/Navbar';
 import Spinner from '@/components/Shared/Spinner';
+import Seo from '@/components/Shared/Seo';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOtpFlow, STEP_PHONE, STEP_OTP } from '@/features/auth/hooks/useOtpFlow';
 import { translateOtpResult } from '@/features/auth/utils/otpMessages';
@@ -84,6 +85,7 @@ export default function OTPVerificationPage() {
   return (
     <>
       <Navbar />
+      <Seo title={t('otp.title', 'Verify Your Phone')} noindex />
       <main className="max-w-md mx-auto px-4 sm:px-6 py-12 sm:py-20" id="main-content" tabIndex={-1}>
         <div className="card p-6 sm:p-8">
           <div className="flex flex-col items-center text-center gap-2 mb-6">

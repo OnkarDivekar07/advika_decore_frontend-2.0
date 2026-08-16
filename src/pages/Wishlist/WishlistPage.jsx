@@ -12,6 +12,7 @@ import { FiAlertTriangle, FiHeart } from 'react-icons/fi';
 import Navbar from '@/components/Navbar/Navbar';
 import Spinner from '@/components/Shared/Spinner';
 import WishlistCard from '@/components/Wishlist/WishlistCard';
+import Seo from '@/components/Shared/Seo';
 import { useWishlist } from '@/contexts/WishlistContext';
 
 export default function WishlistPage() {
@@ -22,6 +23,7 @@ export default function WishlistPage() {
   return (
     <>
       <Navbar />
+      <Seo title={t('wishlist.title', 'My Wishlist')} noindex />
       <main className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12" id="main-content" tabIndex={-1}>
         <h1 className="section-title mb-2">{t('wishlist.title', 'My Wishlist')}</h1>
         <p className="text-sm text-gray-500 mb-6">

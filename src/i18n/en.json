@@ -4,7 +4,8 @@
     "vehicleCategories": "Vehicle Categories",
     "shopByVehicle": "Shop by Vehicle",
     "viewAll": "View all",
-    "noProducts": "No products in this category."
+    "noProducts": "No products in this category.",
+    "loadError": "Couldn't load this right now."
   },
   "categories": {
     "truck": "Truck",
@@ -20,7 +21,8 @@
   },
   "common": {
     "shopNow": "Shop Now",
-    "home": "Home"
+    "home": "Home",
+    "offline": "You're offline. Some things may not work until your connection is back."
   },
   "buttons": {
     "buyNow": "Buy It Now",
@@ -143,6 +145,8 @@
     "relatedProducts": "Related Products",
     "viewProduct": "View {{name}}",
     "errorLoadingProduct": "Failed to load product. Please try again.",
+    "notFound": "This product is no longer available.",
+    "browseProducts": "Browse products",
     "retry": "Try Again",
     "back": "Back",
     "buyNowFailed": "Couldn't start checkout. Please try again."

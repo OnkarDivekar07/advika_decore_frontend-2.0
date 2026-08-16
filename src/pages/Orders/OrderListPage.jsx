@@ -17,6 +17,7 @@ import { useTranslation } from 'react-i18next';
 import { FiAlertTriangle, FiPackage } from 'react-icons/fi';
 import Navbar from '@/components/Navbar/Navbar';
 import Spinner from '@/components/Shared/Spinner';
+import Seo from '@/components/Shared/Seo';
 import OrderCard from '@/components/Orders/OrderCard';
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -70,6 +71,7 @@ export default function OrderListPage() {
   return (
     <>
       <Navbar />
+      <Seo title={t('orders.title', 'My Orders')} noindex />
       <main className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12" id="main-content" tabIndex={-1}>
         <div className="flex flex-wrap items-end justify-between gap-2 mb-2">
           <h1 className="section-title">{t('orders.title', 'My Orders')}</h1>

@@ -9,6 +9,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Outlet, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import Navbar from '@/components/Navbar/Navbar';
+import Seo from '@/components/Shared/Seo';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCart } from '@/contexts/CartContext';
 import { CheckoutProvider } from '@/contexts/CheckoutContext';
@@ -92,6 +93,11 @@ export default function CheckoutLayout() {
   return (
     <>
       <Navbar />
+      {/* Same noindex declaration covers every nested step (Address/
+          Review/Payment all render inside this layout's <Outlet />) — an
+          in-progress checkout has nothing worth indexing and shouldn't
+          be a landing page from search results. */}
+      <Seo title={t('checkout.title', 'Checkout')} noindex />
       <main className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12" id="main-content" tabIndex={-1}>
         <h1 className="section-title mb-2">{t('checkout.title', 'Checkout')}</h1>
         <p className="text-sm text-gray-500 mb-6">Verified as +91 {user?.phone}</p>
