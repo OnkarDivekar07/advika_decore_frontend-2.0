@@ -36,10 +36,12 @@ const withTransientRetry = async (fn, { attempts = 2, baseDelayMs = 600 } = {}) 
   let lastError;
   for (let attempt = 0; attempt < attempts; attempt += 1) {
     try {
+      // eslint-disable-next-line no-await-in-loop
       return await fn();
     } catch (error) {
       lastError = error;
       if (!isTransientError(error) || attempt === attempts - 1) throw error;
+      // eslint-disable-next-line no-await-in-loop
       await wait(baseDelayMs * 2 ** attempt);
     }
   }

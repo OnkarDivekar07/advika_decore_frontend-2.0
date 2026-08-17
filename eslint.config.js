@@ -47,13 +47,4 @@ export default defineConfig([
       sourceType: 'module',
     },
   },
-  {
-    // Test files run under Vitest's Node process, so Node globals (e.g.
-    // Buffer, used by a couple of test-only base64 helpers) are genuinely
-    // available even though the app code targets the browser.
-    files: ['**/__tests__/**/*.{js,jsx}', 'src/test/**/*.{js,jsx}'],
-    languageOptions: {
-      globals: { ...globals.browser, ...globals.node },
-    },
-  },
 ])

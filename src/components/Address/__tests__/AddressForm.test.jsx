@@ -1,6 +1,6 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@/i18n/index'; // initializes the default i18next instance react-i18next falls back to
 
@@ -87,11 +87,19 @@ describe('validation failures', () => {
   });
 
   it('rejects delivery instructions over the character limit', async () => {
-    const user = userEvent.setup();
     render(<AddressForm onSubmit={vi.fn()} />);
-    const longText = 'x'.repeat(199); // typed one char at a time so maxLength=200 never blocks reaching 199
+    const longText = 'x'.repeat(199); // 199 chars: maxLength=200 never blocks reaching it
 
-    await user.type(screen.getByLabelText(/delivery instructions/i), longText);
+    // This test only cares about the rendered character count, not real
+    // per-keystroke behavior — so set the value in one fireEvent.change
+    // rather than user.type()'ing 199 individual keystrokes. That
+    // sequential typing was slow enough on some machines to blow past
+    // Vitest's 5000ms default test timeout, and once it timed out the
+    // still-in-flight keystrokes kept firing into the DOM afterward and
+    // bled into whichever test ran next (interleaving stray characters
+    // into its input) — see the "successful submission" test below.
+    const textarea = screen.getByLabelText(/delivery instructions/i);
+    fireEvent.change(textarea, { target: { value: longText } });
     // maxLength on the textarea itself caps input at 200 chars client-side,
     // so this test focuses on the boundary the validator actually checks
     // (>200) rather than fighting the browser's own maxLength enforcement.

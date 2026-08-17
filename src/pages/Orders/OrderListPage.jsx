@@ -24,6 +24,7 @@ import {
   useOrderHistory,
   STATUS_LOADING,
   STATUS_LOADING_MORE,
+  STATUS_SUCCESS,
   STATUS_EMPTY,
   STATUS_ERROR,
 } from '@/features/orders/hooks/useOrderHistory';
