@@ -337,7 +337,6 @@ export function CheckoutProvider({ children }) {
         setIsRestoring(false);
       }
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loadAddresses, refreshDraftOrder, navigate]);
 
   const goToStep = useCallback((next) => {

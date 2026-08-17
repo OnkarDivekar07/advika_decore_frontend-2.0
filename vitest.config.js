@@ -1,0 +1,36 @@
+import { defineConfig } from 'vitest/config';
+import react from '@vitejs/plugin-react';
+import path from 'path';
+
+const rootDir = import.meta.dirname ?? path.dirname(new URL(import.meta.url).pathname);
+
+// Separate from vite.config.js (build config) so test-only settings never
+// leak into the production build config, and vice versa. Shares the same
+// '@' alias as the app itself so test files can import modules exactly the
+// way application code does.
+export default defineConfig({
+  plugins: [react()],
+  resolve: {
+    alias: {
+      '@': path.resolve(rootDir, './src'),
+    },
+  },
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    setupFiles: ['./src/test/setup.js'],
+    css: false,
+    restoreMocks: true,
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'html'],
+      include: ['src/**/*.{js,jsx}'],
+      exclude: [
+        'src/**/*.test.{js,jsx}',
+        'src/test/**',
+        'src/main.jsx',
+        'src/**/*.d.ts',
+      ],
+    },
+  },
+});

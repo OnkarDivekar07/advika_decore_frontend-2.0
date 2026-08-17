@@ -300,7 +300,12 @@ export default function ReviewPage() {
           so the primary CTA is always reachable without scrolling past
           the full order summary above (see AddressSelectionPage for the
           same pattern used on the previous step). */}
-      <div className="pb-24 sm:pb-0" />
+      {/* pb-40 (not pb-24): Back/Proceed stack into two full-width rows
+          below sm (flex-col gap-2), so the fixed bar behind this spacer
+          is roughly 130-150px tall once its own padding + safe-area
+          inset are included — a shorter spacer let it cover the bottom
+          of the order summary on real notched phones. */}
+      <div className="pb-40 sm:pb-0" />
       <div className="fixed inset-x-0 bottom-0 z-30 bg-white/95 backdrop-blur border-t border-[var(--clr-border)] px-4 py-3 pb-safe flex flex-col gap-2 sm:static sm:inset-auto sm:z-auto sm:bg-transparent sm:backdrop-blur-none sm:border-0 sm:px-0 sm:py-0 sm:flex-row sm:mt-4">
         <button
           type="button"

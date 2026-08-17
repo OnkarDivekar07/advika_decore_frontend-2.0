@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getLanguage, saveLanguage } from '../utils/languageUtils';
+import { saveLanguage } from '../utils/languageUtils';
 
 const useLanguageGate = () => {
   const [showModal, setShowModal] = useState(false);

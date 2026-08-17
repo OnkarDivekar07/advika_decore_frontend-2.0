@@ -46,7 +46,13 @@ export default function FilterDrawer({ open, onClose, resultCount, ...filterProp
           <ProductFilters {...filterProps} />
         </div>
 
-        <div className="px-5 py-4 border-t border-gray-100 shrink-0">
+        {/* pb-safe: this bar sits right at the bottom edge of the sheet,
+            which itself pins to the bottom of the viewport — without it
+            the button sits under a phone's home-indicator/gesture area on
+            devices with a safe-area inset, same as every other
+            bottom-pinned CTA bar in checkout (AddressSelectionPage,
+            ReviewPage, PaymentPage, ProductDetails). */}
+        <div className="px-5 py-4 pb-safe border-t border-gray-100 shrink-0">
           <button onClick={onClose} className="btn btn-primary w-full">
             {t('products.showResults', 'Show results')}
             {typeof resultCount === 'number' ? ` (${resultCount})` : ''}

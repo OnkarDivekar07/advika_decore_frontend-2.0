@@ -257,9 +257,9 @@ export default function OrderSuccessPage() {
                 : t('orderSuccess.paidBody', 'Your payment was received and your order is confirmed.')}
         </p>
 
-        <div className="flex justify-between text-sm text-gray-600 mb-1 max-w-md mx-auto">
-          <span>{t('orderSuccess.orderId', 'Order ID')}</span>
-          <span className="font-mono text-gray-900">{order.id}</span>
+        <div className="flex justify-between gap-3 text-sm text-gray-600 mb-1 max-w-md mx-auto">
+          <span className="shrink-0">{t('orderSuccess.orderId', 'Order ID')}</span>
+          <span className="font-mono text-gray-900 truncate min-w-0">{order.id}</span>
         </div>
 
         {/* Reuses the same isFailed/isProcessing/paymentMethod this page

@@ -248,7 +248,12 @@ export default function PaymentPage() {
           pattern as the address and review steps, so the final "Pay"
           action never requires scrolling past the order summary + method
           picker to reach it. */}
-      <div className="pb-24 sm:pb-0" />
+      {/* pb-40 (not pb-24): Back/Pay stack into two full-width rows below
+          sm (flex-col gap-2), so the fixed bar behind this spacer is
+          roughly 130-150px tall once its own padding + safe-area inset
+          are included — a shorter spacer let it cover the bottom of the
+          payment-method section on real notched phones. */}
+      <div className="pb-40 sm:pb-0" />
       <div className="fixed inset-x-0 bottom-0 z-30 bg-white/95 backdrop-blur border-t border-[var(--clr-border)] px-4 py-3 pb-safe flex flex-col gap-2 sm:static sm:inset-auto sm:z-auto sm:bg-transparent sm:backdrop-blur-none sm:border-0 sm:px-0 sm:py-0 sm:flex-row sm:mt-4">
         <button
           type="button"

@@ -95,12 +95,19 @@ export default function PhoneOtpModal({ isOpen, onClose, onVerified }) {
   return (
     <div
       ref={dialogRef}
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 px-4"
+      // overflow-y-auto + py-8 (rather than a plain non-scrolling
+      // items-center box): on a short viewport with the mobile keyboard
+      // open — the OTP step in particular, icon + title + subtitle +
+      // label + input + timer + button + resend link all stacked — the
+      // centered card can be taller than the visible viewport. Without
+      // this the top of the card (including the close button) renders
+      // off-screen with no way to scroll to it.
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 px-4 py-8 overflow-y-auto"
       role="dialog"
       aria-modal="true"
       aria-label={t('otp.modalAriaLabel', 'Verify your mobile number')}
     >
-      <div className="card w-full max-w-sm p-6 relative animate-fade-up">
+      <div className="card w-full max-w-sm p-6 relative animate-fade-up my-auto">
         <button
           onClick={onClose}
           aria-label={t('otp.close', 'Close')}

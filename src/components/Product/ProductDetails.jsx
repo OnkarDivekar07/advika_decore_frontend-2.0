@@ -226,7 +226,13 @@ export default function ProductDetails({ product }) {
           content isn't hidden behind it; both revert to the normal
           in-flow layout from md up, where the gallery+details columns
           are short enough that this isn't needed. */}
-      <div className="h-20 md:hidden" aria-hidden />
+      {/* h-40 (not h-20): ActionButtons stacks Buy Now/Add to Cart into
+          two full-width rows below sm (flex-col sm:flex-row), so the
+          fixed bar behind it is roughly 130-155px tall once its own
+          padding + safe-area inset are included, not the ~50px a single
+          button would need. A shorter spacer here let the bar cover the
+          Subtotal line beneath it on real notched phones. */}
+      <div className="h-40 md:hidden" aria-hidden />
       <div className="fixed inset-x-0 bottom-0 z-30 bg-white/95 backdrop-blur border-t border-[var(--clr-border)] px-4 py-3 pb-safe md:static md:inset-auto md:z-auto md:bg-transparent md:backdrop-blur-none md:border-0 md:px-0 md:py-0">
         {stock.available ? (
           <ActionButtons

@@ -94,7 +94,7 @@ export default function ProductListingPage() {
   React.useEffect(() => {
     setMinPriceInput(minPriceUrl);
     setMaxPriceInput(maxPriceUrl);
-  }, [minPriceUrl, maxPriceUrl]);
+  }, [minPriceUrl, maxPriceUrl, setMinPriceInput, setMaxPriceInput]);
 
   // Helper: update the URL, resetting to page 1 whenever a filter (as
   // opposed to just the page itself) changes.
@@ -153,7 +153,7 @@ export default function ProductListingPage() {
     setMinPriceInput('');
     setMaxPriceInput('');
     setSearchParams({}, { replace: true });
-  }, [setSearchParams]);
+  }, [setSearchParams, setMinPriceInput, setMaxPriceInput]);
 
   const handleLoadMore = useCallback(() => {
     updateParams({ page: String(page + 1) }, { resetPage: false });

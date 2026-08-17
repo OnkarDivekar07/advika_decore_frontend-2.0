@@ -36,6 +36,7 @@ import { LanguageContext } from '@/contexts/LanguageContext';
 import { SUPPORTED_LANGUAGES } from '@/config/supportedLanguages';
 import { useProfile } from '@/features/account/hooks/useProfile';
 
+// eslint-disable-next-line no-unused-vars -- `Icon` is used as a JSX tag below; this rule doesn't track that usage for renamed destructured params
 function AccountLinkRow({ icon: Icon, label, description, onClick }) {
   return (
     <button

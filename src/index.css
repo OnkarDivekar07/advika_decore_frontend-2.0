@@ -158,3 +158,19 @@ a { color: inherit; text-decoration: none; }
    home-indicator / gesture area. Falls back to a fixed value on devices
    without env(safe-area-inset-*) support. */
 .pb-safe { padding-bottom: max(0.75rem, env(safe-area-inset-bottom)); }
+
+/* ─── Prevent iOS Safari auto-zoom on form focus ──
+   iOS Safari zooms the whole page in when a text input/textarea/select
+   receives focus with a computed font-size under 16px — every form in
+   the app (address form, OTP modals, coupon field, filters, mobile
+   number change, etc.) otherwise uses Tailwind's text-sm (14px), so
+   tapping into any of them on a real iPhone yanks the viewport into a
+   zoomed state that stays zoomed after the field blurs. Scoped to
+   mobile widths only so desktop/tablet keep their intended (smaller)
+   input type scale; 16px here is the minimum that stops the zoom, not
+   a redesign of input sizing. */
+@media (max-width: 640px) {
+  input, textarea {
+    font-size: 16px;
+  }
+}
