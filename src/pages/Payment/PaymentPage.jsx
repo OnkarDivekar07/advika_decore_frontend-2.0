@@ -1,83 +1,48 @@
-// src/pages/Payment/PaymentPage.jsx
-//
-// /checkout/payment (see AppRoutes.jsx) — the final step before an order
-// exists. Deliberately just payment method + the total to pay: the address
-// and full order breakdown were already the review step's job
-// (ReviewPage.jsx); repeating an editable address recap here would let
-// someone change what they're paying for without going back through
-// review. Renders only what the draft-order response returned by
-// CheckoutContext contains — never a locally recomputed total
-// (checkout-architecture.md §2/§3.2 step 3-4), via the shared
-// OrderSummaryCard. On success, navigates to /order/success/:orderId,
-// optionally carrying what we already know as router state for an instant
-// first paint — OrderSuccessPage re-fetches the order for real via
-// orderService.getOrderById rather than trusting this hand-off, since it's
-// the only thing that's authoritative once money may have moved.
+// src/pages/Payment/PaymentPage.jsx — Checkout step 3 "Payment"
+// See design_handoff_advika_auto/README.md, screen 6 step 3. All
+// data/guard logic below is unchanged from before the reskin (see
+// CheckoutContext) — only the markup is new. The app has two real
+// payment paths (Razorpay 'online' and 'cod'), not four — 'online' is
+// shown as a UPI-first radio (Razorpay's own Checkout.js is where the
+// customer actually picks UPI/Card/Netbanking) rather than fabricating
+// three separate options with no distinct backend behaviour.
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { FiArrowLeft } from 'react-icons/fi';
+import { toast } from 'react-toastify';
+import Icon from '@/components/Shared/Icon';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCheckout } from '@/contexts/CheckoutContext';
 import { handleError } from '@/utils/errorHandler';
-import { toast } from 'react-toastify';
-import OrderSummaryCard from '@/components/Checkout/OrderSummaryCard';
+import CheckoutDarkSummary from '@/components/Checkout/CheckoutDarkSummary';
 import OrderConflictsNotice from '@/components/Checkout/OrderConflictsNotice';
 import PaymentStatusNotice from '@/components/Checkout/PaymentStatusNotice';
+import { formatPrice } from '@/utils/productUtils';
+
+const METHODS = [
+  { id: 'online', icon: 'bolt', titleKey: 'advika.checkout.upiTitle', bodyKey: 'advika.checkout.upiBody' },
+  { id: 'cod', icon: 'payments', titleKey: 'advika.checkout.codTitle', bodyKey: 'advika.checkout.codBody' },
+];
 
 export default function PaymentPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { user } = useAuth();
   const {
-    addresses,
-    selectedAddressId,
-    draftOrder,
-    isPlacingOrder,
-    placeCODOrder,
-    payOnline,
-    canProceedToReview,
-    canProceedToPayment,
-    canPay,
-    conflicts,
-    refreshDraftOrder,
-    isRestoring,
-    goToStep,
-    paymentMethod: method,
-    setPaymentMethod: setMethod,
+    addresses, selectedAddressId, draftOrder, isPlacingOrder, placeCODOrder, payOnline,
+    canProceedToReview, canProceedToPayment, canPay, conflicts, refreshDraftOrder,
+    isRestoring, goToStep, paymentMethod: method, setPaymentMethod: setMethod,
   } = useCheckout();
 
   const [isRefreshingOrder, setIsRefreshingOrder] = useState(false);
-  // Set only for a *definite* online-payment outcome that wasn't success —
-  // either Razorpay reporting the attempt itself failed ('failed') or the
-  // customer closing the modal before attempting anything ('cancelled').
-  // An ambiguous network hiccup never lands here — see handlePlaceOrder
-  // below and CheckoutContext.payOnline's reconciliation step. Cleared on
-  // every new attempt and on a payment-method switch, so it never lingers
-  // across an unrelated action.
-  const [paymentNotice, setPaymentNotice] = useState(null); // { variant: 'failed' | 'cancelled', message } | null
+  const [paymentNotice, setPaymentNotice] = useState(null);
 
-  // Keeps the persisted "current step" hint (see checkoutStorage.js) in
-  // sync whenever this step is actually the one on screen.
-  useEffect(() => {
-    goToStep('payment');
-  }, [goToStep]);
+  useEffect(() => { goToStep('payment'); }, [goToStep]);
 
-  // Route guard. Two distinct "not allowed here" cases, once any saved-
-  // selection restore has settled:
-  //  - no address/draft at all (hard refresh with nothing to resume, an
-  //    address that was deleted from another tab, etc.) -> nothing to
-  //    review either, so back to the address step.
-  //  - address/draft ready but review was never confirmed for it (typed
-  //    /checkout/payment directly, or an edit/reselect invalidated an
-  //    earlier confirmation) -> back to review, not straight through.
   useEffect(() => {
     if (isRestoring) return;
-    if (!canProceedToReview) {
-      navigate('/checkout', { replace: true });
-    } else if (!canProceedToPayment) {
-      navigate('/checkout/review', { replace: true });
-    }
+    if (!canProceedToReview) navigate('/checkout', { replace: true });
+    else if (!canProceedToPayment) navigate('/checkout/review', { replace: true });
   }, [isRestoring, canProceedToReview, canProceedToPayment, navigate]);
 
   const selectedAddress = addresses.find((a) => a.id === selectedAddressId);
@@ -87,60 +52,26 @@ export default function PaymentPage() {
     try {
       if (method === 'cod') {
         const order = await placeCODOrder();
-        navigate(`/order/success/${order.id}`, {
-          state: { order, paymentMethod: 'cod' },
-        });
+        navigate(`/order/success/${order.id}`, { state: { order, paymentMethod: 'cod', justPlaced: true } });
       } else {
         const { orderId, paymentStatus } = await payOnline({
           customerName: selectedAddress?.name || user?.phone,
           customerPhone: user?.phone,
         });
-        navigate(`/order/success/${orderId}`, {
-          state: { order: draftOrder, paymentMethod: 'online', paymentStatus },
-        });
+        navigate(`/order/success/${orderId}`, { state: { order: draftOrder, paymentMethod: 'online', paymentStatus, justPlaced: true } });
       }
     } catch (error) {
-      // A conflict (409, structured `errors.conflicts`) is already
-      // surfaced persistently via the OrderConflictsNotice below — the
-      // toast is still useful as an immediate signal, but the banner is
-      // what actually tells the customer what changed and how to recover.
-      // Checked directly off the error's own shape (same check
-      // CheckoutContext's extractConflicts uses), not the `conflicts`
-      // state above — that state was only just set (if at all) inside
-      // payOnline/placeCODOrder moments ago and hasn't re-rendered into
-      // this closure yet.
       const hasConflicts = !!error?.response?.data?.errors?.conflicts;
       if (hasConflicts) {
         handleError(error, t('checkout.orderFailed', "Couldn't place your order. Please try again."));
         return;
       }
-
-      // Online payment, tagged by paymentService.openRazorpayCheckout /
-      // CheckoutContext.payOnline (see RazorpayCheckoutError). Both are
-      // *definite* outcomes — no amount was charged either way, and the
-      // draft order/Razorpay order underneath is untouched (see
-      // payment.controller.js's createOrderid reuse-or-reconcile) — so
-      // both are safe to just retry from right here:
-      //  - 'cancelled'      the customer backed out themselves before
-      //                     attempting anything. Nothing went wrong, so
-      //                     this gets a neutral (not error-styled) banner
-      //                     plus a plain info toast, not an error one.
-      //  - 'gateway_failed' Razorpay definitively rejected the attempt
-      //                     (card declined, UPI failed, etc.) — surfaced
-      //                     as an actual alert banner, since the customer
-      //                     needs to actually read and act on it (e.g.
-      //                     try a different card, or switch to COD)
-      //                     before trying again.
       if (error?.reason === 'cancelled') {
         setPaymentNotice({ variant: 'cancelled', message: null });
         toast.info(t('checkout.paymentCancelledToast', 'Payment cancelled. No amount was charged.'));
       } else if (error?.reason === 'gateway_failed') {
         setPaymentNotice({ variant: 'failed', message: error.message });
       } else {
-        // Ambiguous failure that reconciliation (in payOnline) couldn't
-        // resolve either way — COD's own placement error, a plain network
-        // failure, etc. Same toast as before; not definite enough to
-        // brand as a payment outcome specifically.
         handleError(error, t('checkout.orderFailed', "Couldn't place your order. Please try again."));
       }
     }
@@ -158,125 +89,83 @@ export default function PaymentPage() {
 
   if (!draftOrder || !canProceedToPayment) return null;
 
+  const total = draftOrder.total ?? 0;
+
   return (
-    <div className="flex flex-col gap-6">
-      {conflicts && (
-        <OrderConflictsNotice
-          conflicts={conflicts}
-          onRefresh={handleRefreshOrder}
-          isRefreshing={isRefreshingOrder}
-        />
-      )}
+    <div className="flex flex-col gap-4">
+      {conflicts && <OrderConflictsNotice conflicts={conflicts} onRefresh={handleRefreshOrder} isRefreshing={isRefreshingOrder} />}
+      {paymentNotice && <PaymentStatusNotice variant={paymentNotice.variant} message={paymentNotice.message} onDismiss={() => setPaymentNotice(null)} />}
 
-      {paymentNotice && (
-        <PaymentStatusNotice
-          variant={paymentNotice.variant}
-          message={paymentNotice.message}
-          onDismiss={() => setPaymentNotice(null)}
-        />
-      )}
+      <div className="border border-advika-border-light bg-white p-4">
+        <div className="mb-3 flex items-center gap-2">
+          <Icon name="credit_card" size={19} className="text-advika-orange" />
+          <h2 className="text-[15px] font-bold text-advika-chrome">{t('advika.checkout.paymentMethod', 'Payment Method')}</h2>
+        </div>
+        <div className="flex flex-col gap-[10px]">
+          {METHODS.map((m) => {
+            const selected = method === m.id;
+            return (
+              <label
+                key={m.id}
+                className={`flex items-center gap-3 rounded p-[13px] ${
+                  selected ? 'border-[1.5px] border-advika-orange bg-advika-orange-tint' : 'border-[1.5px] border-advika-border-light bg-white'
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="paymentMethod"
+                  checked={selected}
+                  onChange={() => { setPaymentNotice(null); setMethod(m.id); }}
+                  className="sr-only"
+                />
+                <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${selected ? 'border-advika-orange' : 'border-advika-grey400'}`}>
+                  {selected && <span className="h-[9px] w-[9px] rounded-full bg-advika-orange" />}
+                </span>
+                <Icon name={m.icon} size={22} className={selected ? 'text-advika-orange' : 'text-advika-grey600'} />
+                <span>
+                  <span className={`block text-[14px] font-bold ${selected ? 'text-advika-orange-darker2' : 'text-advika-chrome'}`}>{t(m.titleKey)}</span>
+                  <span className="block text-[11.5px] text-advika-grey700">{t(m.bodyKey)}</span>
+                </span>
+              </label>
+            );
+          })}
+        </div>
+        {method === 'cod' && (
+          <div className="mt-3 rounded-[3px] border border-advika-success-border bg-advika-success-tint p-3">
+            <p className="text-[11.5px] font-semibold text-advika-success-dark">
+              {t('advika.checkout.codNote', { amount: formatPrice(total) })}
+            </p>
+          </div>
+        )}
+      </div>
 
-      {/* Read-only recap — changing the address is a review-step action
-          (see ReviewPage.jsx), not available from here. */}
-      {selectedAddress && (
-        <section className="card p-4">
-          <h2 className="text-sm font-semibold text-gray-500 mb-1">
-            {t('checkout.deliverTo', 'Deliver to')}
-          </h2>
-          <p className="font-semibold text-gray-900">{selectedAddress.name}</p>
-          <p className="text-sm text-gray-600">
-            {selectedAddress.houseArea}, {selectedAddress.city}, {selectedAddress.state} —{' '}
-            {selectedAddress.pincode}
-          </p>
-        </section>
-      )}
+      <CheckoutDarkSummary order={draftOrder} />
 
-      <OrderSummaryCard order={draftOrder} />
-
-      {/* Payment method — selected state mirrors AddressCard's pattern
-          (primary border + ring) so which method is chosen is clear at a
-          glance instead of relying on spotting a small native radio dot. */}
-      <section className="card p-5 flex flex-col gap-3">
-        <h2 className="font-display text-lg font-bold text-gray-900">
-          {t('checkout.paymentMethod', 'Payment Method')}
-        </h2>
-        <label
-          className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
-            method === 'online'
-              ? 'border-[var(--clr-primary)] ring-1 ring-[var(--clr-primary)] bg-[var(--clr-primary)]/5'
-              : 'border-[var(--clr-border)] hover:bg-gray-50'
-          }`}
-        >
-          <input
-            type="radio"
-            name="paymentMethod"
-            checked={method === 'online'}
-            onChange={() => {
-              setPaymentNotice(null);
-              setMethod('online');
-            }}
-            className="w-4 h-4 accent-[var(--clr-primary-dark)]"
-          />
-          <span className="text-sm font-medium text-gray-800">
-            {t('checkout.payOnline', 'Pay online (UPI / Card / Netbanking)')}
-          </span>
-        </label>
-        <label
-          className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
-            method === 'cod'
-              ? 'border-[var(--clr-primary)] ring-1 ring-[var(--clr-primary)] bg-[var(--clr-primary)]/5'
-              : 'border-[var(--clr-border)] hover:bg-gray-50'
-          }`}
-        >
-          <input
-            type="radio"
-            name="paymentMethod"
-            checked={method === 'cod'}
-            onChange={() => {
-              setPaymentNotice(null);
-              setMethod('cod');
-            }}
-            className="w-4 h-4 accent-[var(--clr-primary-dark)]"
-          />
-          <span className="text-sm font-medium text-gray-800">
-            {t('checkout.payCod', 'Cash on Delivery')}
-          </span>
-        </label>
-      </section>
-
-      {/* Back / Pay — pinned to the bottom of the viewport on mobile, same
-          pattern as the address and review steps, so the final "Pay"
-          action never requires scrolling past the order summary + method
-          picker to reach it. */}
-      {/* pb-40 (not pb-24): Back/Pay stack into two full-width rows below
-          sm (flex-col gap-2), so the fixed bar behind this spacer is
-          roughly 130-150px tall once its own padding + safe-area inset
-          are included — a shorter spacer let it cover the bottom of the
-          payment-method section on real notched phones. */}
-      <div className="pb-40 sm:pb-0" />
-      <div className="fixed inset-x-0 bottom-0 z-30 bg-white/95 backdrop-blur border-t border-[var(--clr-border)] px-4 py-3 pb-safe flex flex-col gap-2 sm:static sm:inset-auto sm:z-auto sm:bg-transparent sm:backdrop-blur-none sm:border-0 sm:px-0 sm:py-0 sm:flex-row sm:mt-4">
+      <div className="flex gap-3">
         <button
           type="button"
           onClick={() => navigate('/checkout/review')}
           disabled={isPlacingOrder}
-          className="btn btn-outline sm:w-auto px-6 py-3 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed order-2 sm:order-1"
+          className="flex h-14 items-center justify-center gap-2 border-[1.5px] border-advika-grey400 px-5 text-[13px] font-bold text-advika-chrome disabled:opacity-60"
         >
-          <FiArrowLeft className="w-4 h-4" aria-hidden />
-          {t('checkout.back', 'Back')}
+          <Icon name="arrow_back" size={16} /> {t('advika.checkout.back', 'Back')}
         </button>
         <button
           type="button"
           onClick={handlePlaceOrder}
           disabled={!canPay || isPlacingOrder || !!conflicts}
-          className="btn btn-primary flex-1 py-3 text-base disabled:opacity-60 disabled:cursor-not-allowed order-1 sm:order-2"
+          className="flex h-14 flex-1 flex-col items-center justify-center bg-advika-orange text-white disabled:opacity-60"
         >
-          {isPlacingOrder
-            ? t('checkout.placingOrder', 'Placing your order…')
-            : method === 'cod'
-              ? t('checkout.placeOrder', 'Place Order')
-              : paymentNotice
-                ? t('checkout.retryPayment', 'Retry payment')
-                : t('checkout.payAmount', 'Pay ₹{{amount}}', { amount: (draftOrder.total ?? 0).toFixed(2) })}
+          <span className="text-[14px] font-bold">
+            {isPlacingOrder
+              ? t('checkout.placingOrder', 'Placing your order…')
+              : method === 'cod'
+                ? t('advika.checkout.placeOrder', 'PLACE ORDER')
+                : paymentNotice
+                  ? t('checkout.retryPayment', 'Retry payment')
+                  : t('advika.checkout.payAmount', { amount: formatPrice(total) })}
+          </span>
+          {!isPlacingOrder && <span className="text-[9px] text-[#ffedd5]">{t('advika.checkout.securely', 'SECURELY')}</span>}
         </button>
       </div>
     </div>

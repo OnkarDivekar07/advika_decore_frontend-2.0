@@ -36,33 +36,33 @@ export default function AddressCard({
     <>
       {selectable &&
         (isSelected ? (
-          <FiCheckCircle className="w-5 h-5 text-[var(--clr-primary)] shrink-0 mt-0.5" aria-hidden />
+          <FiCheckCircle className="w-5 h-5 text-advika-orange shrink-0 mt-0.5" aria-hidden />
         ) : (
-          <FiCircle className="w-5 h-5 text-gray-300 shrink-0 mt-0.5" aria-hidden />
+          <FiCircle className="w-5 h-5 text-advika-grey400 shrink-0 mt-0.5" aria-hidden />
         ))}
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2 flex-wrap">
-          <p className="font-semibold text-gray-900">{address.name}</p>
+          <p className="font-semibold text-advika-chrome">{address.name}</p>
           {address.isDefault && (
-            <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[var(--clr-primary-dark)] bg-[var(--clr-primary)]/10 rounded-full px-2 py-0.5">
+            <span className="inline-flex items-center gap-1 text-[11px] font-medium text-advika-orange-darker bg-advika-orange-tint border border-advika-orange-border rounded px-2 py-0.5">
               <FiStar className="w-3 h-3" aria-hidden />
               {t('checkout.defaultAddress', 'Default')}
             </span>
           )}
         </div>
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-advika-grey800">
           {address.houseArea}
           {address.area ? `, ${address.area}` : ''}
           {address.landmark ? `, ${address.landmark}` : ''}
         </p>
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-advika-grey800">
           {address.city}, {address.state} — {address.pincode}
         </p>
-        <p className="text-sm text-gray-500 mt-1">
+        <p className="text-sm text-advika-grey700 mt-1 aa-mono">
           {t('checkout.phone', 'Phone')}: +91 {fromE164(address.phone)}
         </p>
         {address.deliveryInstructions && (
-          <p className="text-xs text-gray-500 mt-1 italic">
+          <p className="text-xs text-advika-grey700 mt-1 italic">
             {t('checkout.deliveryNote', 'Note')}: {address.deliveryInstructions}
           </p>
         )}
@@ -71,7 +71,7 @@ export default function AddressCard({
             type="button"
             onClick={stop(() => onSetDefault(address.id))}
             disabled={isSettingDefault}
-            className="text-xs font-medium text-[var(--clr-primary-dark)] hover:underline mt-1.5 disabled:opacity-50 disabled:no-underline"
+            className="text-xs font-medium text-advika-orange-dark hover:underline mt-1.5 disabled:opacity-50 disabled:no-underline"
           >
             {isSettingDefault
               ? t('checkout.settingDefault', 'Setting as default…')
@@ -86,7 +86,7 @@ export default function AddressCard({
               type="button"
               onClick={stop(() => onEdit(address))}
               aria-label={t('checkout.editAddress', 'Edit address')}
-              className="p-1.5 rounded-md text-gray-500 hover:text-[var(--clr-primary)] hover:bg-gray-50"
+              className="p-1.5 rounded-md text-advika-grey600 hover:text-advika-orange hover:bg-advika-off-white"
             >
               <FiEdit2 className="w-4 h-4" aria-hidden />
             </button>
@@ -97,7 +97,7 @@ export default function AddressCard({
               onClick={stop(() => onDelete(address.id))}
               disabled={isDeleting}
               aria-label={t('checkout.deleteAddress', 'Delete address')}
-              className="p-1.5 rounded-md text-gray-500 hover:text-red-500 hover:bg-gray-50 disabled:opacity-50"
+              className="p-1.5 rounded-md text-advika-grey600 hover:text-red-500 hover:bg-advika-off-white disabled:opacity-50"
             >
               <FiTrash2 className="w-4 h-4" aria-hidden />
             </button>
@@ -107,9 +107,9 @@ export default function AddressCard({
     </>
   );
 
-  const className = `card w-full text-left p-4 flex items-start gap-3 transition-colors ${
+  const className = `w-full text-left p-4 flex items-start gap-3 transition-colors bg-white border ${
     selectable ? 'cursor-pointer' : ''
-  } ${isSelected ? 'border-[var(--clr-primary)] ring-1 ring-[var(--clr-primary)]' : ''}`;
+  } ${isSelected ? 'border-[1.5px] border-advika-orange' : 'border-advika-border-light'}`;
 
   if (!selectable) {
     return <div className={className}>{body}</div>;

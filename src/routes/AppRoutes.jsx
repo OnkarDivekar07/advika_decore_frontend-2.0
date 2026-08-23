@@ -6,14 +6,15 @@ import Spinner from '@/components/Shared/Spinner';
 const HomePage          = lazy(() => import('@/pages/Home/HomePage'));
 const CartPage          = lazy(() => import('@/pages/Cart/CartPage'));
 const ProductDetailPage = lazy(() => import('@/pages/ProductDetail/ProductDetailPage'));
-const OTPVerificationPage = lazy(() => import('@/pages/OTPVerification/OTPVerificationPage'));
+const LoginPage          = lazy(() => import('@/pages/Login/LoginPage'));
+const VehiclePage        = lazy(() => import('@/pages/Vehicle/VehiclePage'));
 const CheckoutLayout     = lazy(() => import('@/pages/Checkout/CheckoutLayout'));
 const AddressSelectionPage = lazy(() => import('@/pages/AddressSelection/AddressSelectionPage'));
 const AddressBookPage = lazy(() => import('@/pages/Addresses/AddressBookPage'));
-const OrderListPage = lazy(() => import('@/pages/Orders/OrderListPage'));
 const ReviewPage        = lazy(() => import('@/pages/Review/ReviewPage'));
 const PaymentPage        = lazy(() => import('@/pages/Payment/PaymentPage'));
 const OrderSuccessPage   = lazy(() => import('@/pages/OrderSuccess/OrderSuccessPage'));
+const OrderTrackingPage  = lazy(() => import('@/pages/OrderTracking/OrderTrackingPage'));
 const SearchResultsPage = lazy(() => import('@/pages/Search/SearchResultsPage'));
 const ProductListingPage = lazy(() => import('@/pages/Products/ProductListingPage'));
 const UserProfilePage = lazy(() => import('@/pages/UserProfile/UserProfilePage'));
@@ -42,7 +43,14 @@ export default function AppRoutes() {
             shared /product/:id links keep working unchanged. */}
         <Route path="/product/:id/:slug?" element={<ProductDetailPage />} />
         <Route path="/cart"        element={<CartPage />} />
-        <Route path="/otp-verification" element={<OTPVerificationPage />} />
+        {/* Legacy pre-reskin OTP page — superseded by /login's own OTP
+            step (design_handoff_advika_auto/README.md screen 7 is a
+            single white-shell Login/Signup screen, not two competing
+            implementations). Redirected rather than dropped so an old
+            bookmark/SMS deep link still lands somewhere real. */}
+        <Route path="/otp-verification" element={<Navigate to="/login" replace />} />
+        <Route path="/login"       element={<LoginPage />} />
+        <Route path="/vehicle/:classId" element={<VehiclePage />} />
         {/* CheckoutLayout mounts CheckoutProvider once for both nested
             steps, so the selected address / draft order survive moving
             from address -> review -> payment (see CheckoutLayout.jsx).
@@ -60,8 +68,23 @@ export default function AppRoutes() {
           <Route path="*"       element={<Navigate to="/checkout" replace />} />
         </Route>
         <Route path="/order/success/:orderId" element={<OrderSuccessPage />} />
+        {/* Durable Track Order screen (README screen 10) — see
+            OrderTrackingPage.jsx's header comment for why this is a
+            separate, :orderId-driven route rather than reusing
+            /order/success/:orderId's router `state`. */}
+        <Route path="/orders/:orderId/track" element={<OrderTrackingPage />} />
+        {/* README's Account screen (8) has an Orders tab, but "My orders"
+            is view-only there (list + link to tracking) — OrderListPage
+            offered nothing functionally beyond that, just legacy Navbar
+            styling, so it's redirected rather than kept as a second,
+            divergent implementation. Addresses is different: the
+            Account tab is read-only (list + "Edit"/"Add new" links out),
+            while AddressBookPage is where add/edit/delete/set-default
+            actually happen (AddressForm + useAddressBook's mutations) —
+            that real functionality is kept at its own route, just
+            restyled into the Advika Auto shell (see AddressBookPage.jsx). */}
         <Route path="/addresses" element={<AddressBookPage />} />
-        <Route path="/orders" element={<OrderListPage />} />
+        <Route path="/orders" element={<Navigate to="/profile?tab=orders" replace />} />
         <Route path="/search"      element={<SearchResultsPage />} />
         <Route path="/products"    element={<ProductListingPage />} />
         <Route path="/profile"    element={<UserProfilePage />} />

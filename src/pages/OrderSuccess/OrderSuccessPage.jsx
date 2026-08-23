@@ -1,331 +1,200 @@
 // src/pages/OrderSuccess/OrderSuccessPage.jsx
-//
-// /order/success/:orderId (see AppRoutes.jsx). Reached from PaymentPage
-// after COD placement or a Razorpay Checkout.js callback + /verify — but
-// deliberately doesn't trust what PaymentPage forwarded as the final word.
-// Router state can be empty (direct link, bookmarked, refreshed, shared),
-// and even when present it's only ever a best-effort snapshot: the COD
-// response is solid (nothing async left to happen), but the online-payment
-// response is just "here's an orderId and what /verify best-effort saw" —
-// the Razorpay webhook is the real backstop and can still flip
-// paymentStatus after this page has already rendered (checkout-
-// architecture.md §1/§3.2 step 4).
-//
-// So this page fetches the order for real via the customer-scoped
-// GET /api/order/:id (orderService.getOrderById) and treats that response
-// as the only source of truth for what's shown. If payment is still
-// reconciling, this polls a few times (the webhook is usually near-instant,
-// but not guaranteed to have landed by the time Razorpay's client-side
-// callback returns) before settling into a "still processing" state that
-// no longer refreshes itself.
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Link, useLocation, useParams } from 'react-router-dom';
+// /order/success/:orderId — the fresh-checkout success screen (screen 6
+// step 4: "ORDER PLACED!"), plus the payment failed/processing edge
+// cases. This is inherently a one-time "thank you" screen reached by
+// in-app navigation right after PaymentPage places an order (which
+// passes `state.justPlaced`, see PaymentPage.jsx's handlePlaceOrder) —
+// not a durable, bookmarkable page. Any other arrival here (a hard
+// refresh, a stale bookmark, a shared link — anything where
+// `state.justPlaced` isn't present) redirects to the real durable
+// tracking page, OrderTrackingPage.jsx at /orders/:orderId/track,
+// instead of re-showing "ORDER PLACED!" for an order that may be long
+// since delivered.
+import React, { useCallback, useEffect, useState } from 'react';
+import { Link, useLocation, useParams, Navigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { FiCheckCircle, FiClock, FiAlertTriangle, FiXCircle } from 'react-icons/fi';
-import Navbar from '@/components/Navbar/Navbar';
-import Spinner from '@/components/Shared/Spinner';
+import Icon from '@/components/Shared/Icon';
 import Seo from '@/components/Shared/Seo';
-import ShipmentStatusCard from '@/components/Shipping/ShipmentStatusCard';
-import OrderSummaryCard from '@/components/Checkout/OrderSummaryCard';
-import AddressCard from '@/components/Address/AddressCard';
+import Spinner from '@/components/Shared/Spinner';
+import AdvikaHeader from '@/components/Layout/AdvikaHeader';
 import PaymentInfoCard from '@/components/Orders/PaymentInfoCard';
 import { useCart } from '@/contexts/CartContext';
 import * as orderService from '@/services/orderService';
+import { formatPrice } from '@/utils/productUtils';
+import { resolvePaymentMethod } from '@/utils/orderTrackingUtils';
 
-// How many times to re-poll GET /api/order/:id while the order's payment
-// attempt is still unresolved for an online payment, and how far apart.
-// The Razorpay webhook is usually near-instant; this window just covers the
-// gap between this page mounting and the webhook landing, not a general
-// "wait for slow payments" mechanism.
 const PENDING_POLL_ATTEMPTS = 5;
 const PENDING_POLL_INTERVAL_MS = 2500;
-
-// paymentStatus values that mean "still working on it, not resolved yet" —
-// see payment.service.js's PaymentStatus state machine. createOrderid moves
-// a fresh draft straight to 'attempted' once a Razorpay order is minted
-// (well before this page's poll ever starts), so a plain 'pending' here
-// would only happen if /verify was never reached; included for completeness.
 const UNRESOLVED_PAYMENT_STATUSES = ['pending', 'attempted', 'processing'];
-// Terminal states where payment did NOT succeed — shown the same way as a
-// definite failure, with a "retry payment" affordance.
 const FAILED_LIKE_PAYMENT_STATUSES = ['failed', 'cancelled', 'timeout', 'unknown'];
 
 export default function OrderSuccessPage() {
   const { t } = useTranslation();
   const { orderId } = useParams();
   const location = useLocation();
-  const { paymentMethod: methodHint, fromHistory } = location.state || {};
+  const { justPlaced } = location.state || {};
   const { retryLoadCart } = useCart();
 
-  // 'loading' | 'ready' | 'notFound' | 'forbidden' | 'error'
   const [state, setState] = useState('loading');
   const [order, setOrder] = useState(null);
-  const pollAttemptsRef = useRef(0);
-  const pollTimerRef = useRef(null);
+  const pollAttemptsRef = React.useRef(0);
+  const pollTimerRef = React.useRef(null);
 
-  const fetchOrder = useCallback(
-    async ({ silent } = {}) => {
-      if (!silent) setState('loading');
-      try {
-        const fetched = await orderService.getOrderById(orderId);
-        setOrder(fetched);
-        setState('ready');
-        return fetched;
-      } catch (error) {
-        const status = error?.response?.status;
-        if (status === 404) setState('notFound');
-        else if (status === 403) setState('forbidden');
-        else setState('error');
-        return null;
-      }
-    },
-    [orderId]
-  );
-
-  useEffect(() => {
-    fetchOrder();
-    return () => {
-      if (pollTimerRef.current) clearTimeout(pollTimerRef.current);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  const fetchOrder = useCallback(async ({ silent } = {}) => {
+    if (!silent) setState('loading');
+    try {
+      const fetched = await orderService.getOrderById(orderId);
+      setOrder(fetched);
+      setState('ready');
+      return fetched;
+    } catch (error) {
+      const status = error?.response?.status;
+      if (status === 404) setState('notFound');
+      else if (status === 403) setState('forbidden');
+      else setState('error');
+      return null;
+    }
   }, [orderId]);
 
-  // Only relevant for the online-payment path: if the order we just
-  // fetched is still unresolved (webhook/verify hasn't reconciled it yet),
-  // poll a few more times before settling into the static "processing"
-  // state below — each successful poll replaces `order` wholesale, so as
-  // soon as the webhook lands this flips to 'paid' (or a failed-like state)
-  // on its own.
+  useEffect(() => {
+    if (!justPlaced) return; // redirecting below — no need to fetch here
+    fetchOrder();
+    return () => { if (pollTimerRef.current) clearTimeout(pollTimerRef.current); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [orderId, justPlaced]);
+
   useEffect(() => {
     if (state !== 'ready' || !order) return;
     if (!UNRESOLVED_PAYMENT_STATUSES.includes(order.paymentStatus)) return;
     if (pollAttemptsRef.current >= PENDING_POLL_ATTEMPTS) return;
-
     pollTimerRef.current = setTimeout(() => {
       pollAttemptsRef.current += 1;
       fetchOrder({ silent: true });
     }, PENDING_POLL_INTERVAL_MS);
-
     return () => clearTimeout(pollTimerRef.current);
   }, [state, order, fetchOrder]);
 
-  // The backend clears the cart server-side once an order is confirmed
-  // (COD placed, or payment verified/captured — see
-  // checkout-architecture.md §1). Pulling a fresh cart here reflects that
-  // straight away instead of leaving stale items in memory until the next
-  // focus/visibility-triggered reconcile.
   useEffect(() => {
+    if (!justPlaced) return;
     retryLoadCart();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [justPlaced]);
+
+  if (!justPlaced) {
+    return <Navigate to={`/orders/${orderId}/track`} replace />;
+  }
 
   if (state === 'loading') {
     return (
-      <>
-        <Navbar />
+      <div className="aa-shell flex min-h-screen items-center justify-center bg-white">
         <Seo title={t('orderSuccess.loading', 'Loading your order…')} noindex />
-        <main className="max-w-2xl mx-auto px-4 sm:px-6 py-12 sm:py-16 flex flex-col items-center gap-4" id="main-content" tabIndex={-1}>
-          <Spinner size={40} />
-          <p className="text-sm text-gray-500">
-            {t('orderSuccess.loading', 'Loading your order…')}
-          </p>
-        </main>
-      </>
+        <Spinner size={40} />
+      </div>
     );
   }
 
   if (state === 'notFound' || state === 'forbidden' || state === 'error') {
     return (
-      <>
-        <Navbar />
-        <Seo title={t('orderSuccess.errorTitle', "Couldn't load your order")} noindex />
-        <main className="max-w-2xl mx-auto px-4 sm:px-6 py-12 sm:py-16 text-center" id="main-content" tabIndex={-1}>
-          <FiAlertTriangle className="w-12 h-12 text-amber-400 mx-auto mb-4" aria-hidden />
-          <h1 className="section-title mb-2">
-            {state === 'notFound'
-              ? t('orderSuccess.notFoundTitle', "We couldn't find that order")
-              : state === 'forbidden'
-                ? t('orderSuccess.forbiddenTitle', "That order isn't linked to this account")
-                : t('orderSuccess.errorTitle', "Couldn't load your order")}
+      <div className="aa-shell min-h-screen bg-white">
+        <AdvikaHeader />
+        <div className="flex flex-col items-center gap-4 px-6 py-20 text-center">
+          <Icon name="error" size={40} className="text-advika-grey600" />
+          <h1 className="font-archivoBlack text-[20px] text-advika-chrome">
+            {state === 'notFound' ? t('orderSuccess.notFoundTitle', "We couldn't find that order") : t('orderSuccess.errorTitle', "Couldn't load your order")}
           </h1>
-          <p className="text-gray-500 text-sm mb-8">
-            {state === 'error'
-              ? t('orderSuccess.errorBody', 'Please check your connection and try again.')
-              : t(
-                  'orderSuccess.notFoundBody',
-                  'If you just placed this order, check the order confirmation link you were sent, or view your orders.'
-                )}
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <div className="flex gap-3">
             {state === 'error' && (
-              <button onClick={() => fetchOrder()} className="btn btn-outline px-6">
+              <button type="button" onClick={() => fetchOrder()} className="h-11 border-[1.5px] border-advika-chrome px-6 text-[13px] font-bold">
                 {t('checkout.retry', 'Retry')}
               </button>
             )}
-            <Link to="/" className="btn btn-primary px-6">
+            <Link to="/" className="flex h-11 items-center bg-advika-orange px-6 text-[13px] font-bold text-white">
               {t('orderSuccess.continueShopping', 'Continue Shopping')}
             </Link>
           </div>
-        </main>
-      </>
+        </div>
+      </div>
     );
   }
 
-  // paymentMethod is inferred from the authoritative order whenever
-  // possible (payment_order_id starting with 'cod-' — see
-  // payment.service.js's handleCODOrder), falling back to what
-  // PaymentPage hinted via router state only for the brief window before
-  // that convention is worth relying on for display copy.
-  const paymentMethod = order.payment_order_id?.startsWith('cod-') ? 'cod' : (methodHint ?? 'online');
+  const paymentMethod = resolvePaymentMethod(order, null);
   const isProcessing = paymentMethod !== 'cod' && UNRESOLVED_PAYMENT_STATUSES.includes(order.paymentStatus);
-  // The webhook is the source of truth for a definite failure (see
-  // payment.service.js's handleRazorpayWebhookEvent, case 'payment.failed')
-  // — reachable here whenever the customer left this page (or the app)
-  // before /verify could run, and the failure only got reconciled after the
-  // fact. A failure caught client-side, in the same tab, is instead handled
-  // right on PaymentPage (see PaymentStatusNotice there) and never navigates
-  // here at all. 'cancelled'/'timeout'/'unknown' land here the same way —
-  // none of them mean payment succeeded, so they get the same "didn't go
-  // through, retry available" treatment. A plain in-tab *cancel* (customer
-  // closed the modal without attempting anything) never reaches this page
-  // at all — it's handled entirely on PaymentPage — but a cancel discovered
-  // later (e.g. this order's link revisited) is shown the same as any other
-  // non-success outcome.
   const isFailed = paymentMethod !== 'cod' && FAILED_LIKE_PAYMENT_STATUSES.includes(order.paymentStatus);
-  // Once money has actually moved (paid) or COD has been confirmed, the
-  // order itself is no longer 'draft' — safe to check for a shipment.
-  // While still pending/failed, an admin hasn't confirmed/shipped
-  // anything yet (a failed order stays 'draft', same as pending — see
-  // payment.service.js), so skip the check rather than surfacing a
-  // guaranteed 404.
-  const canShowShipment = order.status !== 'draft' && !isProcessing && !isFailed;
 
-  return (
-    <>
-      <Navbar />
-      <Seo
-        title={
-          isFailed
-            ? t('orderSuccess.failedTitle', 'Payment failed')
-            : isProcessing
-              ? t('orderSuccess.processingTitle', "We're confirming your payment")
-              : fromHistory
-                ? t('orderSuccess.detailsTitle', 'Order Details')
-                : t('orderSuccess.title', 'Order placed!')
-        }
-        noindex
-      />
-      <main className="max-w-2xl mx-auto px-4 sm:px-6 py-12 sm:py-16 text-center" id="main-content" tabIndex={-1}>
-        {isFailed ? (
-          <FiXCircle className="w-16 h-16 text-rose-500 mx-auto mb-4" aria-hidden />
-        ) : isProcessing ? (
-          <FiClock className="w-16 h-16 text-amber-400 mx-auto mb-4" aria-hidden />
-        ) : (
-          <FiCheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" aria-hidden />
-        )}
-
-        <h1 className="section-title mb-2">
-          {isFailed
-            ? t('orderSuccess.failedTitle', 'Payment failed')
-            : isProcessing
-              ? t('orderSuccess.processingTitle', "We're confirming your payment")
-              /* Arrived here from My Orders (see OrderCard) rather than
-                 straight off checkout — "Order placed!" reads oddly for
-                 an order that may have been placed days ago, so use a
-                 neutral title for that case while still reusing this
-                 same page (and everything below it) as the one place an
-                 order's full detail/status/shipment lives. */
-              : fromHistory
-                ? t('orderSuccess.detailsTitle', 'Order Details')
-                : t('orderSuccess.title', 'Order placed!')}
-        </h1>
-        <p className="text-gray-500 text-sm mb-8">
-          {isFailed
-            ? t(
-                'orderSuccess.failedBody',
-                "This payment didn't go through, so your order hasn't been placed. No amount was charged — you can pick up where you left off and try again."
-              )
-            : isProcessing
-              ? t(
-                  'orderSuccess.processingBody',
-                  "Your payment is being confirmed. You'll be notified as soon as it's done — no need to retry."
-                )
-              : paymentMethod === 'cod'
-                ? t('orderSuccess.codBody', "Pay ₹{{amount}} in cash when it's delivered.", {
-                    amount: (order.total ?? 0).toFixed(2),
-                  })
-                : t('orderSuccess.paidBody', 'Your payment was received and your order is confirmed.')}
-        </p>
-
-        <div className="flex justify-between gap-3 text-sm text-gray-600 mb-1 max-w-md mx-auto">
-          <span className="shrink-0">{t('orderSuccess.orderId', 'Order ID')}</span>
-          <span className="font-mono text-gray-900 truncate min-w-0">{order.id}</span>
-        </div>
-
-        {/* Reuses the same isFailed/isProcessing/paymentMethod this page
-            already derives from order.paymentStatus for its headline/icon
-            above — a compact, scannable label alongside Order ID rather
-            than a second, separately-computed status. */}
-        <div className="flex justify-between text-sm text-gray-600 mb-4 max-w-md mx-auto">
-          <span>{t('orderSuccess.paymentStatus', 'Payment')}</span>
-          <span
-            className={`font-medium ${
-              isFailed ? 'text-rose-600' : isProcessing ? 'text-amber-600' : 'text-green-600'
-            }`}
-          >
-            {paymentMethod === 'cod'
-              ? t('orderSuccess.paymentCod', 'Cash on Delivery')
-              : isFailed
-                ? t('orderSuccess.paymentFailed', 'Failed')
-                : isProcessing
-                  ? t('orderSuccess.paymentProcessing', 'Processing')
-                  : t('orderSuccess.paymentPaid', 'Paid')}
+  // --- Fresh checkout success (screen 6 step 4) ---------------------------
+  if (!isFailed && !isProcessing) {
+    return (
+      <div className="aa-shell min-h-screen bg-white">
+        <Seo title={t('orderSuccess.title', 'Order placed!')} noindex />
+        <div className="flex flex-col items-center gap-[14px] px-5 pb-8 pt-11 text-center">
+          <span className="flex h-[78px] w-[78px] items-center justify-center rounded-2xl bg-advika-success">
+            <Icon name="check_circle" size={44} className="text-white" />
           </span>
-        </div>
-
-        <div className="mx-auto max-w-md text-left flex flex-col gap-4">
-          {/* order.address comes from the same GET /api/order/:id fetch as
-              everything else on this page (see order.service.js's
-              fetchOrderById, which includes it) — the actual address this
-              order ships to, not whatever was last selected client-side. */}
-          {order.address && (
+          <h1 className="font-archivoBlack text-[27px] text-advika-chrome">{t('advika.checkout.orderPlaced', 'ORDER PLACED!')}</h1>
+          <p className="text-[14px] text-advika-chrome">{t('advika.checkout.orderNumber', { id: order.id })}</p>
+          <p className="text-[12px] text-advika-orange-dark">
+            {paymentMethod === 'cod'
+              ? t('orderSuccess.codBody', "Pay ₹{{amount}} in cash when it's delivered.", { amount: formatPrice(order.total ?? 0) })
+              : t('orderSuccess.paidBody', 'Your payment was received and your order is confirmed.')}
+          </p>
+          <div className="mt-2 flex w-full items-center gap-3 border border-advika-border-light bg-white p-4 text-left">
+            <Icon name="inventory" size={21} className="text-advika-orange" />
             <div>
-              <h2 className="text-sm font-semibold text-gray-500 mb-2">
-                {t('orderSuccess.deliveringTo', 'Delivering to')}
-              </h2>
-              <AddressCard address={order.address} />
+              <p className="text-[13.5px] font-bold text-advika-chrome">{t('advika.checkout.packedInfo', 'Your items are being packed')}</p>
+              <p className="text-[11.5px] text-advika-grey700">{t('advika.checkout.smsUpdates', { phone: `+91 ${order.address?.phone ? order.address.phone.slice(-10) : ''}` })}</p>
             </div>
-          )}
-          <PaymentInfoCard
-            order={order}
-            paymentMethod={paymentMethod}
-            isFailed={isFailed}
-            isProcessing={isProcessing}
-          />
-          <OrderSummaryCard order={order} />
+          </div>
+          {/* Delivery estimate — README screen 6 step 4: `t.expectedDelivery`
+              sits between the order number and the packed-info card. No
+              per-order delivery-estimate field is persisted on Order
+              (only Shipment.estimatedDeliveryDate, set once a shipment
+              exists — not yet, this soon after placing) — this states
+              the storefront's one universal shipping SLA (ticker, trust
+              strip, checkout note all promise the same "3-4 days")
+              rather than fabricating a per-order date with nothing
+              behind it. */}
+          <p className="text-[12px] font-semibold text-advika-orange-dark">
+            {t('advika.checkout.expectedDeliveryGeneric', 'Expected delivery in 3-4 days')}
+          </p>
+          <Link to={`/orders/${order.id}/track`} className="mt-2 flex h-[52px] w-full items-center justify-center gap-2 border-[1.5px] border-advika-chrome text-[14px] font-bold text-advika-chrome">
+            {t('advika.checkout.trackMyOrder', 'TRACK MY ORDER')}
+          </Link>
+          <Link to="/" className="flex h-[52px] w-full items-center justify-center bg-advika-orange text-[14px] font-bold text-white">
+            {t('advika.checkout.continueShopping', 'CONTINUE SHOPPING')}
+          </Link>
         </div>
+      </div>
+    );
+  }
 
-        {/* Shipment isn't created until the order is actually confirmed
-            (see shipping.service.js) — skip the check while payment is
-            still being confirmed/failed rather than surfacing a
-            guaranteed 404. */}
-        {canShowShipment && <ShipmentStatusCard orderId={order.id} orderStatus={order.status} />}
-
-        <div className="flex flex-col sm:flex-row gap-3 justify-center mt-8">
+  // --- Payment failed / processing (edge case, not a wireframe screen —
+  // kept functional with lightweight Advika Auto styling) ------------------
+  return (
+    <div className="aa-shell min-h-screen bg-white">
+      <AdvikaHeader />
+      <Seo title={isFailed ? t('orderSuccess.failedTitle', 'Payment failed') : t('orderSuccess.processingTitle', "We're confirming your payment")} noindex />
+      <div className="flex flex-col items-center gap-4 px-5 py-16 text-center">
+        <Icon name={isFailed ? 'cancel' : 'schedule'} size={48} className={isFailed ? 'text-advika-danger' : 'text-advika-warning'} />
+        <h1 className="font-archivoBlack text-[22px] text-advika-chrome">
+          {isFailed ? t('orderSuccess.failedTitle', 'Payment failed') : t('orderSuccess.processingTitle', "We're confirming your payment")}
+        </h1>
+        <p className="max-w-xs text-[13.5px] text-advika-grey700">
+          {isFailed
+            ? t('orderSuccess.failedBody', "This payment didn't go through, so your order hasn't been placed. No amount was charged.")
+            : t('orderSuccess.processingBody', "Your payment is being confirmed. You'll be notified as soon as it's done.")}
+        </p>
+        <PaymentInfoCard order={order} paymentMethod={paymentMethod} isFailed={isFailed} isProcessing={isProcessing} />
+        <div className="flex gap-3">
           {isFailed && (
-            // Same draft order, same reusable Razorpay order id (see
-            // payment.controller.js's createOrderid reuse-or-reconcile) —
-            // going back through /checkout/payment picks up exactly where
-            // this attempt left off rather than starting over.
-            <Link to="/checkout/payment" className="btn btn-primary px-6">
+            <Link to="/checkout/payment" className="flex h-11 items-center bg-advika-orange px-6 text-[13px] font-bold text-white">
               {t('orderSuccess.retryPayment', 'Retry payment')}
             </Link>
           )}
-          <Link to="/" className={isFailed ? 'btn btn-outline px-6' : 'btn btn-primary px-6'}>
+          <Link to="/" className="flex h-11 items-center border-[1.5px] border-advika-chrome px-6 text-[13px] font-bold text-advika-chrome">
             {t('orderSuccess.continueShopping', 'Continue Shopping')}
           </Link>
         </div>
-      </main>
-    </>
+      </div>
+    </div>
   );
 }

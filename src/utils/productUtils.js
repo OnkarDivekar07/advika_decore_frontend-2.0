@@ -109,11 +109,16 @@ export function validatePriceRange(minPrice, maxPrice) {
  * @param {number|string} value
  * @returns {string|null}
  */
+// Whole-rupee by default (India retail convention, and every price in
+// design_handoff_advika_auto/README.md is written this way — "₹8,499",
+// never "₹8,499.00"); still shows real paise if a price actually carries
+// them (maximumFractionDigits:2), it just doesn't pad ".00" onto round
+// prices, which is what every seeded/typical SKU price actually is.
 export function formatPrice(value) {
   const num = Number(value);
   if (!Number.isFinite(num)) return null;
   return new Intl.NumberFormat('en-IN', {
-    minimumFractionDigits: 2,
+    minimumFractionDigits: 0,
     maximumFractionDigits: 2,
   }).format(num);
 }

@@ -105,6 +105,8 @@ export const fetchProducts = async ({
   inStock,
   sort,
   order,
+  isBestSeller,
+  voltage,
   page = 1,
   limit = 12,
   signal,
@@ -120,6 +122,13 @@ export const fetchProducts = async ({
   if (inStock) params.inStock = 'true';
   if (sort) params.sort = sort;
   if (order) params.order = order;
+  // Landing's "Best sellers" rail — merchandising-flagged, see
+  // design_handoff_advika_auto/README.md screen 1 §6.
+  if (isBestSeller) params.isBestSeller = 'true';
+  // "12V"/"24V" — substring-matches dual-voltage "12V/24V" SKUs too, see
+  // the README's "Domain rule: 12V vs 24V". Used by the Vehicle page to
+  // keep "Popular in this group" scoped to the active class's voltage.
+  if (voltage) params.voltage = voltage;
 
   const { data } = await apiClient.get('/api/products', { params, signal });
   return { items: data.data ?? [], meta: data.meta ?? {} };

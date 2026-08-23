@@ -10,15 +10,12 @@
 // will index. Fill in the null fields with real values when they exist;
 // don't put placeholder text in them.
 
-// Brand name as it already appears in this codebase (HeroBanner's
-// default slide, frontend-README.md title) — not invented for this task.
-export const SITE_NAME = 'Advika Décor';
+// Advika Auto — see design_handoff_advika_auto/README.md: decorative
+// lights and accessories for trucks, pickups, tempos and tractors.
+export const SITE_NAME = 'Advika Auto';
 
-// Grounded in the actual category list this storefront sells against
-// (see utils/constants.js PRODUCT_CATEGORIES) rather than generic
-// ecommerce boilerplate copy.
 export const SITE_DESCRIPTION =
-  'Shop vehicle décor and accessories for trucks, tempos, pickups, cars, two-wheelers, and tractors at Advika Décor.';
+  'Decorative lights, horns and accessories for trucks, pickups, tempos and tractors — Cash on Delivery, genuine parts, GST bill.';
 
 /**
  * Absolute site origin used to build canonical/OG URLs. Prefers an

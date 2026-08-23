@@ -17,7 +17,7 @@ async function fillValidForm(user, { pincode = '411045' } = {}) {
   // Promise.all interleaves keystrokes across fields. Must be sequential.
   await user.type(screen.getByLabelText(/full name/i), 'Asha Patil');
   await user.type(screen.getByLabelText(/mobile number/i), '9876543210');
-  await user.type(screen.getByLabelText(/house no\.,? building, street/i), '221B Baker Society');
+  await user.type(screen.getByLabelText(/full address/i), '221B Baker Society');
   await user.type(screen.getByLabelText(/area \/ locality/i), 'Kothrud');
   await user.type(screen.getByLabelText(/pincode/i), pincode);
   await user.type(screen.getByLabelText(/^city$/i), 'Pune');
@@ -34,7 +34,7 @@ describe('validation failures', () => {
     const onSubmit = vi.fn();
     render(<AddressForm onSubmit={onSubmit} />);
 
-    await user.click(screen.getByRole('button', { name: /save address/i }));
+    await user.click(screen.getByRole('button', { name: /continue/i }));
 
     expect(await screen.findByText(/enter a valid name/i)).toBeInTheDocument();
     expect(screen.getByText(/enter a valid 10-digit mobile number/i)).toBeInTheDocument();
@@ -50,7 +50,7 @@ describe('validation failures', () => {
     const user = userEvent.setup();
     render(<AddressForm onSubmit={vi.fn()} />);
 
-    await user.click(screen.getByRole('button', { name: /save address/i }));
+    await user.click(screen.getByRole('button', { name: /continue/i }));
 
     await waitFor(() => expect(screen.getByLabelText(/full name/i)).toHaveFocus());
   });
@@ -60,7 +60,7 @@ describe('validation failures', () => {
     render(<AddressForm onSubmit={vi.fn()} />);
 
     await user.type(screen.getByLabelText(/mobile number/i), '1234567890'); // starts with 1 — invalid
-    await user.click(screen.getByRole('button', { name: /save address/i }));
+    await user.click(screen.getByRole('button', { name: /continue/i }));
 
     expect(await screen.findByText(/enter a valid 10-digit mobile number/i)).toBeInTheDocument();
   });
@@ -70,7 +70,7 @@ describe('validation failures', () => {
     render(<AddressForm onSubmit={vi.fn()} />);
 
     await user.type(screen.getByLabelText(/pincode/i), '411');
-    await user.click(screen.getByRole('button', { name: /save address/i }));
+    await user.click(screen.getByRole('button', { name: /continue/i }));
 
     expect(await screen.findByText(/enter a valid 6-digit pincode/i)).toBeInTheDocument();
   });
@@ -79,7 +79,7 @@ describe('validation failures', () => {
     const user = userEvent.setup();
     render(<AddressForm onSubmit={vi.fn()} />);
 
-    await user.click(screen.getByRole('button', { name: /save address/i }));
+    await user.click(screen.getByRole('button', { name: /continue/i }));
     expect(await screen.findByText(/enter a valid name/i)).toBeInTheDocument();
 
     await user.type(screen.getByLabelText(/full name/i), 'A');
@@ -114,7 +114,7 @@ describe('successful submission', () => {
     render(<AddressForm onSubmit={onSubmit} />);
 
     await fillValidForm(user);
-    await user.click(screen.getByRole('button', { name: /save address/i }));
+    await user.click(screen.getByRole('button', { name: /continue/i }));
 
     await waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(1));
     expect(onSubmit).toHaveBeenCalledWith(

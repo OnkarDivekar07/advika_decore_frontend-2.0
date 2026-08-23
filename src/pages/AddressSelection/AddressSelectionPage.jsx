@@ -1,16 +1,18 @@
-// src/pages/AddressSelection/AddressSelectionPage.jsx
-//
-// /checkout (index route under CheckoutLayout — see AppRoutes.jsx). Loads
-// the user's saved addresses, lets them pick or add one, and on "Continue"
-// creates/refreshes the draft order for that address before moving to the
-// payment step (checkout-architecture.md §3.2 steps 1-2).
+// src/pages/AddressSelection/AddressSelectionPage.jsx — Checkout step 1
+// See design_handoff_advika_auto/README.md, screen 6 "Checkout" step 1
+// "Address". All data logic below is unchanged from before the reskin
+// (see CheckoutContext) — only the markup is new. The wireframe assumes
+// one fresh address per checkout; this keeps the app's existing (more
+// capable) saved-address picker, styled to match, with the wireframe's
+// form appearing for "add new".
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { FiPlus } from 'react-icons/fi';
+import { useNavigate } from 'react-router-dom';
+import Icon from '@/components/Shared/Icon';
 import Spinner from '@/components/Shared/Spinner';
 import AddressCard from '@/components/Address/AddressCard';
 import AddressForm from '@/components/Address/AddressForm';
+import CheckoutDarkSummary from '@/components/Checkout/CheckoutDarkSummary';
 import { useCheckout } from '@/contexts/CheckoutContext';
 import { handleError } from '@/utils/errorHandler';
 
@@ -18,57 +20,27 @@ export default function AddressSelectionPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const {
-    addresses,
-    addressesStatus,
-    loadAddresses,
-    selectedAddressId,
-    selectAddress,
-    addAddress,
-    editAddress,
-    removeAddress,
-    setDefaultAddress,
-    draftStatus,
-    isRestoring,
-    goToStep,
+    addresses, addressesStatus, loadAddresses, selectedAddressId, selectAddress,
+    addAddress, editAddress, removeAddress, setDefaultAddress, draftStatus,
+    draftOrder, isRestoring, goToStep,
   } = useCheckout();
 
   const [showForm, setShowForm] = useState(false);
   const [isAddingAddress, setIsAddingAddress] = useState(false);
   const [isContinuing, setIsContinuing] = useState(false);
-  const [editingAddress, setEditingAddress] = useState(null); // the Address object being edited, or null
+  const [editingAddress, setEditingAddress] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
   const [settingDefaultId, setSettingDefaultId] = useState(null);
 
-  // Keeps the persisted "current step" hint (see checkoutStorage.js) in
-  // sync whenever this step is actually the one on screen — covers
-  // browser back/forward as well as the normal forward flow.
-  useEffect(() => {
-    goToStep('address');
-  }, [goToStep]);
+  useEffect(() => { goToStep('address'); }, [goToStep]);
 
   useEffect(() => {
-    // If CheckoutContext is (re)validating a selection restored from a
-    // previous visit (see checkoutStorage.js), it already loads the
-    // address list itself as part of that — skip the redundant fetch here
-    // rather than firing a second one the moment restore finishes.
     if (isRestoring || addressesStatus !== 'idle') return;
     loadAddresses();
   }, [isRestoring, addressesStatus, loadAddresses]);
 
-  // Once the list is in, either default to the user's marked-default
-  // address (falling back to the most recently added one if, somehow,
-  // none is marked default — shouldn't happen per user.service.js's
-  // invariant, but the list is otherwise unordered by that) — this also
-  // kicks off the first draft-order creation, so Review & Payment has
-  // something to show without an extra click — or, if there's nothing on
-  // file yet, jump straight to the add-address form.
   const defaultedRef = React.useRef(false);
   useEffect(() => {
-    // While CheckoutContext is still restoring a selection from a previous
-    // visit, let it finish (and pick that selection) before this ever
-    // considers defaulting to something else — otherwise the two race to
-    // decide `selectedAddressId` and can both fire their own
-    // refreshDraftOrder call for different addresses.
     if (isRestoring || addressesStatus !== 'ready' || defaultedRef.current) return;
     defaultedRef.current = true;
     if (addresses.length === 0) {
@@ -85,9 +57,6 @@ export default function AddressSelectionPage() {
       await addAddress(payload);
       setShowForm(false);
     } catch (error) {
-      // If createAddress itself failed (e.g. backend validation), nothing
-      // downstream (selectAddress/refreshDraftOrder) ever ran to surface
-      // its own toast — so this is the one place that needs to.
       handleError(error, "Couldn't save that address. Please check the details and try again.");
     } finally {
       setIsAddingAddress(false);
@@ -123,7 +92,7 @@ export default function AddressSelectionPage() {
     try {
       await setDefaultAddress(id);
     } catch {
-      // setDefaultAddress already surfaced a toast on failure.
+      // already toasted
     } finally {
       setSettingDefaultId(null);
     }
@@ -134,8 +103,6 @@ export default function AddressSelectionPage() {
     setIsContinuing(true);
     try {
       const order = await selectAddress(selectedAddressId);
-      // selectAddress/refreshDraftOrder already surfaced a toast on
-      // failure (see CheckoutContext) — just don't advance the step.
       if (order) navigate('/checkout/review');
     } finally {
       setIsContinuing(false);
@@ -143,42 +110,29 @@ export default function AddressSelectionPage() {
   };
 
   if (addressesStatus === 'loading' || addressesStatus === 'idle') {
-    return (
-      <div className="flex flex-col items-center justify-center py-24 gap-4 text-center">
-        <Spinner size={40} />
-      </div>
-    );
+    return <div className="flex justify-center py-24"><Spinner size={40} /></div>;
   }
 
   return (
     <div className="flex flex-col gap-4">
-      <h2 className="font-display text-lg font-bold text-gray-900">
-        {t('checkout.selectAddress', 'Select a delivery address')}
-      </h2>
+      <div className="flex items-center gap-2 border border-advika-border-light bg-white p-4">
+        <Icon name="location_on" size={19} className="text-advika-orange" />
+        <h2 className="text-[15px] font-bold text-advika-chrome">{t('checkout.selectAddress', 'Delivery Address')}</h2>
+      </div>
 
       {addresses.map((address) =>
         editingAddress?.id === address.id ? (
           <AddressForm
-            key={address.id}
-            initialValues={editingAddress}
-            onSubmit={handleEditAddress}
-            onCancel={() => setEditingAddress(null)}
-            isSubmitting={isAddingAddress}
+            key={address.id} initialValues={editingAddress}
+            onSubmit={handleEditAddress} onCancel={() => setEditingAddress(null)} isSubmitting={isAddingAddress}
           />
         ) : (
           <AddressCard
-            key={address.id}
-            address={address}
-            isSelected={address.id === selectedAddressId}
+            key={address.id} address={address} isSelected={address.id === selectedAddressId}
             onSelect={selectAddress}
-            onEdit={(a) => {
-              setShowForm(false);
-              setEditingAddress(a);
-            }}
-            onDelete={handleDeleteAddress}
-            onSetDefault={handleSetDefault}
-            isDeleting={deletingId === address.id}
-            isSettingDefault={settingDefaultId === address.id}
+            onEdit={(a) => { setShowForm(false); setEditingAddress(a); }}
+            onDelete={handleDeleteAddress} onSetDefault={handleSetDefault}
+            isDeleting={deletingId === address.id} isSettingDefault={settingDefaultId === address.id}
           />
         )
       )}
@@ -193,37 +147,27 @@ export default function AddressSelectionPage() {
       ) : (
         <button
           type="button"
-          onClick={() => {
-            setEditingAddress(null);
-            setShowForm(true);
-          }}
-          className="btn btn-outline self-start px-5 flex items-center gap-2"
+          onClick={() => { setEditingAddress(null); setShowForm(true); }}
+          className="flex h-12 items-center justify-center gap-2 self-start border-[1.5px] border-dashed border-advika-grey400 px-5 text-[13px] font-semibold text-advika-grey700"
         >
-          <FiPlus className="w-4 h-4" aria-hidden />
-          {t('checkout.addNewAddress', 'Add a new address')}
+          <Icon name="add" size={17} /> {t('checkout.addNewAddress', 'Add a new address')}
         </button>
       )}
 
-      {/* Continue CTA — on mobile this pins to the bottom of the viewport
-          instead of sitting after a potentially long address list, so it
-          never requires scrolling past every saved address to find it
-          (padding-bottom below reserves room so the list's last item
-          isn't hidden behind the bar). Reverts to a normal inline button
-          from sm up, where the page is short enough that this isn't a
-          problem. */}
-      <div className="pb-20 sm:pb-0" />
-      <div className="fixed inset-x-0 bottom-0 z-30 bg-white/95 backdrop-blur border-t border-[var(--clr-border)] px-4 py-3 pb-safe sm:static sm:inset-auto sm:z-auto sm:bg-transparent sm:backdrop-blur-none sm:border-0 sm:px-0 sm:py-0 sm:mt-4">
+      {!showForm && (
         <button
           type="button"
           onClick={handleContinue}
           disabled={!selectedAddressId || isContinuing || draftStatus === 'loading'}
-          className="btn btn-primary w-full sm:w-auto px-8 py-3 disabled:opacity-60 disabled:cursor-not-allowed"
+          className="flex h-[52px] items-center justify-center bg-advika-orange text-[14px] font-bold text-white disabled:opacity-60"
         >
           {isContinuing || draftStatus === 'loading'
             ? t('checkout.preparingOrder', 'Preparing your order…')
-            : t('checkout.continueToPayment', 'Continue to Review & Payment')}
+            : t('checkout.continue', 'CONTINUE')}
         </button>
-      </div>
+      )}
+
+      {draftOrder && <CheckoutDarkSummary order={draftOrder} />}
     </div>
   );
 }

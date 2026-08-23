@@ -61,7 +61,7 @@ describe('sendOtp (happy path)', () => {
 
     expect(requestOtp).toHaveBeenCalledWith('+919876543210');
     expect(result.current.step).toBe(STEP_OTP);
-    expect(result.current.cooldown).toBe(30);
+    expect(result.current.cooldown).toBe(45);
   });
 
   it('is a no-op while the phone is invalid', async () => {
@@ -121,7 +121,7 @@ describe('sendOtp (validation / API failures)', () => {
   });
 
   it('enforces the client-side send rate limit before ever calling the API a 6th time', async () => {
-    // The 30s resend cooldown alone would normally keep a real user well
+    // The 45s resend cooldown alone would normally keep a real user well
     // under the 60s/5-attempt local limit; reset() is the only thing that
     // clears cooldown without waiting, so use it here to drive 6 sends in
     // immediate succession (attempt tracking lives in a ref, so it
@@ -157,9 +157,9 @@ describe('resend cooldown ticking', () => {
     await act(async () => {
       await result.current.sendOtp();
     });
-    expect(result.current.cooldown).toBe(30);
+    expect(result.current.cooldown).toBe(45);
 
-    act(() => vi.advanceTimersByTime(30000));
+    act(() => vi.advanceTimersByTime(45000));
     expect(result.current.cooldown).toBe(0);
   });
 

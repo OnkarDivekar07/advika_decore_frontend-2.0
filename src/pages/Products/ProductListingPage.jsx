@@ -1,15 +1,17 @@
-// src/pages/Products/ProductListingPage.jsx
-import React, { useCallback, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+// src/pages/Products/ProductListingPage.jsx — Advika Auto Category listing
+// See design_handoff_advika_auto/README.md, screen 3 "Category listing".
+// Reuses useProductListing (URL-driven filters/pagination against the
+// real GET /api/products) — only the presentation layer is new.
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { FiFilter, FiAlertCircle, FiRefreshCw, FiPackage, FiX } from 'react-icons/fi';
-import Navbar from '@/components/Navbar/Navbar';
-import ProductCard from '@/components/Product/ProductCard';
-import ProductFilters from '@/components/Product/ProductFilters';
-import FilterDrawer from '@/components/Product/FilterDrawer';
+import Icon from '@/components/Shared/Icon';
 import Seo from '@/components/Shared/Seo';
-import { useDebouncedValue } from '@/features/products/hooks/useDebouncedValue';
-import { sanitizePriceInput, validatePriceRange } from '@/utils/productUtils';
+import AdvikaHeader from '@/components/Layout/AdvikaHeader';
+import AdvikaFooter from '@/components/Layout/AdvikaFooter';
+import AdvikaProductCard from '@/components/Product/AdvikaProductCard';
+import WhatsAppStrip from '@/components/Shared/WhatsAppStrip';
+import PromiseStrip from '@/components/Shared/PromiseStrip';
 import {
   useProductListing,
   STATUS_LOADING,
@@ -18,361 +20,316 @@ import {
   STATUS_EMPTY,
   STATUS_ERROR,
 } from '@/features/products/hooks/useProductListing';
-
-const SKELETON_COUNT = 8;
-const PRICE_DEBOUNCE_MS = 500;
-
-const SORT_OPTIONS = [
-  { value: 'newest', sort: 'createdAt', order: 'desc' },
-  { value: 'price_asc', sort: 'price', order: 'asc' },
-  { value: 'price_desc', sort: 'price', order: 'desc' },
-  { value: 'name_asc', sort: 'name', order: 'asc' },
-];
-
-function sortValueFromParams(sort, order) {
-  const found = SORT_OPTIONS.find((o) => o.sort === sort && o.order === order);
-  return found ? found.value : SORT_OPTIONS[0].value;
-}
-
-function ResultsSkeleton() {
-  return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5" aria-busy="true">
-      <span className="sr-only" role="status">Loading products…</span>
-      {Array.from({ length: SKELETON_COUNT }).map((_, i) => (
-        <div key={i} className="skeleton aspect-[3/4]" aria-hidden="true" />
-      ))}
-    </div>
-  );
-}
+import { CATEGORIES, getCategoryByLabel } from '@/config/advikaAuto';
 
 export default function ProductListingPage() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [drawerOpen, setDrawerOpen] = useState(false);
 
-  // --- Read filter state straight from the URL — this is the single
-  // source of truth, so refresh/back/forward always reproduce the exact
-  // same view without any extra local state to fall out of sync. -------
   const categoryParam = searchParams.get('category') || '';
-  const selectedCategories = useMemo(
-    () => categoryParam.split(',').map((c) => c.trim()).filter(Boolean),
-    [categoryParam]
-  );
-  const minPriceUrl = searchParams.get('minPrice') || '';
-  const maxPriceUrl = searchParams.get('maxPrice') || '';
-  const inStock = searchParams.get('inStock') === '1';
-  const sortValue = sortValueFromParams(
-    searchParams.get('sort') || 'createdAt',
-    searchParams.get('order') || 'desc'
-  );
-  const page = Math.max(1, parseInt(searchParams.get('page'), 10) || 1);
+  const activeCategory = getCategoryByLabel(categoryParam);
+  const under3000 = searchParams.get('maxPrice') === '3000';
+  const codOnly = searchParams.get('cod') === '1';
+  const voltageFilter = searchParams.get('voltage') || ''; // '12V' | '24V' | ''
+  const [searchInput, setSearchInput] = useState('');
+  const [page, setPage] = useState(1);
 
-  // Price inputs are debounced locally before they hit the URL/API, so
-  // typing a number doesn't fire a request per keystroke. They're
-  // seeded from the URL so a shared link / refresh shows the right value.
-  const [minPriceInput, setMinPriceInputRaw] = useState(minPriceUrl);
-  const [maxPriceInput, setMaxPriceInputRaw] = useState(maxPriceUrl);
-  const debouncedMinPrice = useDebouncedValue(minPriceInput, PRICE_DEBOUNCE_MS);
-  const debouncedMaxPrice = useDebouncedValue(maxPriceInput, PRICE_DEBOUNCE_MS);
-
-  const setMinPriceInput = useCallback((raw) => setMinPriceInputRaw(sanitizePriceInput(raw)), []);
-  const setMaxPriceInput = useCallback((raw) => setMaxPriceInputRaw(sanitizePriceInput(raw)), []);
-
-  // Invalid (min > max) ranges are never sent to the API — they can only
-  // ever return zero results, or worse, be silently misread by the
-  // backend. The inputs stay editable and the error surfaces in the
-  // filter panel until the user fixes it. Checked against the live
-  // (non-debounced) inputs so the inline error appears immediately as
-  // the user types, not after the debounce delay.
-  const priceRangeError = !validatePriceRange(minPriceInput, maxPriceInput).valid;
-  const debouncedPriceRangeValid = validatePriceRange(debouncedMinPrice, debouncedMaxPrice).valid;
-
-  // Back/forward nav, "Clear all", or a shared link changing the URL's
-  // price params should update the visible inputs too. This is a no-op
-  // when the URL was set by our own debounced-sync effect below, since
-  // the values already match.
-  React.useEffect(() => {
-    setMinPriceInput(minPriceUrl);
-    setMaxPriceInput(maxPriceUrl);
-  }, [minPriceUrl, maxPriceUrl]);
-
-  // Helper: update the URL, resetting to page 1 whenever a filter (as
-  // opposed to just the page itself) changes.
   const updateParams = useCallback(
-    (patch, { resetPage = true } = {}) => {
-      setSearchParams(
-        (prev) => {
-          const next = new URLSearchParams(prev);
-          Object.entries(patch).forEach(([key, value]) => {
-            if (value === undefined || value === null || value === '') next.delete(key);
-            else next.set(key, value);
-          });
-          if (resetPage) next.delete('page');
-          return next;
-        },
-        { replace: true }
-      );
+    (patch) => {
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev);
+        Object.entries(patch).forEach(([key, value]) => {
+          if (value === undefined || value === null || value === '') next.delete(key);
+          else next.set(key, value);
+        });
+        return next;
+      }, { replace: true });
     },
     [setSearchParams]
   );
 
-  // Sync debounced price back into the URL, only when it actually differs
-  // — and only when it's a valid range. An invalid one (min > max) is
-  // left out of the URL/API entirely rather than firing a filter request
-  // that's guaranteed to be wrong; the user sees the inline error instead.
-  React.useEffect(() => {
-    if (!debouncedPriceRangeValid) return;
-    if (debouncedMinPrice === minPriceUrl && debouncedMaxPrice === maxPriceUrl) return;
-    updateParams({ minPrice: debouncedMinPrice, maxPrice: debouncedMaxPrice });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedMinPrice, debouncedMaxPrice, debouncedPriceRangeValid]);
-
-  const toggleCategory = useCallback(
-    (cat) => {
-      const next = selectedCategories.includes(cat)
-        ? selectedCategories.filter((c) => c !== cat)
-        : [...selectedCategories, cat];
-      updateParams({ category: next.join(',') });
+  const selectCategory = useCallback(
+    (label) => {
+      // Voltage only means anything for lights/electrical — switching to a
+      // category that isn't voltage-relevant clears a stale voltage
+      // filter, matching the design's rule that results are never
+      // silently narrowed by a control the user can no longer see.
+      const cat = getCategoryByLabel(label);
+      updateParams({ category: label, voltage: cat?.voltageRelevant ? voltageFilter : '' });
     },
-    [selectedCategories, updateParams]
+    [updateParams, voltageFilter]
   );
 
-  const toggleInStock = useCallback(() => {
-    updateParams({ inStock: inStock ? '' : '1' });
-  }, [inStock, updateParams]);
-
-  const handleSortChange = useCallback(
-    (value) => {
-      const opt = SORT_OPTIONS.find((o) => o.value === value) || SORT_OPTIONS[0];
-      updateParams({ sort: opt.sort, order: opt.order });
-    },
-    [updateParams]
+  const toggleVoltage = useCallback(
+    (v) => updateParams({ voltage: voltageFilter === v ? '' : v }),
+    [updateParams, voltageFilter]
   );
 
-  const handleClearFilters = useCallback(() => {
-    setMinPriceInput('');
-    setMaxPriceInput('');
-    setSearchParams({}, { replace: true });
-  }, [setSearchParams]);
+  const toggleUnder3000 = useCallback(
+    () => updateParams({ maxPrice: under3000 ? '' : '3000' }),
+    [updateParams, under3000]
+  );
 
-  const handleLoadMore = useCallback(() => {
-    updateParams({ page: String(page + 1) }, { resetPage: false });
-  }, [page, updateParams]);
+  const toggleCodOnly = useCallback(
+    () => updateParams({ cod: codOnly ? '' : '1' }),
+    [updateParams, codOnly]
+  );
 
-  const hasActiveFilters =
-    selectedCategories.length > 0 || !!minPriceUrl || !!maxPriceUrl || inStock;
-
-  // --- Data ---------------------------------------------------------
+  // Matches the wireframe's "Best selling" pill exactly: a fixed, always-on
+  // sort with no visible control — but backed by the real isBestSeller
+  // flag rather than createdAt, so the label is still telling the truth.
   const filters = useMemo(
     () => ({
-      category: selectedCategories,
-      minPrice: minPriceUrl,
-      maxPrice: maxPriceUrl,
-      inStock,
-      sort: searchParams.get('sort') || 'createdAt',
-      order: searchParams.get('order') || 'desc',
+      category: categoryParam ? [categoryParam] : [],
+      minPrice: '',
+      maxPrice: under3000 ? '3000' : '',
+      sort: 'isBestSeller',
+      order: 'desc',
     }),
-    [selectedCategories, minPriceUrl, maxPriceUrl, inStock, searchParams]
+    [categoryParam, under3000]
   );
+
+  // Resets pagination whenever the filter set itself changes (category,
+  // price) — kept as local state since voltage isn't part of the
+  // backend's real filter contract yet, unlike the rest of the app's
+  // URL-`page`-driven listing pages.
+  const filterKey = JSON.stringify(filters);
+  useEffect(() => {
+    setPage(1);
+  }, [filterKey]);
 
   const { status, items, meta, hasMore, retry } = useProductListing(filters, page);
 
-  // --- SEO ------------------------------------------------------------
-  // Only a single selected category is treated as a "real" indexable
-  // facet page (e.g. /products?category=Truck) — a meaningful, stable
-  // destination worth its own canonical/title. Everything else (price
-  // range, in-stock toggle, sort order, pagination, or multiple
-  // categories at once) produces the same thin/duplicate content under
-  // combinatorially many URLs, so those variants canonicalize back to
-  // the clean base/category URL and are marked noindex rather than
-  // asking search engines to crawl every filter combination.
-  const isSingleCategory = selectedCategories.length === 1;
-  const hasNonCategoryFilters = !!minPriceUrl || !!maxPriceUrl || inStock || page > 1;
-  const seoCanonicalPath = isSingleCategory
-    ? `/products?category=${encodeURIComponent(selectedCategories[0])}`
-    : '/products';
-  const seoNoindex = hasNonCategoryFilters || selectedCategories.length > 1;
-  const seoCategoryLabel = isSingleCategory
-    ? t(`categories.${selectedCategories[0].toLowerCase().replace(/\s+/g, '')}`, selectedCategories[0])
-    : null;
-  const seoTitle = seoCategoryLabel
-    ? t('products.seoCategoryTitle', '{{category}} — Décor & Accessories', { category: seoCategoryLabel })
-    : t('products.seoTitle', 'All Products');
-  const seoDescription = seoCategoryLabel
-    ? t('products.seoCategoryDescription', 'Shop {{category}} décor and accessories.', { category: seoCategoryLabel })
-    : t('products.seoDescription', 'Browse vehicle décor and accessories for trucks, tempos, pickups, cars, two-wheelers, and tractors.');
+  // The backend has no `voltage` field yet (see prisma/schema.prisma) —
+  // this filters client-side against whatever the API returns so the
+  // chip is functional the moment that field lands, and a harmless no-op
+  // (nothing has a voltage) until then.
+  const visibleItems = items
+    .filter((p) => (voltageFilter ? String(p.voltage || '').includes(voltageFilter) : true))
+    // No SKU in this catalog opts out of Cash on Delivery today (COD is
+    // a storefront-wide promise, not a per-product flag — see the
+    // README's trust grid), so this is a real, wired predicate that
+    // currently always passes; it starts actually filtering the moment
+    // a product ever sets `codEligible: false`.
+    .filter((p) => (codOnly ? p.codEligible !== false : true));
 
-  const filterPanelProps = {
-    selectedCategories,
-    onToggleCategory: toggleCategory,
-    minPrice: minPriceInput,
-    maxPrice: maxPriceInput,
-    onMinPriceChange: setMinPriceInput,
-    onMaxPriceChange: setMaxPriceInput,
-    priceRangeError,
-    inStock,
-    onToggleInStock: toggleInStock,
-    onClear: handleClearFilters,
-    hasActiveFilters,
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    const q = searchInput.trim();
+    if (q) navigate(`/search?q=${encodeURIComponent(q)}`);
   };
 
-  return (
-    <>
-      <Navbar />
-      <Seo
-        title={seoTitle}
-        description={seoDescription}
-        canonicalPath={seoCanonicalPath}
-        noindex={seoNoindex}
-      />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-10" id="main-content" tabIndex={-1}>
-        <div className="flex items-center justify-between gap-3 mb-6">
-          <h1 className="section-title">{t('products.title', 'All Products')}</h1>
+  const hasActiveFilters = !!categoryParam || under3000 || !!voltageFilter || codOnly;
+  const clearAll = () => setSearchParams({}, { replace: true });
 
-          {/* Mobile filter trigger */}
+  const categoryTitle = activeCategory ? t(`advika.category.${activeCategory.id}`) : t('advika.category.all', 'All');
+
+  return (
+    <div className="aa-shell min-h-screen bg-white">
+      <Seo canonicalPath="/products" description={t('products.seoDescription', 'Browse truck, tempo, pickup and tractor lights, horns and accessories.')} />
+      <AdvikaHeader />
+
+      <main id="main-content" tabIndex={-1}>
+        {/* Title block */}
+        <div className="flex flex-col gap-[14px] bg-advika-near-black px-4 pb-[18px] pt-[22px]">
+          <button type="button" onClick={() => navigate('/')} className="aa-label flex items-center gap-[6px] text-left text-[10.5px] uppercase text-advika-grey600">
+            <Icon name="arrow_back" size={15} /> {t('common.home', 'Home')}
+          </button>
+          <h1 className="aa-title-md text-white">{categoryTitle}</h1>
+          {meta?.total != null && (
+            <p className="text-[11.5px] text-advika-grey600">
+              {t('advika.categoryPage.resultCount', { count: meta.total })}
+            </p>
+          )}
+          <form onSubmit={handleSearchSubmit} className="flex h-[46px] items-center gap-2 rounded border border-[#333] bg-advika-panel px-[13px]">
+            <Icon name="search" size={19} className="text-advika-grey700" />
+            <input
+              type="search"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              placeholder={t('advika.categoryPage.searchPlaceholder')}
+              className="w-full bg-transparent text-[13.5px] text-white placeholder-advika-grey700 outline-none"
+            />
+          </form>
+        </div>
+
+        {/* Category chips */}
+        <div className="flex gap-2 overflow-x-auto border-b border-advika-border-dark bg-advika-chrome px-[14px] py-3">
           <button
-            onClick={() => setDrawerOpen(true)}
-            className="md:hidden btn btn-outline relative shrink-0"
+            type="button"
+            onClick={() => updateParams({ category: '', voltage: '' })}
+            className={`flex h-[38px] shrink-0 items-center gap-[7px] rounded-full px-[15px] text-[12.5px] font-semibold ${
+              !categoryParam ? 'bg-advika-orange text-white' : 'border border-[#333] text-advika-grey600'
+            }`}
           >
-            <FiFilter className="w-4 h-4" aria-hidden />
-            {t('products.filters', 'Filters')}
-            {hasActiveFilters && (
-              <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">
-                {selectedCategories.length + (minPriceUrl || maxPriceUrl ? 1 : 0) + (inStock ? 1 : 0)}
-              </span>
-            )}
+            <Icon name="grid_view" size={17} /> {t('advika.category.all', 'All')}
+          </button>
+          {CATEGORIES.filter((c) => c.chip).map((cat) => (
+            <button
+              key={cat.id}
+              type="button"
+              onClick={() => selectCategory(cat.label)}
+              className={`flex h-[38px] shrink-0 items-center gap-[7px] rounded-full px-[15px] text-[12.5px] font-semibold ${
+                activeCategory?.id === cat.id ? 'bg-advika-orange text-white' : 'border border-[#333] text-advika-grey600'
+              }`}
+            >
+              <Icon name={cat.icon} size={17} />
+              {t(`advika.category.${cat.id === 'interior' ? 'interiorShort' : cat.id === 'exterior' ? 'exteriorShort' : cat.id === 'electrical' ? 'electricalShort' : cat.id === 'spares' ? 'sparesShort' : cat.id}`)}
+            </button>
+          ))}
+        </div>
+
+        {/* Filter chips */}
+        <div className="flex gap-[9px] overflow-x-auto border-b border-advika-border-light bg-white px-[14px] py-[11px]">
+          <button
+            type="button"
+            aria-pressed="true"
+            className="flex h-9 shrink-0 items-center gap-[6px] rounded-[3px] border border-advika-orange bg-advika-orange-tint px-3 text-[11.5px] font-semibold text-advika-orange-darker"
+          >
+            <Icon name="sort" size={15} /> {t('advika.categoryPage.bestSelling', 'Best selling')}
+          </button>
+          {activeCategory?.voltageRelevant && (
+            <>
+              <button
+                type="button"
+                onClick={() => toggleVoltage('12V')}
+                className={`flex h-9 shrink-0 items-center gap-[6px] rounded-[3px] px-3 text-[11.5px] font-semibold ${
+                  voltageFilter === '12V' ? 'border border-advika-orange bg-advika-orange-tint text-advika-orange-darker' : 'border border-advika-border-light text-advika-grey700'
+                }`}
+              >
+                <Icon name="bolt" size={15} /> 12V · {t('advika.categoryPage.battery12', '1 battery')}
+              </button>
+              <button
+                type="button"
+                onClick={() => toggleVoltage('24V')}
+                className={`flex h-9 shrink-0 items-center gap-[6px] rounded-[3px] px-3 text-[11.5px] font-semibold ${
+                  voltageFilter === '24V' ? 'border border-advika-orange bg-advika-orange-tint text-advika-orange-darker' : 'border border-advika-border-light text-advika-grey700'
+                }`}
+              >
+                <Icon name="bolt" size={15} /> 24V · {t('advika.categoryPage.battery24', '2 battery')}
+              </button>
+            </>
+          )}
+          <button
+            type="button"
+            onClick={toggleCodOnly}
+            aria-pressed={codOnly}
+            className={`flex h-9 shrink-0 items-center gap-[6px] rounded-[3px] px-3 text-[11.5px] font-semibold ${
+              codOnly ? 'border border-advika-orange bg-advika-orange-tint text-advika-orange-darker' : 'border border-advika-border-light text-advika-grey700'
+            }`}
+          >
+            <Icon name="payments" size={15} /> {t('advika.categoryPage.codOnly', 'COD only')}
+          </button>
+          <button
+            type="button"
+            onClick={toggleUnder3000}
+            className={`flex h-9 shrink-0 items-center gap-[6px] rounded-[3px] px-3 text-[11.5px] font-semibold ${
+              under3000 ? 'border border-advika-orange bg-advika-orange-tint text-advika-orange-darker' : 'border border-advika-border-light text-advika-grey700'
+            }`}
+          >
+            <Icon name="sell" size={15} /> {t('advika.categoryPage.under3000', 'Under ₹3,000')}
           </button>
         </div>
 
-        <div className="flex gap-8">
-          {/* Desktop sidebar */}
-          <aside className="hidden md:block w-64 shrink-0">
-            <div className="sticky top-24 card p-5">
-              <ProductFilters {...filterPanelProps} />
-            </div>
-          </aside>
-
-          {/* Results */}
-          <div className="flex-1 min-w-0">
-            {/* Toolbar: active filter chips + sort */}
-            <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
-              <div className="flex flex-wrap items-center gap-2">
-                {selectedCategories.map((cat) => (
-                  <button
-                    key={cat}
-                    onClick={() => toggleCategory(cat)}
-                    className="inline-flex items-center gap-1.5 pl-3 pr-2 py-1.5 rounded-full text-xs font-semibold bg-primary/20 text-[var(--clr-primary-dark)] border border-[var(--clr-primary-dark)]/30 hover:bg-primary/30 transition-colors"
-                  >
-                    {t(`categories.${cat.toLowerCase().replace(/\s/g, '')}`, cat)}
-                    <FiX className="w-3.5 h-3.5" aria-hidden />
-                  </button>
-                ))}
-                {(minPriceUrl || maxPriceUrl) && (
-                  <button
-                    onClick={() => updateParams({ minPrice: '', maxPrice: '' })}
-                    className="inline-flex items-center gap-1.5 pl-3 pr-2 py-1.5 rounded-full text-xs font-semibold bg-primary/20 text-[var(--clr-primary-dark)] border border-[var(--clr-primary-dark)]/30 hover:bg-primary/30 transition-colors"
-                  >
-                    ₹{minPriceUrl || '0'} – {maxPriceUrl || t('products.any', 'Any')}
-                    <FiX className="w-3.5 h-3.5" aria-hidden />
-                  </button>
-                )}
-                {inStock && (
-                  <button
-                    onClick={toggleInStock}
-                    className="inline-flex items-center gap-1.5 pl-3 pr-2 py-1.5 rounded-full text-xs font-semibold bg-primary/20 text-[var(--clr-primary-dark)] border border-[var(--clr-primary-dark)]/30 hover:bg-primary/30 transition-colors"
-                  >
-                    {t('products.inStockOnly', 'In stock only')}
-                    <FiX className="w-3.5 h-3.5" aria-hidden />
-                  </button>
-                )}
-                {hasActiveFilters && (
-                  <button
-                    onClick={handleClearFilters}
-                    className="text-xs font-semibold text-gray-500 hover:text-gray-800 underline underline-offset-2"
-                  >
-                    {t('products.clearFilters', 'Clear all')}
-                  </button>
-                )}
-              </div>
-
-              <label className="flex items-center gap-2 text-sm text-gray-600 shrink-0">
-                {t('products.sortBy', 'Sort by')}
-                <select
-                  value={sortValue}
-                  onChange={(e) => handleSortChange(e.target.value)}
-                  className="rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-sm text-gray-800 outline-none focus:border-primary"
-                >
-                  <option value="newest">{t('products.sortNewest', 'Newest')}</option>
-                  <option value="price_asc">{t('products.sortPriceAsc', 'Price: Low to High')}</option>
-                  <option value="price_desc">{t('products.sortPriceDesc', 'Price: High to Low')}</option>
-                  <option value="name_asc">{t('products.sortNameAsc', 'Name: A to Z')}</option>
-                </select>
-              </label>
-            </div>
-
-            {meta?.total > 0 && (
-              <p className="text-sm text-gray-500 mb-4">
-                {t('products.resultCount', '{{count}} products', { count: meta.total })}
-              </p>
-            )}
-
-            {status === STATUS_LOADING && <ResultsSkeleton />}
-
-            {status === STATUS_ERROR && (
-              <div className="flex flex-col items-center text-center gap-3 py-20" role="alert">
-                <FiAlertCircle className="w-12 h-12 text-red-400" aria-hidden />
-                <p className="text-gray-600">{t('products.error', 'Something went wrong while loading products.')}</p>
-                <button onClick={retry} className="btn btn-outline mt-1">
-                  <FiRefreshCw className="w-4 h-4" aria-hidden />
-                  {t('search.retry', 'Try Again')}
-                </button>
-              </div>
-            )}
-
-            {status === STATUS_EMPTY && (
-              <div className="flex flex-col items-center text-center gap-3 py-20">
-                <FiPackage className="w-12 h-12 text-gray-300" aria-hidden />
-                <h2 className="text-lg font-semibold text-gray-700">
-                  {t('products.noResultsTitle', 'No products found')}
-                </h2>
-                <p className="text-gray-500 max-w-sm">
-                  {t('products.noResultsHint', 'Try removing some filters or widening your price range.')}
-                </p>
-                {hasActiveFilters && (
-                  <button onClick={handleClearFilters} className="btn btn-outline mt-1">
-                    {t('products.clearFilters', 'Clear all')}
-                  </button>
-                )}
-              </div>
-            )}
-
-            {(status === STATUS_SUCCESS || status === STATUS_LOADING_MORE) && (
-              <>
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
-                  {items.map((product) => (
-                    <ProductCard key={product.id} product={product} />
-                  ))}
-                </div>
-                {hasMore && (
-                  <div className="flex justify-center mt-8">
-                    <button
-                      onClick={handleLoadMore}
-                      disabled={status === STATUS_LOADING_MORE}
-                      className="btn btn-outline px-8 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {status === STATUS_LOADING_MORE
-                        ? t('search.loadingMore', 'Loading…')
-                        : t('search.loadMore', 'Load More')}
-                    </button>
-                  </div>
-                )}
-              </>
-            )}
+        {activeCategory?.voltageRelevant && (
+          <div className="flex items-center gap-2 border-b border-advika-orange-border bg-advika-orange-tint px-[14px] py-[10px]">
+            <Icon name="bolt" size={16} className="shrink-0 text-advika-orange-dark" />
+            <p className="text-[12px] font-semibold text-advika-orange-darker2">
+              {t('advika.categoryPage.voltPick', 'Pick the voltage that matches your vehicle — 12V or 24V')}
+            </p>
           </div>
-        </div>
-      </main>
+        )}
 
-      <FilterDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} resultCount={meta?.total} {...filterPanelProps} />
-    </>
+        {/* Product grid */}
+        <div className="px-[14px] pt-[14px]">
+          {status === STATUS_LOADING && (
+            <div className="grid grid-cols-2 gap-3">
+              {Array.from({ length: 6 }).map((_, i) => <div key={i} className="skeleton aspect-[3/4]" />)}
+            </div>
+          )}
+
+          {status === STATUS_ERROR && (
+            <div className="flex flex-col items-center gap-3 py-16 text-center">
+              <p className="text-advika-grey700">{t('products.error', 'Something went wrong while loading products.')}</p>
+              <button type="button" onClick={retry} className="border-[1.5px] border-advika-chrome px-6 py-2 text-[13px] font-bold">
+                {t('buttons.retry', 'Retry')}
+              </button>
+            </div>
+          )}
+
+          {status === STATUS_EMPTY || (status === STATUS_SUCCESS && visibleItems.length === 0) ? (
+            <div className="flex flex-col items-center gap-[15px] px-6 py-12 text-center">
+              <span className="flex h-[78px] w-[78px] items-center justify-center rounded-full bg-[#e9e7e3]">
+                <Icon name="search_off" size={38} className="text-advika-grey600" />
+              </span>
+              <h2 className="font-archivoBlack text-[20px] text-advika-chrome">{t('advika.categoryPage.emptyTitle')}</h2>
+              <p className="max-w-[290px] text-[13.5px] text-advika-grey800">{t('advika.categoryPage.emptyBody')}</p>
+              <button type="button" onClick={clearAll} className="h-12 bg-advika-chrome px-6 text-[13px] font-bold text-white">
+                {t('advika.categoryPage.clearAll')}
+              </button>
+            </div>
+          ) : null}
+
+          {(status === STATUS_SUCCESS || status === STATUS_LOADING_MORE) && visibleItems.length > 0 && (
+            <>
+              <div className="grid grid-cols-2 gap-3">
+                {visibleItems.map((p) => (
+                  <AdvikaProductCard
+                    key={p.id}
+                    product={p}
+                    imageHeight={118}
+                    dense
+                    codLabelKey="advika.categoryPage.codShort"
+                    codLabelDefault="COD"
+                  />
+                ))}
+              </div>
+              {hasMore && (
+                <div className="flex justify-center py-6">
+                  <button
+                    type="button"
+                    onClick={() => setPage((p) => p + 1)}
+                    disabled={status === STATUS_LOADING_MORE}
+                    className="border-[1.5px] border-advika-chrome px-8 py-3 text-[13px] font-bold disabled:opacity-50"
+                  >
+                    {status === STATUS_LOADING_MORE ? t('search.loadingMore', 'Loading…') : t('search.loadMore', 'Load More')}
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+          {hasActiveFilters && status !== STATUS_EMPTY && (
+            <div className="pb-2 pt-4 text-center">
+              <button type="button" onClick={clearAll} className="text-[12px] font-semibold text-advika-orange-dark underline">
+                {t('products.clearFilters', 'Clear all')}
+              </button>
+            </div>
+          )}
+        </div>
+
+        <div className="px-[14px] pt-6">
+          <WhatsAppStrip
+            titleKey="advika.categoryPage.waTitleShort"
+            titleDefault="Can't find the part?"
+            subtitleKey="advika.categoryPage.waSubtitle"
+            subtitleDefault="Send your vehicle model, we'll source it"
+          />
+        </div>
+
+        <div className="px-[14px] pb-6 pt-4">
+          <PromiseStrip
+            compact
+            items={[
+              { icon: 'payments', title: t('advika.promise.cod', 'Cash on Delivery') },
+              { icon: 'local_shipping', title: t('advika.product.promiseShippingCompact', '3-4 Day Shipping') },
+              { icon: 'receipt_long', title: t('advika.promise.gst', 'GST Bill') },
+            ]}
+          />
+        </div>
+
+        <AdvikaFooter />
+      </main>
+    </div>
   );
 }

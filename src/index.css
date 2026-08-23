@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Great+Vibes&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Playfair+Display:wght@700;800&display=swap');
+@import './fonts.css';
 
 @tailwind base;
 @tailwind components;
@@ -20,6 +21,36 @@
   --font-body: 'DM Sans', system-ui, sans-serif;
   --transition-fast: 150ms ease;
   --transition-base: 250ms ease;
+
+  /* Advika Auto system fonts — see design_handoff_advika_auto/README.md
+     "Typography". Devanagari has no mono equivalent, so the mono ROLE
+     (prices, order ids, specs, labels) swaps to Noto Sans Devanagari with
+     zero tracking on hi/mr rather than inheriting Latin metrics — see the
+     :lang() overrides below. */
+  --font-black: 'Archivo Black', 'Noto Sans Devanagari', sans-serif;
+  --font-ui: 'Archivo', 'Noto Sans Devanagari', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', 'Noto Sans Devanagari', monospace;
+}
+
+html:lang(hi), html:lang(mr) {
+  --font-mono: 'Noto Sans Devanagari', sans-serif;
+}
+
+/* Material Symbols Outlined — see index.html for the font <link> and
+   design_handoff_advika_auto/README.md's Assets section for the glyph
+   list. `Icon` (components/Shared/Icon.jsx) is the only consumer. */
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: 400;
+  font-style: normal;
+  font-size: 24px;
+  display: inline-block;
+  line-height: 1;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
 }
 
 /* ─── Base ────────────────────────────────────── */
@@ -58,6 +89,14 @@ a { color: inherit; text-decoration: none; }
   to   { background-position:  200% 0; }
 }
 @keyframes spin { to { transform: rotate(360deg); } }
+/* Landing page announcement ticker (see .aa-ticker-track below) — defined
+   as plain CSS rather than relying on Tailwind's JIT-generated keyframes,
+   since nothing here uses the matching `animate-*` utility class and JIT
+   would otherwise purge it. */
+@keyframes advika-ticker {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
 
 .animate-fade-up { animation: fadeUp 0.35s ease both; }
 
@@ -173,4 +212,122 @@ a { color: inherit; text-decoration: none; }
   input, textarea {
     font-size: 16px;
   }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   Advika Auto — mobile storefront system
+   See design_handoff_advika_auto/README.md for the full spec this
+   implements. Kept in its own block (rather than folded into the legacy
+   rules above) so the reskin's surface is easy to find and lift out
+   later if the legacy theme is ever fully retired.
+   ══════════════════════════════════════════════════════════════════════ */
+
+@layer components {
+  /* 520px max-width shell, centred, no horizontal scroll — every screen's
+     outer wrapper (see README "Screens / Views"). */
+  .aa-shell {
+    max-width: 520px;
+    margin-left: auto;
+    margin-right: auto;
+    overflow-x: hidden;
+    width: 100%;
+  }
+
+  /* ─── Per-language type scale ───────────────────────────────────────
+     English gets tighter tracking and the larger EN-only display sizes;
+     hi/mr drop tracking to 0 and use the shorter Devanagari-safe sizes
+     (taller glyph extents). :lang() reads the nearest ancestor's `lang`
+     attribute, which LanguageContext keeps in sync with the active
+     i18next language on <html>. */
+  .aa-hero {
+    font-family: var(--font-black);
+    font-size: 50px;
+    line-height: 0.96;
+    letter-spacing: -0.02em;
+  }
+  html:lang(hi) .aa-hero, html:lang(mr) .aa-hero {
+    font-size: 38px;
+    line-height: 1.2;
+    letter-spacing: 0;
+  }
+
+  /* Page title, largest (Cart: 38/30) */
+  .aa-title-xl {
+    font-family: var(--font-black);
+    font-size: 38px;
+    letter-spacing: -0.01em;
+  }
+  html:lang(hi) .aa-title-xl, html:lang(mr) .aa-title-xl { font-size: 30px; letter-spacing: 0; }
+
+  /* Page title, large (Wishlist/Tracking: 34/28) */
+  .aa-title-lg {
+    font-family: var(--font-black);
+    font-size: 34px;
+    letter-spacing: -0.01em;
+  }
+  html:lang(hi) .aa-title-lg, html:lang(mr) .aa-title-lg { font-size: 28px; letter-spacing: 0; }
+
+  /* Page title, medium (Category/Checkout: 30/26) */
+  .aa-title-md {
+    font-family: var(--font-black);
+    font-size: 30px;
+    letter-spacing: -0.01em;
+  }
+  html:lang(hi) .aa-title-md, html:lang(mr) .aa-title-md { font-size: 26px; letter-spacing: 0; }
+
+  /* Page title, small (Vehicle class: 31/27) */
+  .aa-title-sm {
+    font-family: var(--font-black);
+    font-size: 31px;
+    letter-spacing: -0.01em;
+  }
+  html:lang(hi) .aa-title-sm, html:lang(mr) .aa-title-sm { font-size: 27px; letter-spacing: 0; }
+
+  /* Product name on the Product Detail page (25/22) */
+  .aa-title-product {
+    font-family: var(--font-black);
+    font-size: 25px;
+    line-height: 1.08;
+  }
+  html:lang(hi) .aa-title-product, html:lang(mr) .aa-title-product { font-size: 22px; }
+
+  /* Login screen headings — welcome/verify/signup titles (28/24), see
+     design_handoff_advika_auto/README.md screen 7. */
+  .aa-title-auth {
+    font-family: var(--font-black);
+    font-size: 28px;
+    letter-spacing: -0.01em;
+  }
+  html:lang(hi) .aa-title-auth, html:lang(mr) .aa-title-auth { font-size: 24px; letter-spacing: 0; }
+
+  /* Section header (26px, same across languages) */
+  .aa-section-title {
+    font-family: var(--font-black);
+    font-size: 26px;
+  }
+
+  /* Mono role: prices, order ids, timestamps, specs, tracking numbers,
+     Latin labels — swaps to Noto Sans Devanagari (zero tracking) on hi/mr
+     since Devanagari has no mono equivalent (see --font-mono above). */
+  .aa-mono { font-family: var(--font-mono); }
+
+  /* Tracked micro-labels (eyebrows, badges) — tracking drops to 0 on hi/mr. */
+  .aa-label {
+    font-family: var(--font-mono);
+    letter-spacing: 0.07em;
+  }
+  html:lang(hi) .aa-label, html:lang(mr) .aa-label { letter-spacing: 0; }
+
+  /* Announcement ticker — duplicated content translates by -50% so the
+     loop is seamless (see Landing page build). */
+  .aa-ticker-track {
+    animation: advika-ticker 22s linear infinite;
+    will-change: transform;
+  }
+
+  /* Bottom-sticky-bar pages: reserve space so content isn't hidden behind
+     the fixed bar without adding a visible spacer band (see README's
+     "Sticky-bar pages need no bottom spacer" — this achieves the same
+     result via padding instead of an extra element). */
+  .aa-bottom-bar-spacer { height: 92px; }
 }

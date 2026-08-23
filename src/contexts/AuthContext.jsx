@@ -69,12 +69,16 @@ export const AuthProvider = ({ children }) => {
       );
       // AuthProvider sits above the router, so it can't use useNavigate —
       // fall back to a hard redirect, guarded against looping if the
-      // user is already on the login screen.
+      // user is already on the login screen. Redirects to the real
+      // Advika Auto Login screen (design_handoff_advika_auto/README.md
+      // screen 7) rather than /otp-verification, which is a legacy,
+      // pre-reskin OTP page with none of that screen's design applied —
+      // see OTPVerificationPage.jsx's own comment.
       if (
         typeof window !== 'undefined' &&
-        window.location.pathname !== '/otp-verification'
+        window.location.pathname !== '/login'
       ) {
-        window.location.href = '/otp-verification';
+        window.location.href = '/login';
       }
     }
   }, []);

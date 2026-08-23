@@ -66,6 +66,17 @@ const fromBackendRow = (row) => ({
   quantity: row.quantity,
   image: row.product?.images?.[0] || '',
   stock: typeof row.product?.stock === 'number' ? row.product.stock : null,
+  // --- Advika Auto storefront fields — see design_handoff_advika_auto/
+  // README.md's Cart screen spec (struck MRP, Product Discount row,
+  // Savings band all read `mrp`) and its "Domain rule: 12V vs 24V" table
+  // ("Cart line items — Voltage takes a slot in the spec-chip row").
+  // `row.product` is the full Product row (cart.service.js's
+  // `include: { product: true }`), so these are just carried through
+  // rather than dropped on the floor the way the pre-fix version did.
+  mrp: row.product?.mrp,
+  category: row.product?.category,
+  voltage: row.product?.voltage,
+  specs: row.product?.specs,
 });
 
 // Pure merge so it's easy to unit test / reason about independently of
@@ -440,6 +451,14 @@ export function CartProvider({ children }) {
                 quantity,
                 image: product.images?.[0] || '',
                 stock,
+                // See fromBackendRow's comment — reconcileInBackground()
+                // overwrites this with the real backend row shortly
+                // after, but seeding it here too avoids a flash of a
+                // missing struck-MRP/voltage chip in the meantime.
+                mrp: product.mrp,
+                category: product.category,
+                voltage: product.voltage,
+                specs: product.specs,
               },
             ];
         setItems(optimistic);
@@ -504,6 +523,14 @@ export function CartProvider({ children }) {
           quantity: nextQuantity,
           image: product.images?.[0] || '',
           stock,
+          // Guest mode has no backend reconcile to backfill these later
+          // (unlike the backend-mode branch above) — this is the only
+          // place a guest cart line item's mrp/category/voltage/specs
+          // ever get set, until syncGuestCartToBackend merges it in.
+          mrp: product.mrp,
+          category: product.category,
+          voltage: product.voltage,
+          specs: product.specs,
         });
       }
       const ok = updateCartToLocalStorage(updated);

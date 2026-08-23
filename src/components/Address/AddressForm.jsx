@@ -145,215 +145,134 @@ export default function AddressForm({
     });
   };
 
-  const inputClass = (field) =>
-    `w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--clr-primary)] ${
-      errors[field] ? 'border-red-400' : 'border-[var(--clr-border)]'
+  // Advika Auto field styling — white box, 9.5px 600 orange micro-label
+  // above (see design_handoff_advika_auto/README.md's Checkout step 1).
+  const boxClass = (field) =>
+    `h-12 w-full rounded-[3px] border px-3 text-[14px] outline-none ${
+      errors[field] ? 'border-red-400' : 'border-advika-grey400'
     }`;
+  const labelClass = 'aa-label text-[9.5px] text-advika-orange-dark';
 
   return (
-    <form onSubmit={handleSubmit} className="card p-5 flex flex-col gap-4" noValidate>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <label htmlFor={fieldId('name')} className="text-sm font-medium text-gray-700 mb-1 block">
-            {t('checkout.fields.name', 'Full name')}
-          </label>
-          <input
-            id={fieldId('name')}
-            ref={registerField('name')}
-            className={inputClass('name')}
-            value={form.name}
-            onChange={(e) => setField('name', e.target.value)}
-            maxLength={80}
-            autoComplete="name"
-            aria-invalid={!!errors.name}
-            aria-describedby={describedBy('name')}
-          />
-          {errors.name && <p id={errorId('name')} role="alert" className="text-xs text-red-500 mt-1">{errors.name}</p>}
-        </div>
-
-        <div>
-          <label htmlFor={fieldId('phone')} className="text-sm font-medium text-gray-700 mb-1 block">
-            {t('checkout.fields.phone', 'Mobile number')}
-          </label>
-          <div className={`flex items-center rounded-lg border ${errors.phone ? 'border-red-400' : 'border-[var(--clr-border)]'}`}>
-            <span className="pl-3 pr-1 text-sm text-gray-500" aria-hidden>+91</span>
-            <input
-              id={fieldId('phone')}
-              ref={registerField('phone')}
-              className="flex-1 rounded-lg px-2 py-2 text-sm focus:outline-none"
-              value={form.phone}
-              onChange={(e) => setField('phone', sanitizePhoneInput(e.target.value))}
-              inputMode="numeric"
-              maxLength={10}
-              autoComplete="tel-national"
-              aria-invalid={!!errors.phone}
-              aria-describedby={describedBy('phone')}
-            />
-          </div>
-          {errors.phone && <p id={errorId('phone')} role="alert" className="text-xs text-red-500 mt-1">{errors.phone}</p>}
-        </div>
-      </div>
-
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4 border border-advika-border-light bg-white p-4" noValidate>
       <div>
-        <label htmlFor={fieldId('houseArea')} className="text-sm font-medium text-gray-700 mb-1 block">
-          {t('checkout.fields.houseArea', 'House no., building, street')}
-        </label>
+        <label htmlFor={fieldId('name')} className={`${labelClass} mb-1.5 block`}>{t('checkout.fields.name', 'Full name')}</label>
         <input
-          id={fieldId('houseArea')}
-          ref={registerField('houseArea')}
-          className={inputClass('houseArea')}
-          value={form.houseArea}
-          onChange={(e) => setField('houseArea', e.target.value)}
-          maxLength={200}
-          autoComplete="address-line1"
-          aria-invalid={!!errors.houseArea}
-          aria-describedby={describedBy('houseArea')}
+          id={fieldId('name')} ref={registerField('name')} className={boxClass('name')}
+          value={form.name} onChange={(e) => setField('name', e.target.value)} maxLength={80} autoComplete="name"
+          aria-invalid={!!errors.name} aria-describedby={describedBy('name')}
         />
-        {errors.houseArea && <p id={errorId('houseArea')} role="alert" className="text-xs text-red-500 mt-1">{errors.houseArea}</p>}
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <label htmlFor={fieldId('area')} className="text-sm font-medium text-gray-700 mb-1 block">
-            {t('checkout.fields.area', 'Area / locality')}
-          </label>
-          <input
-            id={fieldId('area')}
-            ref={registerField('area')}
-            className={inputClass('area')}
-            value={form.area}
-            onChange={(e) => setField('area', e.target.value)}
-            maxLength={100}
-            placeholder={t('checkout.fields.areaPlaceholder', 'e.g. Kothrud')}
-            autoComplete="address-line2"
-            aria-invalid={!!errors.area}
-            aria-describedby={describedBy('area')}
-          />
-          {errors.area && <p id={errorId('area')} role="alert" className="text-xs text-red-500 mt-1">{errors.area}</p>}
-        </div>
-
-        <div>
-          <label htmlFor={fieldId('landmark')} className="text-sm font-medium text-gray-700 mb-1 block">
-            {t('checkout.fields.landmark', 'Landmark (optional)')}
-          </label>
-          <input
-            id={fieldId('landmark')}
-            ref={registerField('landmark')}
-            className={inputClass('landmark')}
-            value={form.landmark}
-            onChange={(e) => setField('landmark', e.target.value)}
-            maxLength={100}
-          />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div>
-          <label htmlFor={fieldId('pincode')} className="text-sm font-medium text-gray-700 mb-1 block">
-            {t('checkout.fields.pincode', 'Pincode')}
-          </label>
-          <input
-            id={fieldId('pincode')}
-            ref={registerField('pincode')}
-            className={inputClass('pincode')}
-            value={form.pincode}
-            onChange={(e) => setField('pincode', sanitizePincodeInput(e.target.value))}
-            inputMode="numeric"
-            maxLength={6}
-            autoComplete="postal-code"
-            aria-invalid={!!errors.pincode}
-            aria-describedby={describedBy('pincode')}
-          />
-          {errors.pincode && <p id={errorId('pincode')} role="alert" className="text-xs text-red-500 mt-1">{errors.pincode}</p>}
-          {!errors.pincode && (
-            <ServiceabilityMessage
-              status={serviceability.status}
-              data={serviceability.data}
-              onRetry={serviceability.retry}
-              isRetrying={serviceability.status === 'checking'}
-              className="mt-1"
-            />
-          )}
-        </div>
-        <div>
-          <label htmlFor={fieldId('city')} className="text-sm font-medium text-gray-700 mb-1 block">
-            {t('checkout.fields.city', 'City')}
-          </label>
-          <input
-            id={fieldId('city')}
-            ref={registerField('city')}
-            className={inputClass('city')}
-            value={form.city}
-            onChange={(e) => setField('city', e.target.value)}
-            maxLength={80}
-            autoComplete="address-level2"
-            aria-invalid={!!errors.city}
-            aria-describedby={describedBy('city')}
-          />
-          {errors.city && <p id={errorId('city')} role="alert" className="text-xs text-red-500 mt-1">{errors.city}</p>}
-        </div>
-        <div>
-          <label htmlFor={fieldId('state')} className="text-sm font-medium text-gray-700 mb-1 block">
-            {t('checkout.fields.state', 'State')}
-          </label>
-          <input
-            id={fieldId('state')}
-            ref={registerField('state')}
-            className={inputClass('state')}
-            value={form.state}
-            onChange={(e) => setField('state', e.target.value)}
-            maxLength={80}
-            autoComplete="address-level1"
-            aria-invalid={!!errors.state}
-            aria-describedby={describedBy('state')}
-          />
-          {errors.state && <p id={errorId('state')} role="alert" className="text-xs text-red-500 mt-1">{errors.state}</p>}
-        </div>
+        {errors.name && <p id={errorId('name')} role="alert" className="mt-1 text-xs text-red-500">{errors.name}</p>}
       </div>
 
       <div>
-        <label htmlFor={fieldId('deliveryInstructions')} className="text-sm font-medium text-gray-700 mb-1 block">
+        <label htmlFor={fieldId('phone')} className={`${labelClass} mb-1.5 block`}>{t('checkout.fields.phone', 'Mobile number')}</label>
+        <div className={`flex h-12 items-center rounded-[3px] border ${errors.phone ? 'border-red-400' : 'border-advika-grey400'}`}>
+          <span className="aa-mono pl-3 pr-1 text-[14px] text-advika-grey700" aria-hidden>+91</span>
+          <input
+            id={fieldId('phone')} ref={registerField('phone')} className="aa-mono h-full flex-1 rounded-[3px] px-2 text-[14px] outline-none"
+            value={form.phone} onChange={(e) => setField('phone', sanitizePhoneInput(e.target.value))}
+            inputMode="numeric" maxLength={10} autoComplete="tel-national"
+            aria-invalid={!!errors.phone} aria-describedby={describedBy('phone')}
+          />
+        </div>
+        {errors.phone && <p id={errorId('phone')} role="alert" className="mt-1 text-xs text-red-500">{errors.phone}</p>}
+      </div>
+
+      <div>
+        <label htmlFor={fieldId('pincode')} className={`${labelClass} mb-1.5 block`}>{t('checkout.fields.pincode', 'Pincode')}</label>
+        <input
+          id={fieldId('pincode')} ref={registerField('pincode')} className={`aa-mono ${boxClass('pincode')}`}
+          value={form.pincode} onChange={(e) => setField('pincode', sanitizePincodeInput(e.target.value))}
+          inputMode="numeric" maxLength={6} autoComplete="postal-code"
+          aria-invalid={!!errors.pincode} aria-describedby={describedBy('pincode')}
+        />
+        {errors.pincode && <p id={errorId('pincode')} role="alert" className="mt-1 text-xs text-red-500">{errors.pincode}</p>}
+        {!errors.pincode && (
+          <ServiceabilityMessage
+            status={serviceability.status} data={serviceability.data}
+            onRetry={serviceability.retry} isRetrying={serviceability.status === 'checking'} className="mt-1"
+          />
+        )}
+      </div>
+
+      <div>
+        <label htmlFor={fieldId('city')} className={`${labelClass} mb-1.5 block`}>{t('checkout.fields.city', 'City')}</label>
+        <input
+          id={fieldId('city')} ref={registerField('city')} className={boxClass('city')}
+          value={form.city} onChange={(e) => setField('city', e.target.value)} maxLength={80} autoComplete="address-level2"
+          aria-invalid={!!errors.city} aria-describedby={describedBy('city')}
+        />
+        {errors.city && <p id={errorId('city')} role="alert" className="mt-1 text-xs text-red-500">{errors.city}</p>}
+      </div>
+
+      <div>
+        <label htmlFor={fieldId('houseArea')} className={`${labelClass} mb-1.5 block`}>{t('checkout.fields.houseArea', 'Full address')}</label>
+        <input
+          id={fieldId('houseArea')} ref={registerField('houseArea')} className={boxClass('houseArea')}
+          value={form.houseArea} onChange={(e) => setField('houseArea', e.target.value)} maxLength={200} autoComplete="address-line1"
+          aria-invalid={!!errors.houseArea} aria-describedby={describedBy('houseArea')}
+        />
+        {errors.houseArea && <p id={errorId('houseArea')} role="alert" className="mt-1 text-xs text-red-500">{errors.houseArea}</p>}
+      </div>
+
+      <div>
+        <label htmlFor={fieldId('area')} className={`${labelClass} mb-1.5 block`}>{t('checkout.fields.area', 'Area / locality')}</label>
+        <input
+          id={fieldId('area')} ref={registerField('area')} className={boxClass('area')}
+          value={form.area} onChange={(e) => setField('area', e.target.value)} maxLength={100}
+          placeholder={t('checkout.fields.areaPlaceholder', 'e.g. Kothrud')} autoComplete="address-line2"
+          aria-invalid={!!errors.area} aria-describedby={describedBy('area')}
+        />
+        {errors.area && <p id={errorId('area')} role="alert" className="mt-1 text-xs text-red-500">{errors.area}</p>}
+      </div>
+
+      <div>
+        <label htmlFor={fieldId('state')} className={`${labelClass} mb-1.5 block`}>{t('checkout.fields.state', 'State')}</label>
+        <input
+          id={fieldId('state')} ref={registerField('state')} className={boxClass('state')}
+          value={form.state} onChange={(e) => setField('state', e.target.value)} maxLength={80} autoComplete="address-level1"
+          aria-invalid={!!errors.state} aria-describedby={describedBy('state')}
+        />
+        {errors.state && <p id={errorId('state')} role="alert" className="mt-1 text-xs text-red-500">{errors.state}</p>}
+      </div>
+
+      <div>
+        <label htmlFor={fieldId('landmark')} className={`${labelClass} mb-1.5 block`}>{t('checkout.fields.landmark', 'Landmark (optional)')}</label>
+        <input
+          id={fieldId('landmark')} ref={registerField('landmark')} className={boxClass('landmark')}
+          value={form.landmark} onChange={(e) => setField('landmark', e.target.value)} maxLength={100}
+        />
+      </div>
+
+      <div>
+        <label htmlFor={fieldId('deliveryInstructions')} className={`${labelClass} mb-1.5 block`}>
           {t('checkout.fields.deliveryInstructions', 'Delivery instructions (optional)')}
         </label>
         <textarea
-          id={fieldId('deliveryInstructions')}
-          ref={registerField('deliveryInstructions')}
-          className={inputClass('deliveryInstructions')}
-          value={form.deliveryInstructions}
-          onChange={(e) => setField('deliveryInstructions', e.target.value)}
-          maxLength={DELIVERY_INSTRUCTIONS_MAX}
-          rows={2}
-          placeholder={t(
-            'checkout.fields.deliveryInstructionsPlaceholder',
-            'e.g. Leave with the security guard, call before arriving'
-          )}
+          id={fieldId('deliveryInstructions')} ref={registerField('deliveryInstructions')}
+          className={`w-full rounded-[3px] border px-3 py-2 text-[14px] outline-none ${errors.deliveryInstructions ? 'border-red-400' : 'border-advika-grey400'}`}
+          value={form.deliveryInstructions} onChange={(e) => setField('deliveryInstructions', e.target.value)}
+          maxLength={DELIVERY_INSTRUCTIONS_MAX} rows={2}
+          placeholder={t('checkout.fields.deliveryInstructionsPlaceholder', 'e.g. Leave with the security guard, call before arriving')}
           aria-invalid={!!errors.deliveryInstructions}
-          aria-describedby={
-            [errors.deliveryInstructions ? errorId('deliveryInstructions') : null, `${fieldId('deliveryInstructions')}-count`]
-              .filter(Boolean)
-              .join(' ')
-          }
+          aria-describedby={[errors.deliveryInstructions ? errorId('deliveryInstructions') : null, `${fieldId('deliveryInstructions')}-count`].filter(Boolean).join(' ')}
         />
-        <div className="flex items-center justify-between mt-1">
+        <div className="mt-1 flex items-center justify-between">
           {errors.deliveryInstructions ? (
             <p id={errorId('deliveryInstructions')} role="alert" className="text-xs text-red-500">{errors.deliveryInstructions}</p>
-          ) : (
-            <span />
-          )}
-          <p id={`${fieldId('deliveryInstructions')}-count`} className="text-xs text-gray-500">
+          ) : <span />}
+          <p id={`${fieldId('deliveryInstructions')}-count`} className="text-xs text-advika-grey600">
             {form.deliveryInstructions.length}/{DELIVERY_INSTRUCTIONS_MAX}
           </p>
         </div>
       </div>
 
       {!hideDefaultToggle && (
-        <label htmlFor={fieldId('isDefault')} className="flex items-center gap-2 text-sm text-gray-700 select-none">
+        <label htmlFor={fieldId('isDefault')} className="flex select-none items-center gap-2 text-[13px] text-advika-grey800">
           <input
-            id={fieldId('isDefault')}
-            type="checkbox"
-            className="w-4 h-4 rounded border-[var(--clr-border)] text-[var(--clr-primary)] focus:ring-[var(--clr-primary)]"
-            checked={isLockedDefault ? true : form.isDefault}
-            disabled={isLockedDefault}
+            id={fieldId('isDefault')} type="checkbox" className="h-4 w-4 rounded border-advika-grey400 accent-advika-orange"
+            checked={isLockedDefault ? true : form.isDefault} disabled={isLockedDefault}
             onChange={(e) => setField('isDefault', e.target.checked)}
           />
           {isLockedDefault
@@ -362,20 +281,14 @@ export default function AddressForm({
         </label>
       )}
 
-      <div className="flex gap-3 mt-2">
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="btn btn-primary px-6 disabled:opacity-60 disabled:cursor-not-allowed"
-        >
+      <div className="flex gap-3">
+        <button type="submit" disabled={isSubmitting} className="flex h-[52px] flex-1 items-center justify-center bg-advika-orange text-[14px] font-bold text-white disabled:opacity-60">
           {isSubmitting
             ? t('checkout.savingAddress', 'Saving…')
-            : isEditing
-              ? t('checkout.updateAddress', 'Update address')
-              : t('checkout.saveAddress', 'Save address')}
+            : isEditing ? t('checkout.updateAddress', 'Update address') : t('checkout.continue', 'CONTINUE')}
         </button>
         {onCancel && (
-          <button type="button" onClick={onCancel} className="btn btn-outline px-6">
+          <button type="button" onClick={onCancel} className="h-[52px] shrink-0 border-[1.5px] border-advika-chrome px-5 text-[13px] font-bold text-advika-chrome">
             {t('buttons.cancel', 'Cancel')}
           </button>
         )}

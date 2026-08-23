@@ -15,9 +15,11 @@ export { PHONE_REGEX, OTP_LENGTH } from './phoneValidation';
 // otp-send-limit: 5 requests / 60s window per phone.
 export const SEND_OTP_MAX_ATTEMPTS = 5;
 export const SEND_OTP_WINDOW_MS = 60 * 1000;
-// Cooldown shown between individual resends, kept a little under the
-// window above so a resend never races the server-side limiter.
-export const RESEND_COOLDOWN_SECONDS = 30;
+// Cooldown shown between individual resends, kept under the window above
+// so a resend never races the server-side limiter. 45s matches the
+// Login screen's design spec (design_handoff_advika_auto/README.md:
+// "Resend in 45s").
+export const RESEND_COOLDOWN_SECONDS = 45;
 
 // otp-verify-limit: 5 attempts / 300s window per phone.
 export const VERIFY_OTP_MAX_ATTEMPTS = 5;

@@ -5,7 +5,7 @@
 // is already authenticated, fn runs immediately; otherwise the phone/OTP
 // modal opens, and fn runs automatically right after a successful verify.
 // Nothing about product browsing or add-to-cart should ever call this.
-import React, { createContext, useCallback, useContext, useRef, useState } from 'react';
+import React, { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import PhoneOtpModal from '@/components/Auth/PhoneOtpModal';
 
@@ -43,8 +43,12 @@ export function AuthGateProvider({ children }) {
     setIsOpen(false);
   }, []);
 
+  // Memoized so consumers don't re-render just because some unrelated
+  // state elsewhere caused this provider to render again.
+  const value = useMemo(() => ({ requireAuth }), [requireAuth]);
+
   return (
-    <AuthGateContext.Provider value={{ requireAuth }}>
+    <AuthGateContext.Provider value={value}>
       {children}
       <PhoneOtpModal isOpen={isOpen} onClose={handleClose} onVerified={handleVerified} />
     </AuthGateContext.Provider>

@@ -4,13 +4,18 @@
 // pick a default address, independent of any particular order (see
 // checkout's own AddressSelectionPage for the "pick one for this order"
 // flow, which reuses the exact same AddressCard/AddressForm components).
+// Linked from the Account page's Addresses tab (UserProfilePage.jsx),
+// which is read-only — this is where the real add/edit/delete/
+// set-default mutations happen, restyled into the Advika Auto shell
+// (design_handoff_advika_auto/README.md) rather than the legacy Navbar.
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { FiPlus, FiMapPin, FiAlertTriangle } from 'react-icons/fi';
-import Navbar from '@/components/Navbar/Navbar';
+import Icon from '@/components/Shared/Icon';
 import Seo from '@/components/Shared/Seo';
 import Spinner from '@/components/Shared/Spinner';
+import AdvikaHeader from '@/components/Layout/AdvikaHeader';
+import AdvikaFooter from '@/components/Layout/AdvikaFooter';
 import AddressCard from '@/components/Address/AddressCard';
 import AddressForm from '@/components/Address/AddressForm';
 import { useAuth } from '@/contexts/AuthContext';
@@ -79,88 +84,101 @@ export default function AddressBookPage() {
   };
 
   return (
-    <>
-      <Navbar />
+    <div className="aa-shell min-h-screen bg-white">
       <Seo title={t('addresses.title', 'My Addresses')} noindex />
-      <main className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12" id="main-content" tabIndex={-1}>
-        <h1 className="section-title mb-2">{t('addresses.title', 'My Addresses')}</h1>
-        <p className="text-sm text-gray-500 mb-6">
-          {t('addresses.subtitle', 'Manage the addresses you deliver to and pick a default.')}
-        </p>
+      <AdvikaHeader />
 
-        {status === 'loading' || status === 'idle' ? (
-          <div className="flex flex-col items-center justify-center py-24 gap-4 text-center">
-            <Spinner size={40} />
-          </div>
-        ) : status === 'error' ? (
-          <div className="flex flex-col items-center justify-center py-16 gap-4 text-center" role="alert">
-            <FiAlertTriangle className="w-12 h-12 text-red-300" aria-hidden />
-            <p className="text-gray-600">
-              {t('addresses.loadError', "We couldn't load your addresses.")}
-            </p>
-            <button onClick={load} className="btn btn-outline px-6">
-              {t('buttons.retry', 'Retry')}
-            </button>
-          </div>
-        ) : (
-          <div className="flex flex-col gap-4">
-            {addresses.length === 0 && !showForm && (
-              <div className="card p-8 flex flex-col items-center text-center gap-3">
-                <FiMapPin className="w-10 h-10 text-gray-300" aria-hidden />
-                <p className="text-gray-600">
-                  {t('addresses.empty', "You haven't saved any addresses yet.")}
-                </p>
-              </div>
-            )}
+      <main id="main-content" tabIndex={-1}>
+        {/* Title block */}
+        <div className="flex flex-col gap-[9px] bg-advika-near-black px-4 pb-6 pt-[26px]">
+          <button type="button" onClick={() => navigate('/profile?tab=addresses')} className="aa-label flex items-center gap-[6px] text-[10.5px] text-advika-grey600">
+            <Icon name="arrow_back" size={15} /> {t('advika.account.tabProfile', 'MY PROFILE')}
+          </button>
+          <h1 className="aa-title-md text-white">
+            {t('addresses.titleLine1', 'MY')} <span className="text-advika-orange">{t('addresses.titleAccent', 'ADDRESSES')}</span>
+          </h1>
+          <p className="text-[11.5px] text-advika-grey600">
+            {t('addresses.subtitle', 'Manage the addresses you deliver to and pick a default.')}
+          </p>
+        </div>
 
-            {addresses.map((address) =>
-              editingAddress?.id === address.id ? (
+        <div className="flex flex-col gap-3 px-[14px] pt-4 pb-6">
+          {status === 'loading' || status === 'idle' ? (
+            <div className="flex flex-col items-center justify-center gap-4 py-24 text-center">
+              <Spinner size={40} />
+            </div>
+          ) : status === 'error' ? (
+            <div className="flex flex-col items-center justify-center gap-4 py-16 text-center" role="alert">
+              <Icon name="error" size={40} className="text-advika-grey600" />
+              <p className="text-advika-grey800">
+                {t('addresses.loadError', "We couldn't load your addresses.")}
+              </p>
+              <button type="button" onClick={load} className="h-11 border-[1.5px] border-advika-chrome px-6 text-[13px] font-bold">
+                {t('buttons.retry', 'Retry')}
+              </button>
+            </div>
+          ) : (
+            <>
+              {addresses.length === 0 && !showForm && (
+                <div className="flex flex-col items-center gap-3 border border-advika-border-light p-8 text-center">
+                  <Icon name="location_on" size={36} className="text-advika-grey600" />
+                  <p className="text-advika-grey800">
+                    {t('addresses.empty', "You haven't saved any addresses yet.")}
+                  </p>
+                </div>
+              )}
+
+              {addresses.map((address) =>
+                editingAddress?.id === address.id ? (
+                  <AddressForm
+                    key={address.id}
+                    initialValues={editingAddress}
+                    onSubmit={handleEdit}
+                    onCancel={() => setEditingAddress(null)}
+                    isSubmitting={isSaving}
+                  />
+                ) : (
+                  <AddressCard
+                    key={address.id}
+                    address={address}
+                    onEdit={(a) => {
+                      setShowForm(false);
+                      setEditingAddress(a);
+                    }}
+                    onDelete={handleDelete}
+                    onSetDefault={setDefaultAddress}
+                    isDeleting={mutatingId === address.id}
+                    isSettingDefault={mutatingId === address.id}
+                  />
+                )
+              )}
+
+              {showForm ? (
                 <AddressForm
-                  key={address.id}
-                  initialValues={editingAddress}
-                  onSubmit={handleEdit}
-                  onCancel={() => setEditingAddress(null)}
+                  onSubmit={handleAdd}
+                  onCancel={addresses.length > 0 ? () => setShowForm(false) : undefined}
                   isSubmitting={isSaving}
+                  hideDefaultToggle={addresses.length === 0}
                 />
               ) : (
-                <AddressCard
-                  key={address.id}
-                  address={address}
-                  onEdit={(a) => {
-                    setShowForm(false);
-                    setEditingAddress(a);
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingAddress(null);
+                    setShowForm(true);
                   }}
-                  onDelete={handleDelete}
-                  onSetDefault={setDefaultAddress}
-                  isDeleting={mutatingId === address.id}
-                  isSettingDefault={mutatingId === address.id}
-                />
-              )
-            )}
+                  className="flex h-14 items-center justify-center gap-2 border-[1.5px] border-dashed border-advika-grey400 bg-advika-off-white text-[13.5px] font-semibold text-advika-grey700"
+                >
+                  <Icon name="add" size={18} />
+                  {t('checkout.addNewAddress', 'Add a new address')}
+                </button>
+              )}
+            </>
+          )}
+        </div>
 
-            {showForm ? (
-              <AddressForm
-                onSubmit={handleAdd}
-                onCancel={addresses.length > 0 ? () => setShowForm(false) : undefined}
-                isSubmitting={isSaving}
-                hideDefaultToggle={addresses.length === 0}
-              />
-            ) : (
-              <button
-                type="button"
-                onClick={() => {
-                  setEditingAddress(null);
-                  setShowForm(true);
-                }}
-                className="btn btn-outline self-start px-5 flex items-center gap-2"
-              >
-                <FiPlus className="w-4 h-4" aria-hidden />
-                {t('checkout.addNewAddress', 'Add a new address')}
-              </button>
-            )}
-          </div>
-        )}
+        <AdvikaFooter />
       </main>
-    </>
+    </div>
   );
 }
