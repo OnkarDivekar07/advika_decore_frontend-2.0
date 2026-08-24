@@ -143,7 +143,7 @@ export default function UserProfilePage() {
                 [t('advika.account.memberSince'), formatDate(profile?.createdAt)],
               ].map(([label, value]) => (
                 <div key={label} className="flex flex-col gap-1 border-t border-advika-divider-light pt-[13px] mt-[13px] first:mt-0 first:border-0 first:pt-0">
-                  <span className="text-[9px] font-semibold text-advika-grey600">{label}</span>
+                  <span className="text-[9px] font-semibold text-advika-grey650">{label}</span>
                   <span className="text-[14.5px] text-advika-chrome">{value || '—'}</span>
                 </div>
               ))}

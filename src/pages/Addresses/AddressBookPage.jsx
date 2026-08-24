@@ -109,7 +109,7 @@ export default function AddressBookPage() {
             </div>
           ) : status === 'error' ? (
             <div className="flex flex-col items-center justify-center gap-4 py-16 text-center" role="alert">
-              <Icon name="error" size={40} className="text-advika-grey600" />
+              <Icon name="error" size={40} className="text-advika-grey650" />
               <p className="text-advika-grey800">
                 {t('addresses.loadError', "We couldn't load your addresses.")}
               </p>
@@ -121,7 +121,7 @@ export default function AddressBookPage() {
             <>
               {addresses.length === 0 && !showForm && (
                 <div className="flex flex-col items-center gap-3 border border-advika-border-light p-8 text-center">
-                  <Icon name="location_on" size={36} className="text-advika-grey600" />
+                  <Icon name="location_on" size={36} className="text-advika-grey650" />
                   <p className="text-advika-grey800">
                     {t('addresses.empty', "You haven't saved any addresses yet.")}
                   </p>

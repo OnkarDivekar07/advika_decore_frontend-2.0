@@ -192,7 +192,7 @@ export default function ProductDetailPage() {
       <div className="aa-shell min-h-screen bg-white">
         <AdvikaHeader />
         <div className="flex flex-col items-center gap-3 px-6 py-24 text-center">
-          <Icon name="error" size={40} className="text-advika-grey600" />
+          <Icon name="error" size={40} className="text-advika-grey650" />
           <p className="text-advika-grey800">
             {notFound ? t('productDetail.notFound', 'This product is no longer available.') : error}
           </p>
@@ -351,7 +351,7 @@ export default function ProductDetailPage() {
         <div className="mx-[14px] mt-[18px] flex flex-col gap-2 rounded border border-advika-border-light p-4">
           <div className="flex items-center gap-2">
             <span className="aa-mono text-[29px] font-semibold text-advika-chrome">₹{formatPrice(activeVariantPrice) ?? activeVariantPrice}</span>
-            {hasDiscount && <span className="aa-mono text-[15px] text-advika-grey600 line-through">₹{formatPrice(activeVariantMrp)}</span>}
+            {hasDiscount && <span className="aa-mono text-[15px] text-advika-grey650 line-through">₹{formatPrice(activeVariantMrp)}</span>}
             {discountPct != null && (
               <span className="rounded-[3px] bg-advika-success-tint2 px-2 py-1 text-[11.5px] font-bold text-advika-success-dark">-{discountPct}%</span>
             )}
@@ -456,11 +456,11 @@ export default function ProductDetailPage() {
                 <div className="flex flex-wrap gap-[7px]">
                   {(models || []).map((m) => (
                     <span key={m} className="flex items-center gap-[6px] rounded-[3px] border border-advika-border-light bg-advika-off-white px-[10px] py-[7px] text-[12px] font-semibold text-advika-grey900">
-                      <Icon name={getVehicleIcon(m)} size={15} className="text-advika-grey600" /> {m}
+                      <Icon name={getVehicleIcon(m)} size={15} className="text-advika-grey650" /> {m}
                     </span>
                   ))}
-                  <span className="flex items-center gap-[6px] rounded-[3px] border border-dashed border-advika-grey400 px-[10px] py-[7px] text-[12px] font-semibold text-advika-grey600">
-                    <Icon name="more_horiz" size={15} className="text-advika-grey600" /> {t('advika.product.andSimilar', 'and similar')}
+                  <span className="flex items-center gap-[6px] rounded-[3px] border border-dashed border-advika-grey400 px-[10px] py-[7px] text-[12px] font-semibold text-advika-grey650">
+                    <Icon name="more_horiz" size={15} className="text-advika-grey650" /> {t('advika.product.andSimilar', 'and similar')}
                   </span>
                 </div>
               </div>
@@ -558,7 +558,7 @@ export default function ProductDetailPage() {
                 <div className="flex flex-col">
                   {specs.map(([key, value]) => (
                     <div key={key} className="flex justify-between gap-3 border-b border-advika-divider-light py-[13px] last:border-0">
-                      <span className="w-[44%] shrink-0 text-[12.5px] text-advika-grey600">{key}</span>
+                      <span className="w-[44%] shrink-0 text-[12.5px] text-advika-grey650">{key}</span>
                       <span className="text-right text-[13px] font-semibold text-advika-grey900">{String(value)}</span>
                     </div>
                   ))}
@@ -580,7 +580,7 @@ export default function ProductDetailPage() {
                 <div className="flex items-center gap-4">
                   <div className="text-center">
                     <div className="font-archivoBlack text-[34px] leading-none text-advika-chrome">{product.rating.toFixed(1)}</div>
-                    <div className="aa-label text-[9.5px] text-advika-grey600">{t('advika.product.outOf5', 'OUT OF 5')}</div>
+                    <div className="aa-label text-[9.5px] text-advika-grey650">{t('advika.product.outOf5', 'OUT OF 5')}</div>
                   </div>
                   <div className="flex items-center gap-1 text-[13px] text-advika-grey700">
                     {Array.from({ length: 5 }).map((_, i) => (

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getLanguage, saveLanguage } from '../utils/languageUtils';
+import { saveLanguage } from '../utils/languageUtils';
 
 const useLanguageGate = () => {
   const [showModal, setShowModal] = useState(false);
@@ -18,8 +18,8 @@ const useLanguageGate = () => {
   }, []);
 
   const loadI18n = async (lang) => {
-    const { default: i18n } = await import('../i18n'); // Lazy-load i18n
-    i18n.changeLanguage(lang);
+    const { loadLanguage } = await import('../i18n'); // Lazy-load i18n
+    await loadLanguage(lang);
     setI18nReady(true);
   };
 

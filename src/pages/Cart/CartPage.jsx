@@ -29,6 +29,7 @@ export default function CartPage() {
     items: cartItems,
     subtotal,
     total,
+    addItem,
     updateQuantity,
     removeItem,
     isSyncing,
@@ -38,6 +39,21 @@ export default function CartPage() {
   const [isRetrying, setIsRetrying] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [alsoBought, setAlsoBought] = useState([]);
+  const [addingIds, setAddingIds] = useState(() => new Set());
+
+  const handleAddAlsoBought = useCallback(async (product) => {
+    if (addingIds.has(product.id)) return;
+    setAddingIds((prev) => new Set(prev).add(product.id));
+    try {
+      await addItem(product, 1);
+    } finally {
+      setAddingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(product.id);
+        return next;
+      });
+    }
+  }, [addItem, addingIds]);
 
   const mrpTotal = cartItems.reduce((acc, item) => acc + (item.mrp ?? item.price) * item.quantity, 0);
   const savings = Math.max(0, mrpTotal - subtotal);
@@ -89,7 +105,7 @@ export default function CartPage() {
       <main id="main-content" tabIndex={-1}>
         {loadError ? (
           <div className="flex flex-col items-center gap-4 px-6 py-24 text-center">
-            <Icon name="error" size={40} className="text-advika-grey600" />
+            <Icon name="error" size={40} className="text-advika-grey650" />
             <p className="text-advika-grey800">{t('cart.loadError', "We couldn't load your cart.")}</p>
             <button type="button" onClick={handleRetry} disabled={isRetrying} className="h-11 bg-advika-chrome px-6 text-[13px] font-bold text-white disabled:opacity-60">
               {isRetrying ? t('cart.retrying', 'Retrying…') : t('buttons.retry', 'Retry')}
@@ -98,7 +114,7 @@ export default function CartPage() {
         ) : cartItems.length === 0 ? (
           <div className="flex flex-col items-center gap-4 px-6 py-[60px] text-center">
             <span className="flex h-[82px] w-[82px] items-center justify-center rounded-full bg-[#e9e7e3]">
-              <Icon name="remove_shopping_cart" size={40} className="text-advika-grey600" />
+              <Icon name="remove_shopping_cart" size={40} className="text-advika-grey650" />
             </span>
             <h1 className="font-archivoBlack text-[21px] text-advika-chrome">{t('advika.cartPage.emptyTitle')}</h1>
             <p className="max-w-[280px] text-[13.5px] text-advika-grey800">{t('advika.cartPage.emptyBody')}</p>
@@ -169,7 +185,7 @@ export default function CartPage() {
                           </Link>
                         </div>
                         <button type="button" onClick={() => removeItem(item.id)} aria-label={t('cart.remove', 'Remove')} className="flex h-8 w-8 shrink-0 items-center justify-center">
-                          <Icon name="delete_outline" size={18} className="text-advika-grey600" />
+                          <Icon name="delete_outline" size={18} className="text-advika-grey650" />
                         </button>
                       </div>
                       {specChips.length > 0 && (
@@ -189,7 +205,7 @@ export default function CartPage() {
                         </div>
                         <div className="text-right">
                           <div className="aa-mono text-[16px] font-semibold text-advika-chrome">₹{formatPrice(lineTotal) ?? lineTotal}</div>
-                          {lineMrp && lineMrp > lineTotal && <div className="aa-mono text-[10.5px] text-advika-grey600 line-through">₹{formatPrice(lineMrp)}</div>}
+                          {lineMrp && lineMrp > lineTotal && <div className="aa-mono text-[10.5px] text-advika-grey650 line-through">₹{formatPrice(lineMrp)}</div>}
                         </div>
                       </div>
                     </div>
@@ -285,8 +301,9 @@ export default function CartPage() {
                         <span className="aa-mono text-[14px] font-semibold text-advika-chrome">₹{formatPrice(p.price) ?? p.price}</span>
                         <button
                           type="button"
-                          onClick={() => updateQuantity(p.id, 1)}
-                          className="flex h-[38px] items-center justify-center border-[1.5px] border-advika-chrome text-[11px] font-bold text-advika-chrome"
+                          onClick={() => handleAddAlsoBought(p)}
+                          disabled={addingIds.has(p.id)}
+                          className="flex h-[38px] items-center justify-center border-[1.5px] border-advika-chrome text-[11px] font-bold text-advika-chrome disabled:opacity-60"
                         >
                           {t('advika.cartPage.add', 'ADD')}
                         </button>

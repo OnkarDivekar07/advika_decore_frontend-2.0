@@ -261,7 +261,7 @@ export default function ProductListingPage() {
           {status === STATUS_EMPTY || (status === STATUS_SUCCESS && visibleItems.length === 0) ? (
             <div className="flex flex-col items-center gap-[15px] px-6 py-12 text-center">
               <span className="flex h-[78px] w-[78px] items-center justify-center rounded-full bg-[#e9e7e3]">
-                <Icon name="search_off" size={38} className="text-advika-grey600" />
+                <Icon name="search_off" size={38} className="text-advika-grey650" />
               </span>
               <h2 className="font-archivoBlack text-[20px] text-advika-chrome">{t('advika.categoryPage.emptyTitle')}</h2>
               <p className="max-w-[290px] text-[13.5px] text-advika-grey800">{t('advika.categoryPage.emptyBody')}</p>

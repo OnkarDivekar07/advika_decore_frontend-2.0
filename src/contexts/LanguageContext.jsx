@@ -1,6 +1,6 @@
 import React, { createContext, useCallback, useEffect, useMemo, useState } from 'react';
 import { getLanguage, saveLanguage } from '../utils/languageUtils';
-import i18n from '../i18n'; // ✅ Import i18n instance
+import { loadLanguage } from '../i18n';
 
 // eslint-disable-next-line react-refresh/only-export-components -- provider and context are intentionally colocated
 export const LanguageContext = createContext();
@@ -10,7 +10,7 @@ export const LanguageProvider = ({ children }) => {
 
   // ✅ Sync i18n with saved language on initial load
   useEffect(() => {
-    i18n.changeLanguage(language);
+    loadLanguage(language);
     // Keeps <html lang> in sync so the :lang(hi)/:lang(mr) CSS selectors
     // that drive the Advika Auto per-language type scale (see index.css)
     // actually match — those rely on the ancestor lang attribute, not on

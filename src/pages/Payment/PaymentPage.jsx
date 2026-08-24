@@ -121,7 +121,7 @@ export default function PaymentPage() {
                 <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${selected ? 'border-advika-orange' : 'border-advika-grey400'}`}>
                   {selected && <span className="h-[9px] w-[9px] rounded-full bg-advika-orange" />}
                 </span>
-                <Icon name={m.icon} size={22} className={selected ? 'text-advika-orange' : 'text-advika-grey600'} />
+                <Icon name={m.icon} size={22} className={selected ? 'text-advika-orange' : 'text-advika-grey650'} />
                 <span>
                   <span className={`block text-[14px] font-bold ${selected ? 'text-advika-orange-darker2' : 'text-advika-chrome'}`}>{t(m.titleKey)}</span>
                   <span className="block text-[11.5px] text-advika-grey700">{t(m.bodyKey)}</span>

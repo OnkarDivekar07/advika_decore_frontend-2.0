@@ -130,7 +130,7 @@ export default function VehiclePage() {
                   {model}
                 </span>
               ))}
-              <span className="rounded-[3px] border border-dashed border-advika-grey400 px-[10px] py-[7px] text-[12px] text-advika-grey600">
+              <span className="rounded-[3px] border border-dashed border-advika-grey400 px-[10px] py-[7px] text-[12px] text-advika-grey650">
                 {t('advika.vehicle.othersLikeThese', 'and other similar vehicles')}
               </span>
             </div>

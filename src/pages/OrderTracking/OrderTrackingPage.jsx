@@ -78,7 +78,7 @@ export default function OrderTrackingPage() {
       <div className="aa-shell min-h-screen bg-white">
         <AdvikaHeader />
         <div className="flex flex-col items-center gap-4 px-6 py-20 text-center">
-          <Icon name="error" size={40} className="text-advika-grey600" />
+          <Icon name="error" size={40} className="text-advika-grey650" />
           <h1 className="font-archivoBlack text-[20px] text-advika-chrome">
             {state === 'notFound' ? t('orderSuccess.notFoundTitle', "We couldn't find that order") : t('orderSuccess.errorTitle', "Couldn't load your order")}
           </h1>
@@ -184,14 +184,14 @@ export default function OrderTrackingPage() {
                     )}
                   </div>
                   <div className={`flex flex-col gap-1 ${idx < STAGES.length - 1 ? 'pb-5' : ''}`}>
-                    <span className={`text-[14.5px] font-bold ${isFuture ? 'text-advika-grey600' : 'text-advika-chrome'}`}>
+                    <span className={`text-[14.5px] font-bold ${isFuture ? 'text-advika-grey650' : 'text-advika-chrome'}`}>
                       {t(`advika.tracking.stage.${stageKey}.title`)}
                     </span>
                     <span className={`text-[12px] ${isFuture ? 'text-advika-grey550' : 'text-advika-grey700'}`}>
                       {t(`advika.tracking.stage.${stageKey}.body`)}
                     </span>
                     {stageTimestamp && (
-                      <span className="aa-mono text-[10.5px] text-advika-grey600">{stageTimestamp}</span>
+                      <span className="aa-mono text-[10.5px] text-advika-grey650">{stageTimestamp}</span>
                     )}
                     {isCurrent && (
                       <div className="mt-1 flex items-center gap-2 rounded-[3px] border border-advika-orange-border bg-advika-orange-tint2 px-[11px] py-[9px]">
@@ -223,7 +223,7 @@ export default function OrderTrackingPage() {
               [t('advika.tracking.expected', 'EXPECTED'), formatOrderDate(shipment.estimatedDeliveryDate)],
             ].filter(([, v]) => v).map(([label, value]) => (
               <div key={label} className="flex justify-between border-t border-advika-divider-light py-[10px] first:border-0 first:pt-0">
-                <span className="w-[42%] text-[12.5px] text-advika-grey600">{label}</span>
+                <span className="w-[42%] text-[12.5px] text-advika-grey650">{label}</span>
                 <span className="text-right text-[13px] font-semibold text-advika-grey900">{value}</span>
               </div>
             ))}

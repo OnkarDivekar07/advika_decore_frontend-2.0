@@ -90,7 +90,7 @@ function WishlistItemCard({ item, onRemove, isRemoving }) {
         </Link>
         <div className="flex items-baseline gap-2">
           <span className="aa-mono text-[16px] font-semibold text-advika-chrome">₹{formatPrice(product?.price) ?? product?.price}</span>
-          {hasDiscount && <span className="aa-mono text-[11px] text-advika-grey600 line-through">₹{formatPrice(mrp)}</span>}
+          {hasDiscount && <span className="aa-mono text-[11px] text-advika-grey650 line-through">₹{formatPrice(mrp)}</span>}
         </div>
         <div className="flex items-center gap-1 text-[10.5px] font-semibold">
           {!stock.available ? (
@@ -145,14 +145,14 @@ export default function WishlistPage() {
           <div className="flex justify-center py-24"><Spinner size={40} /></div>
         ) : loadError ? (
           <div className="flex flex-col items-center gap-4 px-6 py-16 text-center" role="alert">
-            <Icon name="error" size={40} className="text-advika-grey600" />
+            <Icon name="error" size={40} className="text-advika-grey650" />
             <p className="text-advika-grey700">{t('wishlist.loadError', "We couldn't load your wishlist.")}</p>
             <button type="button" onClick={retryLoad} className="h-11 border-[1.5px] border-advika-chrome px-6 text-[13px] font-bold">{t('buttons.retry', 'Retry')}</button>
           </div>
         ) : items.length === 0 ? (
           <div className="flex flex-col items-center gap-4 px-6 py-[60px] text-center">
             <span className="flex h-[82px] w-[82px] items-center justify-center rounded-full bg-[#e9e7e3]">
-              <Icon name="favorite_border" size={40} className="text-advika-grey600" />
+              <Icon name="favorite_border" size={40} className="text-advika-grey650" />
             </span>
             <h1 className="font-archivoBlack text-[21px] text-advika-chrome">{t('advika.wishlistPage.emptyTitle')}</h1>
             <p className="max-w-[290px] text-[13.5px] text-advika-grey800">{t('advika.wishlistPage.emptyBody')}</p>

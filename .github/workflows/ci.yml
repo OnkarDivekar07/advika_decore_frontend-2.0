@@ -1,0 +1,36 @@
+name: CI
+
+# Runs lint, tests, and a production build on every push/PR — the gate
+# that was previously missing entirely (see the engineering audit's
+# DevOps section: "no CI configuration anywhere ... a broken test or a
+# real regression can merge and deploy with nothing but a developer's
+# own local run in the way"). Nothing here talks to a live backend —
+# vitest mocks the API layer, and `vite build` only needs the source tree.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm test
+
+      - name: Build
+        run: npm run build

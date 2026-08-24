@@ -262,7 +262,7 @@ export default function AddressForm({
           {errors.deliveryInstructions ? (
             <p id={errorId('deliveryInstructions')} role="alert" className="text-xs text-red-500">{errors.deliveryInstructions}</p>
           ) : <span />}
-          <p id={`${fieldId('deliveryInstructions')}-count`} className="text-xs text-advika-grey600">
+          <p id={`${fieldId('deliveryInstructions')}-count`} className="text-xs text-advika-grey650">
             {form.deliveryInstructions.length}/{DELIVERY_INSTRUCTIONS_MAX}
           </p>
         </div>

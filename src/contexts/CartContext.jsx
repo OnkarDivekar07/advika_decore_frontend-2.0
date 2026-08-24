@@ -96,6 +96,24 @@ export const mergeCartItems = (backendRows, guestItems) => {
     .map(([productId, quantity]) => ({ productId, quantity }));
 };
 
+// What changed in the guest cart between the snapshot syncGuestCartToBackend
+// started with and a later re-read of localStorage — i.e. only the part an
+// already-issued merge/save hasn't accounted for yet. Only increases count:
+// a same-session decrease/removal during the tiny sync window is a much
+// lower-stakes miss (an extra unit sitting in the cart, fixable with one
+// tap) than losing an addition outright, and can't be told apart here from
+// "already merged" without a lot more bookkeeping.
+// eslint-disable-next-line react-refresh/only-export-components -- exported separately for unit testing, not a component
+export const computeGuestCartDelta = (originalItems, latestItems) => {
+  const originalById = new Map(originalItems.map((item) => [item.id, item.quantity]));
+  const delta = [];
+  for (const item of latestItems) {
+    const increase = item.quantity - (originalById.get(item.id) || 0);
+    if (increase > 0) delta.push({ id: item.id, quantity: increase });
+  }
+  return delta;
+};
+
 export function CartProvider({ children }) {
   const { isAuthenticated, isRestoring } = useAuth();
   // Backend-configured delivery rule (see PricingContext.jsx) — used only
@@ -221,6 +239,24 @@ export function CartProvider({ children }) {
         // (or throws), we still know the merge already succeeded server-side,
         // so a retried sync won't re-merge and duplicate quantities.
         markGuestCartMerged();
+
+        // Re-read localStorage right before clearing it: this function is
+        // still mid-sync (mode only flips to 'backend' once loadBackendCart
+        // below finishes), so an add-to-cart tap landing in the awaits above
+        // writes straight to localStorage same as any other guest add. An
+        // unconditional clear here would silently drop it. Merge in only
+        // what's new since the snapshot above, so nothing added mid-sync is
+        // lost without double-counting what was already sent.
+        const latestGuestItems = getCartFromLocalStorage();
+        const delta = computeGuestCartDelta(guestItems, latestGuestItems);
+        if (delta.length > 0) {
+          const { items: backendRowsAfterMerge } = await cartService.getCart();
+          const deltaPayload = mergeCartItems(backendRowsAfterMerge, delta);
+          if (deltaPayload.length > 0) {
+            await cartService.saveCart(deltaPayload);
+          }
+        }
+
         if (clearCartFromLocalStorage()) {
           clearGuestCartMergeMarker();
         }

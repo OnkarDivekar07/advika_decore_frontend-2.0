@@ -159,13 +159,13 @@ export default function AdvikaProductCard({ product, imageHeight = 128, dense = 
             <Icon name="star" size={12} className="text-advika-orange" />
             <span className="text-[10.5px] font-semibold text-advika-chrome">{product.rating.toFixed(1)}</span>
             {typeof product.reviewCount === 'number' && (
-              <span className="text-[9.5px] text-advika-grey600">({product.reviewCount})</span>
+              <span className="text-[9.5px] text-advika-grey650">({product.reviewCount})</span>
             )}
           </span>
         )}
         <div className="flex items-baseline gap-[6px]">
           <span className="aa-mono text-[15px] font-semibold text-advika-chrome">₹{formatPrice(product.price) ?? product.price}</span>
-          {hasDiscount && <span className="aa-mono text-[10.5px] text-advika-grey600 line-through">₹{formatPrice(mrp)}</span>}
+          {hasDiscount && <span className="aa-mono text-[10.5px] text-advika-grey650 line-through">₹{formatPrice(mrp)}</span>}
         </div>
         <span className="flex w-fit items-center gap-1 self-start rounded-sm border border-advika-success-border bg-advika-success-tint px-[6px] py-1">
           <Icon name="payments" size={12} className="text-advika-success" />

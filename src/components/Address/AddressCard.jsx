@@ -86,7 +86,7 @@ export default function AddressCard({
               type="button"
               onClick={stop(() => onEdit(address))}
               aria-label={t('checkout.editAddress', 'Edit address')}
-              className="p-1.5 rounded-md text-advika-grey600 hover:text-advika-orange hover:bg-advika-off-white"
+              className="p-1.5 rounded-md text-advika-grey650 hover:text-advika-orange hover:bg-advika-off-white"
             >
               <FiEdit2 className="w-4 h-4" aria-hidden />
             </button>
@@ -97,7 +97,7 @@ export default function AddressCard({
               onClick={stop(() => onDelete(address.id))}
               disabled={isDeleting}
               aria-label={t('checkout.deleteAddress', 'Delete address')}
-              className="p-1.5 rounded-md text-advika-grey600 hover:text-red-500 hover:bg-advika-off-white disabled:opacity-50"
+              className="p-1.5 rounded-md text-advika-grey650 hover:text-red-500 hover:bg-advika-off-white disabled:opacity-50"
             >
               <FiTrash2 className="w-4 h-4" aria-hidden />
             </button>

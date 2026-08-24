@@ -37,6 +37,7 @@ module.exports = {
           grey500: "#c4c0bb",
           grey550: "#8b8681",
           grey600: "#a3a3a3",
+          grey650: "#5f5f5f",
           grey700: "#737373",
           grey800: "#525252",
           grey900: "#404040",

@@ -53,9 +53,22 @@ export default function AdvikaHeader({ variant = 'account', menuOpen, onToggleMe
   return (
     <LanguageContext.Consumer>
       {({ language, changeLanguage }) => (
-        <header
-          className="sticky top-0 z-50 flex items-center justify-between gap-1 border-b border-advika-border-dark bg-advika-chrome px-[10px] py-[11px]"
-        >
+        <>
+          {/* Skip link — first focusable element on every AdvikaHeader page.
+              Hidden until it receives keyboard focus, then jumps a
+              keyboard/screen-reader user straight past the repeated
+              header/nav to the page's main content (targets the
+              `id="main-content"` most page <main> elements already carry).
+              Same pattern as the legacy Navbar's own skip link. */}
+          <a
+            href="#main-content"
+            className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:bg-white focus:text-gray-900 focus:px-4 focus:py-2 focus:rounded-lg focus:shadow-lg focus:outline focus:outline-2 focus:outline-advika-orange"
+          >
+            {t('nav.skipToContent', 'Skip to main content')}
+          </a>
+          <header
+            className="sticky top-0 z-50 flex items-center justify-between gap-1 border-b border-advika-border-dark bg-advika-chrome px-[10px] py-[11px]"
+          >
           {/* Logo lockup */}
           <Link to="/" className="flex shrink-0 items-center gap-2" aria-label={t('common.home', 'Home')}>
             <span className="flex h-[34px] w-[34px] items-center justify-center rounded-[6px] bg-advika-orange">
@@ -134,7 +147,8 @@ export default function AdvikaHeader({ variant = 'account', menuOpen, onToggleMe
               )
             )}
           </div>
-        </header>
+          </header>
+        </>
       )}
     </LanguageContext.Consumer>
   );

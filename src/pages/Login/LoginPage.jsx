@@ -117,7 +117,7 @@ export default function LoginPage() {
                   type="button"
                   onClick={() => changeLanguage(code)}
                   className={`aa-mono flex h-8 min-w-[30px] items-center justify-center px-2 text-[10.5px] font-semibold ${
-                    language === code ? 'bg-advika-orange text-white' : 'text-advika-grey600'
+                    language === code ? 'bg-advika-orange text-white' : 'text-advika-grey650'
                   }`}
                 >
                   {t(`advika.header.lang${code === 'en' ? 'En' : code === 'hi' ? 'Hi' : 'Mr'}`)}
@@ -125,11 +125,11 @@ export default function LoginPage() {
               ))}
             </div>
             <div className="flex items-center gap-1">
-              <Link to="/" aria-label={t('common.home', 'Home')} className="flex h-9 w-9 items-center justify-center text-advika-grey600">
+              <Link to="/" aria-label={t('common.home', 'Home')} className="flex h-9 w-9 items-center justify-center text-advika-grey650">
                 <Icon name="home" size={21} />
               </Link>
               {currentView !== STEP_SUCCESS && (
-                <Link to="/" aria-label={t('common.close', 'Close')} className="flex h-9 w-9 items-center justify-center text-advika-grey600">
+                <Link to="/" aria-label={t('common.close', 'Close')} className="flex h-9 w-9 items-center justify-center text-advika-grey650">
                   <Icon name="close" size={21} />
                 </Link>
               )}
@@ -155,12 +155,13 @@ export default function LoginPage() {
               <p className="text-[14px] text-advika-grey700">{t('advika.login.phoneSubhead')}</p>
             </div>
             <div className="flex flex-col gap-2">
-              <label className="aa-label text-[9.5px] text-advika-orange-dark">{t('advika.login.mobileNumber')}</label>
+              <label htmlFor="login-phone" className="aa-label text-[9.5px] text-advika-orange-dark">{t('advika.login.mobileNumber')}</label>
               <div className="flex h-[54px] overflow-hidden rounded border-[1.5px] border-advika-orange">
                 <span className="aa-mono flex items-center gap-1 border-r border-advika-border-light bg-advika-off-white px-[11px] text-[14px] font-semibold">
                   <span className="rounded bg-advika-chrome px-1 text-[9px] text-white">IN</span> +91
                 </span>
                 <input
+                  id="login-phone"
                   type="tel"
                   inputMode="numeric"
                   value={otpFlow.phoneDigits}
@@ -177,7 +178,7 @@ export default function LoginPage() {
             >
               {otpFlow.isSubmitting ? t('otp.sendingOtp', 'Sending OTP…') : t('advika.login.sendOtp')}
             </button>
-            <p className="text-[12px] text-advika-grey600">
+            <p className="text-[12px] text-advika-grey650">
               {t('advika.login.termsPrefix')}{' '}
               <span className="font-semibold text-advika-orange">{t('advika.login.termsOfService')}</span>{' '}
               {t('advika.login.termsAnd')}{' '}
@@ -245,7 +246,7 @@ export default function LoginPage() {
               type="submit"
               disabled={!otpFlow.isOtpValid || otpFlow.isSubmitting}
               className={`flex h-[54px] items-center justify-center text-[14px] font-bold ${
-                otpFlow.isOtpValid ? 'bg-advika-orange text-white' : 'bg-[#e9e7e3] text-advika-grey600'
+                otpFlow.isOtpValid ? 'bg-advika-orange text-white' : 'bg-[#e9e7e3] text-advika-grey650'
               } disabled:opacity-70`}
             >
               {otpFlow.isSubmitting ? t('otp.verifying', 'Verifying…') : t('otp.verifyAndContinue', 'Verify & Continue')}
@@ -294,8 +295,9 @@ export default function LoginPage() {
               <p className="text-[13.5px] text-advika-grey700">{t('advika.login.profileRationale')}</p>
             </div>
             <div className="flex flex-col gap-2">
-              <label className="aa-label text-[9.5px] text-advika-orange-dark">{t('advika.login.fullNameLabel', 'FULL NAME')}</label>
+              <label htmlFor="login-fullname" className="aa-label text-[9.5px] text-advika-orange-dark">{t('advika.login.fullNameLabel', 'FULL NAME')}</label>
               <input
+                id="login-fullname"
                 type="text"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
@@ -304,8 +306,9 @@ export default function LoginPage() {
               />
             </div>
             <div className="flex flex-col gap-2">
-              <label className="aa-label text-[9.5px] text-advika-orange-dark">{t('advika.login.cityLabel', 'CITY')}</label>
+              <label htmlFor="login-city" className="aa-label text-[9.5px] text-advika-orange-dark">{t('advika.login.cityLabel', 'CITY')}</label>
               <input
+                id="login-city"
                 type="text"
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
@@ -325,7 +328,7 @@ export default function LoginPage() {
                       vehicle === opt.id ? 'border-advika-orange bg-advika-orange-tint text-advika-orange-darker2' : 'border-advika-border-light text-advika-chrome'
                     }`}
                   >
-                    <Icon name={opt.icon} size={24} className={vehicle === opt.id ? 'text-advika-orange' : 'text-advika-grey600'} />
+                    <Icon name={opt.icon} size={24} className={vehicle === opt.id ? 'text-advika-orange' : 'text-advika-grey650'} />
                     {t(opt.key)}
                   </button>
                 ))}
@@ -334,7 +337,7 @@ export default function LoginPage() {
             <button type="button" onClick={finishProfile} className="flex h-[54px] items-center justify-center bg-advika-orange text-[14px] font-bold text-white">
               {t('advika.login.createAccount')}
             </button>
-            <button type="button" onClick={() => setScreenStep(STEP_SUCCESS)} className="text-center text-[12.5px] text-advika-grey600">
+            <button type="button" onClick={() => setScreenStep(STEP_SUCCESS)} className="text-center text-[12.5px] text-advika-grey650">
               {t('advika.login.skipForNow')}
             </button>
           </div>

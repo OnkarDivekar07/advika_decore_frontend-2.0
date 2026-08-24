@@ -98,7 +98,7 @@ export default function OrderSuccessPage() {
       <div className="aa-shell min-h-screen bg-white">
         <AdvikaHeader />
         <div className="flex flex-col items-center gap-4 px-6 py-20 text-center">
-          <Icon name="error" size={40} className="text-advika-grey600" />
+          <Icon name="error" size={40} className="text-advika-grey650" />
           <h1 className="font-archivoBlack text-[20px] text-advika-chrome">
             {state === 'notFound' ? t('orderSuccess.notFoundTitle', "We couldn't find that order") : t('orderSuccess.errorTitle', "Couldn't load your order")}
           </h1>

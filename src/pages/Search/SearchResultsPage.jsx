@@ -103,7 +103,7 @@ export default function SearchResultsPage() {
         <div className="px-[14px] pt-[14px]">
           {status === STATUS_IDLE && (
             <div className="flex flex-col items-center gap-3 px-6 py-16 text-center">
-              <Icon name="search" size={40} className="text-advika-grey600" />
+              <Icon name="search" size={40} className="text-advika-grey650" />
               <p className="text-[13.5px] text-advika-grey800">{t('search.idle', 'Start typing to find products.')}</p>
             </div>
           )}
@@ -119,7 +119,7 @@ export default function SearchResultsPage() {
 
           {status === STATUS_ERROR && (
             <div className="flex flex-col items-center gap-3 px-6 py-16 text-center" role="alert">
-              <Icon name="error" size={40} className="text-advika-grey600" />
+              <Icon name="error" size={40} className="text-advika-grey650" />
               <p className="text-advika-grey800">{t('search.error', 'Something went wrong while searching.')}</p>
               <button type="button" onClick={retry} className="h-11 border-[1.5px] border-advika-chrome px-6 text-[13px] font-bold">
                 {t('search.retry', 'Try Again')}
@@ -130,7 +130,7 @@ export default function SearchResultsPage() {
           {status === STATUS_EMPTY && (
             <div className="flex flex-col items-center gap-[15px] px-6 py-12 text-center">
               <span className="flex h-[78px] w-[78px] items-center justify-center rounded-full bg-[#e9e7e3]">
-                <Icon name="search_off" size={38} className="text-advika-grey600" />
+                <Icon name="search_off" size={38} className="text-advika-grey650" />
               </span>
               <h2 className="font-archivoBlack text-[20px] text-advika-chrome">{t('search.noResultsTitle', 'No products found')}</h2>
               <p className="max-w-[290px] text-[13.5px] text-advika-grey800">

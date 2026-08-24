@@ -34,6 +34,7 @@ import {
 
 const CheckoutContext = createContext(null);
 
+// eslint-disable-next-line react-refresh/only-export-components -- provider and constant are intentionally colocated
 export const STEPS = ['address', 'review', 'payment'];
 
 export function CheckoutProvider({ children }) {
@@ -595,6 +596,7 @@ export function CheckoutProvider({ children }) {
   return <CheckoutContext.Provider value={value}>{children}</CheckoutContext.Provider>;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components -- provider and hook are intentionally colocated
 export function useCheckout() {
   const ctx = useContext(CheckoutContext);
   if (!ctx) throw new Error('useCheckout must be used within a CheckoutProvider');

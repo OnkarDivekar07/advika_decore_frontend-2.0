@@ -47,4 +47,14 @@ export default defineConfig([
       sourceType: 'module',
     },
   },
+  {
+    // Vitest runs test files under Node, not just jsdom's simulated browser
+    // globals — a couple of JWT/token-decoding tests use `Buffer` directly.
+    // Extends (rather than replaces) the browser globals above, since these
+    // files also use `window`/`localStorage`/etc via jsdom.
+    files: ['**/*.test.{js,jsx}', '**/__tests__/**/*.{js,jsx}'],
+    languageOptions: {
+      globals: { ...globals.browser, ...globals.node },
+    },
+  },
 ])
