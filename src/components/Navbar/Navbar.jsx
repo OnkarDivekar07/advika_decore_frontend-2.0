@@ -132,6 +132,7 @@ export default function Navbar() {
                 key={to}
                 to={to}
                 aria-current={active ? 'page' : undefined}
+                data-testid={`navbar-link-${label.toLowerCase()}`}
                 className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                   active
                     ? 'text-[var(--clr-primary-dark)] bg-[var(--clr-primary)]/10'
@@ -167,6 +168,7 @@ export default function Navbar() {
           {isAuthenticated && (
             <button
               onClick={handleLogout}
+              data-testid="navbar-logout-button"
               className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-700 hover:text-red-600 hover:bg-gray-50 transition-colors"
             >
               <span className="text-base" aria-hidden><FiLogOut /></span>
@@ -187,6 +189,7 @@ export default function Navbar() {
             placeholder={t('search.navPlaceholder', 'Search products…')}
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
+            data-testid="navbar-search-input"
             className="bg-transparent outline-none text-sm text-gray-800 placeholder-gray-400 w-full"
             aria-label={t('search.title', 'Search Products')}
           />
@@ -202,6 +205,7 @@ export default function Navbar() {
                 to={to}
                 aria-label={label}
                 aria-current={active ? 'page' : undefined}
+                data-testid={`navbar-mobile-link-${label.toLowerCase()}`}
                 // p-1 -m-1: grows the actual tap target to ~28px square
                 // (WCAG 2.2 2.5.8 wants at least 24px) without changing
                 // the icon's visual size or the gap-4 spacing between
@@ -223,6 +227,7 @@ export default function Navbar() {
           <button
             ref={menuButtonRef}
             onClick={toggleMenu}
+            data-testid="navbar-hamburger-toggle"
             className="p-1 -mr-1 rounded-md text-xl leading-none text-gray-700 hover:text-red-600 transition-colors"
             aria-label={menuOpen ? t('nav.closeMenu', 'Close menu') : t('nav.openMenu', 'Open menu')}
             aria-expanded={menuOpen}
@@ -254,6 +259,7 @@ export default function Navbar() {
                 placeholder={t('search.navPlaceholder', 'Search products…')}
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
+                data-testid="navbar-mobile-search-input"
                 className="bg-transparent outline-none text-sm text-gray-800 placeholder-gray-400 w-full"
                 aria-label={t('search.title', 'Search Products')}
               />
@@ -266,6 +272,7 @@ export default function Navbar() {
                   to={to}
                   onClick={closeMenu}
                   aria-current={active ? 'page' : undefined}
+                  data-testid={`navbar-dropdown-link-${label.toLowerCase()}`}
                   className={`flex items-center gap-3 px-2 py-3 rounded-lg text-base font-medium transition-colors ${
                     active
                       ? 'text-[var(--clr-primary-dark)] bg-[var(--clr-primary)]/10'
@@ -302,6 +309,7 @@ export default function Navbar() {
             {isAuthenticated && (
               <button
                 onClick={handleLogout}
+                data-testid="navbar-mobile-logout-button"
                 className="w-full flex items-center gap-3 px-2 py-3 rounded-lg text-base font-medium text-gray-700 hover:text-red-600 hover:bg-gray-50 transition-colors"
               >
                 <span className="text-lg" aria-hidden><FiLogOut /></span>

@@ -57,6 +57,7 @@ export default function OrderCard({ order }) {
     <Link
       to={`/orders/${order.id}/track`}
       aria-label={t('orders.viewOrderDetails', 'View details for order {{id}}', { id: order.id })}
+      data-testid={`order-card-${order.id}`}
       className="card p-4 sm:p-5 flex flex-col gap-4 hover:shadow-md transition-shadow"
     >
       <div className="flex items-start justify-between gap-3">

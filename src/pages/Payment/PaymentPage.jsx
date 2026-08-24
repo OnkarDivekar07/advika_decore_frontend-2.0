@@ -115,6 +115,7 @@ export default function PaymentPage() {
                   type="radio"
                   name="paymentMethod"
                   checked={selected}
+                  data-testid={`payment-method-${m.id}`}
                   onChange={() => { setPaymentNotice(null); setMethod(m.id); }}
                   className="sr-only"
                 />
@@ -146,6 +147,7 @@ export default function PaymentPage() {
           type="button"
           onClick={() => navigate('/checkout/review')}
           disabled={isPlacingOrder}
+          data-testid="payment-back-button"
           className="flex h-14 items-center justify-center gap-2 border-[1.5px] border-advika-grey400 px-5 text-[13px] font-bold text-advika-chrome disabled:opacity-60"
         >
           <Icon name="arrow_back" size={16} /> {t('advika.checkout.back', 'Back')}
@@ -154,6 +156,7 @@ export default function PaymentPage() {
           type="button"
           onClick={handlePlaceOrder}
           disabled={!canPay || isPlacingOrder || !!conflicts}
+          data-testid={paymentNotice ? 'payment-retry-payment-button' : 'payment-place-order-button'}
           className="flex h-14 flex-1 flex-col items-center justify-center bg-advika-orange text-white disabled:opacity-60"
         >
           <span className="text-[14px] font-bold">

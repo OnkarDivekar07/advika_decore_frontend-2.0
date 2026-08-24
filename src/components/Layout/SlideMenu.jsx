@@ -10,7 +10,7 @@ import { useWishlist } from '@/contexts/WishlistContext';
 import LanguageModal from '@/components/Layout/LanguageModal';
 import { BRAND_PHONE_TEL } from '@/config/advikaAuto';
 
-function Row({ to, href, icon, label, badge, onClick }) {
+function Row({ to, href, icon, label, badge, onClick, testId }) {
   const content = (
     <>
       <Icon name={icon} size={21} className="text-advika-orange" />
@@ -26,13 +26,13 @@ function Row({ to, href, icon, label, badge, onClick }) {
   const className = 'flex h-14 items-center gap-[13px] border-b border-[#2e2e2e] px-4';
   if (href) {
     return (
-      <a href={href} className={className} onClick={onClick}>
+      <a href={href} className={className} onClick={onClick} data-testid={testId}>
         {content}
       </a>
     );
   }
   return (
-    <Link to={to} className={className} onClick={onClick}>
+    <Link to={to} className={className} onClick={onClick} data-testid={testId}>
       {content}
     </Link>
   );
@@ -57,21 +57,22 @@ export default function SlideMenu({ open, onClose }) {
         aria-label={t('advika.menu.label', 'Menu')}
         className="sticky top-[60px] z-[45] flex flex-col border-b border-[#333] bg-advika-panel"
       >
-        <Row to="/wishlist" icon="favorite_border" label={t('advika.menu.wishlist', 'My wishlist')} badge={wishlistCount} onClick={onClose} />
-        <Row to="/profile" icon="person_outline" label={t('advika.menu.profile', 'My profile')} onClick={onClose} />
-        <Row to="/profile?tab=orders" icon="receipt_long" label={t('advika.menu.orders', 'My orders')} onClick={onClose} />
-        <Row to="/cart" icon="shopping_cart" label={t('advika.menu.cart', 'My cart')} onClick={onClose} />
-        <Row to="/products" icon="grid_view" label={t('advika.menu.categories', 'All categories')} onClick={onClose} />
+        <Row to="/wishlist" icon="favorite_border" label={t('advika.menu.wishlist', 'My wishlist')} badge={wishlistCount} onClick={onClose} testId="slide-menu-wishlist-link" />
+        <Row to="/profile" icon="person_outline" label={t('advika.menu.profile', 'My profile')} onClick={onClose} testId="slide-menu-profile-link" />
+        <Row to="/profile?tab=orders" icon="receipt_long" label={t('advika.menu.orders', 'My orders')} onClick={onClose} testId="slide-menu-orders-link" />
+        <Row to="/cart" icon="shopping_cart" label={t('advika.menu.cart', 'My cart')} onClick={onClose} testId="slide-menu-cart-link" />
+        <Row to="/products" icon="grid_view" label={t('advika.menu.categories', 'All categories')} onClick={onClose} testId="slide-menu-categories-link" />
         <button
           type="button"
           onClick={() => setLangModalOpen(true)}
+          data-testid="slide-menu-language-button"
           className="flex h-14 items-center gap-[13px] border-b border-[#2e2e2e] px-4 text-left"
         >
           <Icon name="translate" size={21} className="text-advika-orange" />
           <span className="flex-1 text-[14.5px] text-white">{t('advika.menu.language', 'Change language')}</span>
           <Icon name="chevron_right" size={18} className="text-advika-grey600" />
         </button>
-        <Row href={BRAND_PHONE_TEL} icon="support_agent" label={t('advika.menu.help', 'Help & contact')} onClick={onClose} />
+        <Row href={BRAND_PHONE_TEL} icon="support_agent" label={t('advika.menu.help', 'Help & contact')} onClick={onClose} testId="slide-menu-help-link" />
       </nav>
       <LanguageModal isOpen={langModalOpen} onClose={() => setLangModalOpen(false)} />
     </>

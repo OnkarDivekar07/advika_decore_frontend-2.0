@@ -71,6 +71,7 @@ export default function AddressCard({
             type="button"
             onClick={stop(() => onSetDefault(address.id))}
             disabled={isSettingDefault}
+            data-testid={`address-card-set-default-${address.id}`}
             className="text-xs font-medium text-advika-orange-dark hover:underline mt-1.5 disabled:opacity-50 disabled:no-underline"
           >
             {isSettingDefault
@@ -86,6 +87,7 @@ export default function AddressCard({
               type="button"
               onClick={stop(() => onEdit(address))}
               aria-label={t('checkout.editAddress', 'Edit address')}
+              data-testid={`address-card-edit-${address.id}`}
               className="p-1.5 rounded-md text-advika-grey650 hover:text-advika-orange hover:bg-advika-off-white"
             >
               <FiEdit2 className="w-4 h-4" aria-hidden />
@@ -97,6 +99,7 @@ export default function AddressCard({
               onClick={stop(() => onDelete(address.id))}
               disabled={isDeleting}
               aria-label={t('checkout.deleteAddress', 'Delete address')}
+              data-testid={`address-card-delete-${address.id}`}
               className="p-1.5 rounded-md text-advika-grey650 hover:text-red-500 hover:bg-advika-off-white disabled:opacity-50"
             >
               <FiTrash2 className="w-4 h-4" aria-hidden />
@@ -112,13 +115,14 @@ export default function AddressCard({
   } ${isSelected ? 'border-[1.5px] border-advika-orange' : 'border-advika-border-light'}`;
 
   if (!selectable) {
-    return <div className={className}>{body}</div>;
+    return <div className={className} data-testid={`address-card-${address.id}`}>{body}</div>;
   }
 
   return (
     <div
       role="button"
       tabIndex={0}
+      data-testid={`address-card-select-${address.id}`}
       onClick={() => onSelect(address.id)}
       onKeyDown={(e) => {
         // A custom role="button" div doesn't get the browser's built-in

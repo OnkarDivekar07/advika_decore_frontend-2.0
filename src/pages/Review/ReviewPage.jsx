@@ -23,17 +23,31 @@ export default function ReviewPage() {
   const navigate = useNavigate();
   const {
     addresses, selectedAddressId, draftOrder, isRestoring, canProceedToReview,
-    confirmReview, conflicts, refreshDraftOrder, goToStep,
+    draftStatus, confirmReview, conflicts, refreshDraftOrder, goToStep,
   } = useCheckout();
 
   const [isRefreshingOrder, setIsRefreshingOrder] = React.useState(false);
 
   useEffect(() => { goToStep('review'); }, [goToStep]);
 
+  // Guards against landing here with no legitimate reason to be here at
+  // all — no address was ever selected, or the last draft attempt
+  // genuinely failed — NOT against a transient re-fetch of an
+  // already-ready order. This page's own effect below calls
+  // refreshDraftOrder on mount (and on address/coupon changes), which
+  // briefly flips draftStatus back to 'loading' every time — reacting to
+  // that here (via canProceedToReview, which requires draftStatus ===
+  // 'ready') previously bounced the user straight back to /checkout on
+  // every single review-step visit, silently blocking checkout entirely.
+  // A stale draftOrder stays on screen (see the render guard below) while
+  // draftStatus is 'loading', so there's nothing wrong to guard against
+  // in that state.
   useEffect(() => {
     if (isRestoring) return;
-    if (!canProceedToReview) navigate('/checkout', { replace: true });
-  }, [isRestoring, canProceedToReview, navigate]);
+    if (!selectedAddressId || draftStatus === 'error') {
+      navigate('/checkout', { replace: true });
+    }
+  }, [isRestoring, selectedAddressId, draftStatus, navigate]);
 
   useEffect(() => {
     if (isRestoring || !selectedAddressId) return;
@@ -147,7 +161,7 @@ export default function ReviewPage() {
             <p className="text-[13px] leading-[1.55] text-advika-grey800">
               {selectedAddress.houseArea}, {selectedAddress.city}, {selectedAddress.state} — {selectedAddress.pincode}
             </p>
-            <button type="button" onClick={() => navigate('/checkout')} className="mt-2 text-[12.5px] font-semibold text-advika-orange-dark">
+            <button type="button" onClick={() => navigate('/checkout')} data-testid="review-change-address-button" className="mt-2 text-[12.5px] font-semibold text-advika-orange-dark">
               {t('advika.checkout.changeAddress', 'Change address')}
             </button>
 
@@ -187,6 +201,7 @@ export default function ReviewPage() {
         <button
           type="button"
           onClick={() => navigate('/checkout')}
+          data-testid="review-back-button"
           className="flex h-[52px] items-center justify-center gap-2 border-[1.5px] border-advika-grey400 px-5 text-[13px] font-bold text-advika-chrome"
         >
           <Icon name="arrow_back" size={16} /> {t('advika.checkout.back', 'Back')}
@@ -195,6 +210,7 @@ export default function ReviewPage() {
           type="button"
           onClick={handleProceed}
           disabled={!canProceedToReview || !!conflicts || shippingBlocksProceed}
+          data-testid="review-proceed-to-payment-button"
           className="flex h-[52px] flex-1 items-center justify-center bg-advika-orange text-[13px] font-bold text-white disabled:opacity-60"
         >
           {shippingCheckPending ? t('checkout.checkingServiceability', 'Checking delivery availability…') : t('advika.checkout.proceedToPayment', 'PROCEED TO PAYMENT')}

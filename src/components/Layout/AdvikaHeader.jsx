@@ -89,6 +89,7 @@ export default function AdvikaHeader({ variant = 'account', menuOpen, onToggleMe
                   type="button"
                   onClick={() => changeLanguage(seg.code)}
                   aria-pressed={language === seg.code}
+                  data-testid={`header-lang-${seg.code}`}
                   className={`aa-mono flex h-[34px] min-w-[30px] items-center justify-center px-1 text-[10.5px] font-semibold transition-colors ${
                     language === seg.code ? 'bg-advika-orange text-white' : 'text-advika-grey600'
                   }`}
@@ -101,6 +102,7 @@ export default function AdvikaHeader({ variant = 'account', menuOpen, onToggleMe
             <Link
               to="/"
               aria-label={t('common.home', 'Home')}
+              data-testid="header-home-link"
               className="flex h-[38px] w-[38px] items-center justify-center"
             >
               <Icon name="home" size={22} className={isHome ? 'text-advika-orange' : 'text-[#e5e5e5]'} />
@@ -109,6 +111,7 @@ export default function AdvikaHeader({ variant = 'account', menuOpen, onToggleMe
               <Link
                 to="/wishlist"
                 aria-label={t('nav.wishlist', 'Wishlist')}
+                data-testid="header-wishlist-link"
                 className="relative flex h-[38px] w-[38px] items-center justify-center"
               >
                 <Icon name="favorite_border" size={22} className="text-[#e5e5e5]" />
@@ -118,6 +121,7 @@ export default function AdvikaHeader({ variant = 'account', menuOpen, onToggleMe
             <Link
               to="/cart"
               aria-label={t('nav.cart', 'Cart')}
+              data-testid="header-cart-link"
               className="relative flex h-[38px] w-[38px] items-center justify-center"
             >
               <Icon name="shopping_cart" size={22} className="text-[#e5e5e5]" />
@@ -130,6 +134,7 @@ export default function AdvikaHeader({ variant = 'account', menuOpen, onToggleMe
                 onClick={onToggleMenu}
                 aria-label={menuOpen ? t('nav.closeMenu', 'Close menu') : t('nav.openMenu', 'Open menu')}
                 aria-expanded={menuOpen}
+                data-testid="header-hamburger-toggle"
                 className="flex h-[38px] w-[38px] items-center justify-center"
               >
                 <Icon name={menuOpen ? 'close' : 'menu'} size={24} className="text-white" />
@@ -140,6 +145,7 @@ export default function AdvikaHeader({ variant = 'account', menuOpen, onToggleMe
                   type="button"
                   onClick={goAccount}
                   aria-label={t('nav.account', 'Account')}
+                  data-testid="header-account-button"
                   className="flex h-[38px] w-[38px] items-center justify-center"
                 >
                   <Icon name="person_outline" size={22} className="text-[#e5e5e5]" />

@@ -84,7 +84,7 @@ export default function AdvikaProductCard({ product, imageHeight = 128, dense = 
   );
 
   return (
-    <article className="relative flex flex-col border border-advika-border-light bg-white">
+    <article className="relative flex flex-col border border-advika-border-light bg-white" data-testid={`product-card-${product.id}`}>
       <Link to={buildProductPath(product, name)} className="absolute inset-0 z-0" aria-label={name} />
 
       {/* Image area */}
@@ -119,6 +119,7 @@ export default function AdvikaProductCard({ product, imageHeight = 128, dense = 
             disabled={isWishlistPending}
             aria-pressed={wishlisted}
             aria-label={wishlisted ? t('productDetail.removedFromWishlist', 'Remove from wishlist') : t('productDetail.addToWishlist', 'Add to wishlist')}
+            data-testid={`product-card-wishlist-toggle-${product.id}`}
             className={`absolute right-[6px] top-[6px] z-10 flex h-[34px] w-[34px] items-center justify-center rounded-full ${
               wishlisted ? 'bg-advika-orange/[.18]' : 'bg-white/[.12]'
             }`}
@@ -144,6 +145,7 @@ export default function AdvikaProductCard({ product, imageHeight = 128, dense = 
               disabled={isWishlistPending}
               aria-pressed={wishlisted}
               aria-label={wishlisted ? t('productDetail.removedFromWishlist', 'Remove from wishlist') : t('productDetail.addToWishlist', 'Add to wishlist')}
+              data-testid={`product-card-wishlist-toggle-${product.id}`}
               className="relative z-10 flex h-[26px] w-[26px] shrink-0 items-center justify-center"
             >
               <Icon name={wishlisted ? 'favorite' : 'favorite_border'} size={18} className={wishlisted ? 'text-advika-orange' : 'text-[#8b8681]'} />
@@ -175,6 +177,7 @@ export default function AdvikaProductCard({ product, imageHeight = 128, dense = 
           type="button"
           onClick={handleAddToCart}
           disabled={isAdding || !stockInfo.available}
+          data-testid={`product-card-add-to-cart-${product.id}`}
           className={`aa-label relative z-10 mt-auto flex items-center justify-center gap-2 font-bold text-white transition-colors disabled:cursor-default ${
             dense ? 'h-[42px] text-[10.5px]' : 'h-11 text-[11px]'
           } ${

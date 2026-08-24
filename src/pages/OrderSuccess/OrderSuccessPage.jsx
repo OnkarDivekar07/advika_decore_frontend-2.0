@@ -104,11 +104,11 @@ export default function OrderSuccessPage() {
           </h1>
           <div className="flex gap-3">
             {state === 'error' && (
-              <button type="button" onClick={() => fetchOrder()} className="h-11 border-[1.5px] border-advika-chrome px-6 text-[13px] font-bold">
+              <button type="button" onClick={() => fetchOrder()} data-testid="order-success-retry-button" className="h-11 border-[1.5px] border-advika-chrome px-6 text-[13px] font-bold">
                 {t('checkout.retry', 'Retry')}
               </button>
             )}
-            <Link to="/" className="flex h-11 items-center bg-advika-orange px-6 text-[13px] font-bold text-white">
+            <Link to="/" data-testid="order-success-continue-shopping-link" className="flex h-11 items-center bg-advika-orange px-6 text-[13px] font-bold text-white">
               {t('orderSuccess.continueShopping', 'Continue Shopping')}
             </Link>
           </div>
@@ -156,10 +156,10 @@ export default function OrderSuccessPage() {
           <p className="text-[12px] font-semibold text-advika-orange-dark">
             {t('advika.checkout.expectedDeliveryGeneric', 'Expected delivery in 3-4 days')}
           </p>
-          <Link to={`/orders/${order.id}/track`} className="mt-2 flex h-[52px] w-full items-center justify-center gap-2 border-[1.5px] border-advika-chrome text-[14px] font-bold text-advika-chrome">
+          <Link to={`/orders/${order.id}/track`} data-testid="order-success-track-order-link" className="mt-2 flex h-[52px] w-full items-center justify-center gap-2 border-[1.5px] border-advika-chrome text-[14px] font-bold text-advika-chrome">
             {t('advika.checkout.trackMyOrder', 'TRACK MY ORDER')}
           </Link>
-          <Link to="/" className="flex h-[52px] w-full items-center justify-center bg-advika-orange text-[14px] font-bold text-white">
+          <Link to="/" data-testid="order-success-continue-shopping-primary-link" className="flex h-[52px] w-full items-center justify-center bg-advika-orange text-[14px] font-bold text-white">
             {t('advika.checkout.continueShopping', 'CONTINUE SHOPPING')}
           </Link>
         </div>
@@ -186,11 +186,11 @@ export default function OrderSuccessPage() {
         <PaymentInfoCard order={order} paymentMethod={paymentMethod} isFailed={isFailed} isProcessing={isProcessing} />
         <div className="flex gap-3">
           {isFailed && (
-            <Link to="/checkout/payment" className="flex h-11 items-center bg-advika-orange px-6 text-[13px] font-bold text-white">
+            <Link to="/checkout/payment" data-testid="order-success-retry-payment-link" className="flex h-11 items-center bg-advika-orange px-6 text-[13px] font-bold text-white">
               {t('orderSuccess.retryPayment', 'Retry payment')}
             </Link>
           )}
-          <Link to="/" className="flex h-11 items-center border-[1.5px] border-advika-chrome px-6 text-[13px] font-bold text-advika-chrome">
+          <Link to="/" data-testid="order-success-continue-shopping-secondary-link" className="flex h-11 items-center border-[1.5px] border-advika-chrome px-6 text-[13px] font-bold text-advika-chrome">
             {t('orderSuccess.continueShopping', 'Continue Shopping')}
           </Link>
         </div>

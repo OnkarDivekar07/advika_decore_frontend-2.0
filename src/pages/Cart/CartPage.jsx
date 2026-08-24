@@ -107,12 +107,12 @@ export default function CartPage() {
           <div className="flex flex-col items-center gap-4 px-6 py-24 text-center">
             <Icon name="error" size={40} className="text-advika-grey650" />
             <p className="text-advika-grey800">{t('cart.loadError', "We couldn't load your cart.")}</p>
-            <button type="button" onClick={handleRetry} disabled={isRetrying} className="h-11 bg-advika-chrome px-6 text-[13px] font-bold text-white disabled:opacity-60">
+            <button type="button" data-testid="cart-retry-button" onClick={handleRetry} disabled={isRetrying} className="h-11 bg-advika-chrome px-6 text-[13px] font-bold text-white disabled:opacity-60">
               {isRetrying ? t('cart.retrying', 'Retrying…') : t('buttons.retry', 'Retry')}
             </button>
           </div>
         ) : cartItems.length === 0 ? (
-          <div className="flex flex-col items-center gap-4 px-6 py-[60px] text-center">
+          <div data-testid="cart-empty-state" className="flex flex-col items-center gap-4 px-6 py-[60px] text-center">
             <span className="flex h-[82px] w-[82px] items-center justify-center rounded-full bg-[#e9e7e3]">
               <Icon name="remove_shopping_cart" size={40} className="text-advika-grey650" />
             </span>
@@ -161,7 +161,7 @@ export default function CartPage() {
                   item.specs?.['Beam Pattern'],
                 ].filter(Boolean);
                 return (
-                  <div key={item.id} className="flex gap-3 border border-advika-border-light p-[13px]">
+                  <div key={item.id} data-testid={`cart-item-${item.id}`} className="flex gap-3 border border-advika-border-light p-[13px]">
                     <Link to={buildProductPath({ id: item.id }, item.name)} className="relative flex h-[78px] w-[78px] shrink-0 items-center justify-center bg-advika-ink">
                       {discountPct != null && (
                         <span className="aa-mono absolute left-[6px] top-[6px] z-10 rounded-sm bg-advika-orange px-[5px] py-[2px] text-[8px] font-semibold text-white">
@@ -184,7 +184,7 @@ export default function CartPage() {
                             {getLocalizedI18n(item.name, i18n.language)}
                           </Link>
                         </div>
-                        <button type="button" onClick={() => removeItem(item.id)} aria-label={t('cart.remove', 'Remove')} className="flex h-8 w-8 shrink-0 items-center justify-center">
+                        <button type="button" onClick={() => removeItem(item.id)} aria-label={t('cart.remove', 'Remove')} data-testid={`cart-item-remove-${item.id}`} className="flex h-8 w-8 shrink-0 items-center justify-center">
                           <Icon name="delete_outline" size={18} className="text-advika-grey650" />
                         </button>
                       </div>
@@ -199,9 +199,9 @@ export default function CartPage() {
                       )}
                       <div className="flex items-center justify-between">
                         <div className="flex h-9 overflow-hidden rounded border border-advika-border-light">
-                          <button type="button" onClick={() => updateQuantity(item.id, item.quantity - 1)} aria-label={t('cart.decreaseQuantity', 'Decrease quantity')} className="w-9 border-r border-advika-border-light">−</button>
-                          <span className="aa-mono flex w-9 items-center justify-center text-[14px]">{item.quantity}</span>
-                          <button type="button" onClick={() => updateQuantity(item.id, item.quantity + 1)} aria-label={t('cart.increaseQuantity', 'Increase quantity')} className="w-9 border-l border-advika-border-light">+</button>
+                          <button type="button" onClick={() => updateQuantity(item.id, item.quantity - 1)} aria-label={t('cart.decreaseQuantity', 'Decrease quantity')} data-testid={`cart-item-decrease-${item.id}`} className="w-9 border-r border-advika-border-light">−</button>
+                          <span className="aa-mono flex w-9 items-center justify-center text-[14px]" data-testid={`cart-item-quantity-${item.id}`}>{item.quantity}</span>
+                          <button type="button" onClick={() => updateQuantity(item.id, item.quantity + 1)} aria-label={t('cart.increaseQuantity', 'Increase quantity')} data-testid={`cart-item-increase-${item.id}`} className="w-9 border-l border-advika-border-light">+</button>
                         </div>
                         <div className="text-right">
                           <div className="aa-mono text-[16px] font-semibold text-advika-chrome">₹{formatPrice(lineTotal) ?? lineTotal}</div>
@@ -257,6 +257,7 @@ export default function CartPage() {
                 type="button"
                 onClick={() => requireAuth(() => navigate('/checkout'))}
                 disabled={hasUnavailableItem}
+                data-testid="cart-proceed-to-checkout-button"
                 className="flex h-[54px] items-center justify-center bg-advika-orange text-[14px] font-bold text-white disabled:opacity-50"
               >
                 {t('advika.cartPage.proceed', 'PROCEED TO CHECKOUT')}
@@ -325,6 +326,7 @@ export default function CartPage() {
             type="button"
             onClick={() => requireAuth(() => navigate('/checkout'))}
             disabled={hasUnavailableItem}
+            data-testid="cart-sticky-proceed-to-checkout-button"
             className="flex h-[52px] w-full items-center justify-center bg-advika-orange text-[13px] font-bold text-white disabled:opacity-50"
           >
             {t('advika.cartPage.proceed', 'PROCEED TO CHECKOUT')}

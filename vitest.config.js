@@ -21,6 +21,13 @@ export default defineConfig({
     setupFiles: ['./src/test/setup.js'],
     css: false,
     restoreMocks: true,
+    // Vitest's default include glob (**/*.{test,spec}.*) would otherwise
+    // also pick up e2e/**/*.spec.js — Playwright test files, not Vitest
+    // ones, which fail immediately outside a Playwright runner ("did not
+    // expect test.describe() to be called here"). Excluded rather than
+    // renamed so both suites keep their respective tools' natural
+    // filename convention (Playwright's own default is *.spec.js).
+    exclude: ['**/node_modules/**', 'e2e/**'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'html'],

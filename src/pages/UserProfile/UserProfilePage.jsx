@@ -15,7 +15,7 @@ import AdvikaHeader from '@/components/Layout/AdvikaHeader';
 import AdvikaFooter from '@/components/Layout/AdvikaFooter';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/features/account/hooks/useProfile';
-import { useOrderHistory, STATUS_SUCCESS } from '@/features/orders/hooks/useOrderHistory';
+import { useOrderHistory, STATUS_LOADING } from '@/features/orders/hooks/useOrderHistory';
 import { useAddressBook } from '@/features/address/hooks/useAddressBook';
 
 const STATUS_STYLE = {
@@ -98,7 +98,7 @@ export default function UserProfilePage() {
               <div className="aa-mono text-[11.5px] text-advika-orange">{profile?.phone}</div>
               {profile?.email && <div className="aa-mono truncate text-[10.5px] text-advika-grey700">{profile.email}</div>}
             </div>
-            <button type="button" onClick={handleLogout} className="flex shrink-0 flex-col items-center gap-1 text-advika-grey600">
+            <button type="button" onClick={handleLogout} data-testid="profile-logout-button" className="flex shrink-0 flex-col items-center gap-1 text-advika-grey600">
               <Icon name="logout" size={19} />
               <span className="text-[10px]">{t('advika.account.signOut')}</span>
             </button>
@@ -111,6 +111,7 @@ export default function UserProfilePage() {
                 key={tab}
                 type="button"
                 onClick={() => setActiveTab(tab)}
+                data-testid={`profile-tab-${tab}`}
                 className={`aa-label h-[46px] flex-1 text-[10.5px] font-bold ${
                   activeTab === tab ? 'bg-advika-orange text-white' : 'text-advika-grey600'
                 }`}
@@ -188,7 +189,12 @@ export default function UserProfilePage() {
         {/* Orders tab */}
         {activeTab === 'orders' && (
           <div className="flex flex-col gap-3 px-4 py-5">
-            {orderStatus !== STATUS_SUCCESS && orders.length === 0 ? (
+            {/* Spin only while the fetch is genuinely in flight — the
+                original `orderStatus !== STATUS_SUCCESS` check also
+                matched STATUS_EMPTY (a resolved, zero-order account),
+                which meant an account with no orders spun forever and
+                never reached the "no orders yet" message below. */}
+            {orderStatus === STATUS_LOADING && orders.length === 0 ? (
               <div className="flex justify-center py-10"><Spinner size={32} /></div>
             ) : orders.length === 0 ? (
               <p className="py-8 text-center text-[13.5px] text-advika-grey700">{t('advika.account.noOrders')}</p>

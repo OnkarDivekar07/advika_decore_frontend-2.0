@@ -199,6 +199,7 @@ export default function ProductDetailPage() {
           <button
             type="button"
             onClick={() => (notFound ? navigate('/products') : fetchProduct())}
+            data-testid="product-detail-retry-button"
             className="h-11 border-[1.5px] border-advika-chrome px-6 text-[13px] font-bold"
           >
             {notFound ? t('productDetail.browseProducts', 'Browse products') : t('productDetail.retry', 'Try Again')}
@@ -253,6 +254,7 @@ export default function ProductDetailPage() {
               type="button"
               onClick={handleWishlist}
               disabled={isWishlistPending}
+              data-testid="product-detail-wishlist-toggle"
               className="absolute right-[9px] top-[9px] flex h-9 w-9 items-center justify-center rounded-full border border-[#333] bg-advika-panel"
             >
               <Icon name={wishlisted ? 'favorite' : 'favorite_border'} size={19} className={wishlisted ? 'text-advika-orange' : 'text-[#e5e5e5]'} />
@@ -285,6 +287,7 @@ export default function ProductDetailPage() {
                     key={opt.label ?? idx}
                     type="button"
                     onClick={handleSelect}
+                    data-testid={`product-detail-thumbnail-${idx}`}
                     className={`relative flex h-[60px] items-center justify-center rounded bg-advika-ink ${isSelected ? 'border-2 border-advika-orange' : 'border-2 border-advika-border-dark'}`}
                   >
                     {opt.label && (
@@ -376,6 +379,7 @@ export default function ProductDetailPage() {
                         key={opt.label}
                         type="button"
                         onClick={() => setVariantIndex((prev) => ({ ...prev, [group.label]: optIdx }))}
+                        data-testid={`product-detail-variant-${group.label}-${opt.label}`}
                         className={`aa-mono flex h-11 items-center justify-center rounded px-3 text-[13px] font-semibold ${
                           group.label === 'Wattage' ? 'min-w-[62px]' : 'min-w-[70px]'
                         } ${
@@ -396,12 +400,13 @@ export default function ProductDetailPage() {
         <div className="flex flex-col gap-[11px] px-[14px] pt-[18px]">
           <div className="flex gap-[11px]">
             <div className="flex h-[52px] overflow-hidden rounded border border-advika-grey400">
-              <button type="button" onClick={() => setQuantity((q) => Math.max(1, q - 1))} className="w-[42px] border-r border-advika-border-light text-lg">−</button>
-              <span className="aa-mono flex min-w-[42px] items-center justify-center text-[16px] font-semibold">{quantity}</span>
+              <button type="button" onClick={() => setQuantity((q) => Math.max(1, q - 1))} data-testid="product-detail-quantity-decrease" className="w-[42px] border-r border-advika-border-light text-lg">−</button>
+              <span className="aa-mono flex min-w-[42px] items-center justify-center text-[16px] font-semibold" data-testid="product-detail-quantity-value">{quantity}</span>
               <button
                 type="button"
                 onClick={() => setQuantity((q) => Math.min(maxSelectableQuantity, q + 1))}
                 disabled={quantity >= maxSelectableQuantity}
+                data-testid="product-detail-quantity-increase"
                 className="w-[42px] border-l border-advika-border-light text-lg disabled:opacity-40"
               >
                 +
@@ -411,6 +416,7 @@ export default function ProductDetailPage() {
               type="button"
               onClick={handleAddToCart}
               disabled={!stockInfo.available || isAdding}
+              data-testid="product-detail-add-to-cart-button"
               className={`flex h-[52px] flex-1 items-center justify-center gap-2 text-[13px] font-bold text-white ${added ? 'bg-advika-success' : 'bg-advika-orange'} disabled:opacity-60`}
             >
               <Icon name={added ? 'check' : 'add_shopping_cart'} size={18} />
@@ -421,6 +427,7 @@ export default function ProductDetailPage() {
             type="button"
             onClick={handleBuyNow}
             disabled={!stockInfo.available || isBuyNowPending}
+            data-testid="product-detail-buy-now-button"
             className="flex h-[52px] items-center justify-center border-[1.5px] border-advika-chrome text-[13px] font-bold text-advika-chrome disabled:opacity-60"
           >
             {t('advika.product.buyNow', 'BUY NOW')}
@@ -481,6 +488,7 @@ export default function ProductDetailPage() {
             <input
               type="text"
               inputMode="numeric"
+              data-testid="product-detail-pincode-input"
               value={pincode}
               onChange={(e) => setPincode(sanitizePincodeInput(e.target.value))}
               maxLength={6}
@@ -490,6 +498,7 @@ export default function ProductDetailPage() {
             <button
               type="button"
               onClick={retryPincode}
+              data-testid="product-detail-pincode-check-button"
               className="h-12 shrink-0 rounded-[3px] bg-advika-chrome px-4 text-[12px] font-bold text-white"
             >
               {t('advika.product.check', 'CHECK')}
@@ -532,6 +541,7 @@ export default function ProductDetailPage() {
                 key={tab}
                 type="button"
                 onClick={() => setActiveTab(tab)}
+                data-testid={`product-detail-tab-${tab}`}
                 className={`h-[50px] flex-1 border-b-[2.5px] text-[12.5px] font-bold ${
                   activeTab === tab ? 'border-advika-orange text-advika-orange-dark' : 'border-transparent text-advika-grey700'
                 }`}
@@ -619,6 +629,7 @@ export default function ProductDetailPage() {
           type="button"
           onClick={handleAddToCart}
           disabled={!stockInfo.available || isAdding}
+          data-testid="product-detail-sticky-add-to-cart-button"
           className={`flex h-[52px] w-full items-center justify-center gap-2 text-[13px] font-bold text-white ${added ? 'bg-advika-success' : 'bg-advika-orange'} disabled:opacity-60`}
         >
           <Icon name={added ? 'check' : 'add_shopping_cart'} size={18} />

@@ -115,6 +115,7 @@ export default function LoginPage() {
                 <button
                   key={code}
                   type="button"
+                  data-testid={`login-lang-${code}`}
                   onClick={() => changeLanguage(code)}
                   className={`aa-mono flex h-8 min-w-[30px] items-center justify-center px-2 text-[10.5px] font-semibold ${
                     language === code ? 'bg-advika-orange text-white' : 'text-advika-grey650'
@@ -164,6 +165,7 @@ export default function LoginPage() {
                   id="login-phone"
                   type="tel"
                   inputMode="numeric"
+                  data-testid="login-phone-input"
                   value={otpFlow.phoneDigits}
                   onChange={(e) => otpFlow.setPhoneDigits(e.target.value)}
                   placeholder={t('otp.phonePlaceholder', '10-digit mobile number')}
@@ -173,6 +175,7 @@ export default function LoginPage() {
             </div>
             <button
               type="submit"
+              data-testid="login-send-otp-button"
               disabled={!otpFlow.isPhoneValid || otpFlow.isSubmitting || otpFlow.cooldown > 0}
               className="flex h-[54px] items-center justify-center bg-advika-orange text-[14px] font-bold text-white disabled:opacity-50"
             >
@@ -203,6 +206,7 @@ export default function LoginPage() {
           <form onSubmit={handleVerify} className="flex flex-col gap-[22px]">
             <button
               type="button"
+              data-testid="login-otp-back-button"
               onClick={otpFlow.changeNumber}
               className="flex items-center gap-1 text-[13px] text-advika-grey700"
             >
@@ -213,7 +217,7 @@ export default function LoginPage() {
               <p className="text-[13.5px] text-advika-grey700">
                 {t('advika.login.otpSentTo', '6-digit OTP sent to')} <strong className="text-advika-chrome">{otpFlow.fullPhone}</strong>
               </p>
-              <button type="button" onClick={otpFlow.changeNumber} className="w-fit text-[13px] font-semibold text-advika-orange">
+              <button type="button" data-testid="login-change-number-button" onClick={otpFlow.changeNumber} className="w-fit text-[13px] font-semibold text-advika-orange">
                 {t('advika.login.changeNumber')}
               </button>
             </div>
@@ -224,6 +228,7 @@ export default function LoginPage() {
                 return (
                   <span
                     key={idx}
+                    data-testid={`otp-digit-${idx}`}
                     className={`aa-mono flex h-[54px] flex-1 items-center justify-center rounded-md text-[20px] font-semibold ${
                       filled || isNext ? 'border-[1.5px] border-advika-orange' : 'border-[1.5px] border-advika-grey400'
                     } ${filled ? 'bg-advika-orange-tint' : ''}`}
@@ -237,6 +242,7 @@ export default function LoginPage() {
               type="tel"
               inputMode="numeric"
               autoFocus
+              data-testid="login-otp-hidden-input"
               value={otpFlow.otp}
               onChange={(e) => otpFlow.setOtp(e.target.value)}
               className="sr-only"
@@ -244,6 +250,7 @@ export default function LoginPage() {
             />
             <button
               type="submit"
+              data-testid="login-verify-button"
               disabled={!otpFlow.isOtpValid || otpFlow.isSubmitting}
               className={`flex h-[54px] items-center justify-center text-[14px] font-bold ${
                 otpFlow.isOtpValid ? 'bg-advika-orange text-white' : 'bg-[#e9e7e3] text-advika-grey650'
@@ -256,7 +263,7 @@ export default function LoginPage() {
               {otpFlow.cooldown > 0 ? (
                 <span className="font-semibold">{t('advika.login.resendIn', { seconds: otpFlow.cooldown })}</span>
               ) : (
-                <button type="button" onClick={handleResend} className="font-semibold text-advika-orange">
+                <button type="button" data-testid="login-resend-button" onClick={handleResend} className="font-semibold text-advika-orange">
                   {t('advika.login.resendNow')}
                 </button>
               )}
@@ -267,6 +274,7 @@ export default function LoginPage() {
                 role="checkbox"
                 aria-checked={isNewUser}
                 tabIndex={0}
+                data-testid="login-new-user-checkbox"
                 onKeyDown={(e) => {
                   // Space is the native way to toggle a checkbox — without
                   // preventDefault it also scrolls the page (WCAG 2.1.1),
@@ -299,6 +307,7 @@ export default function LoginPage() {
               <input
                 id="login-fullname"
                 type="text"
+                data-testid="login-fullname-input"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 placeholder={t('advika.login.fullName')}
@@ -310,6 +319,7 @@ export default function LoginPage() {
               <input
                 id="login-city"
                 type="text"
+                data-testid="login-city-input"
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
                 placeholder={t('advika.login.city')}
@@ -323,6 +333,7 @@ export default function LoginPage() {
                   <button
                     key={opt.id}
                     type="button"
+                    data-testid={`vehicle-option-${opt.id}`}
                     onClick={() => setVehicle(opt.id)}
                     className={`flex h-14 items-center gap-[10px] rounded border-[1.5px] px-3 text-[13.5px] font-semibold ${
                       vehicle === opt.id ? 'border-advika-orange bg-advika-orange-tint text-advika-orange-darker2' : 'border-advika-border-light text-advika-chrome'
@@ -334,10 +345,10 @@ export default function LoginPage() {
                 ))}
               </div>
             </div>
-            <button type="button" onClick={finishProfile} className="flex h-[54px] items-center justify-center bg-advika-orange text-[14px] font-bold text-white">
+            <button type="button" data-testid="login-create-account-button" onClick={finishProfile} className="flex h-[54px] items-center justify-center bg-advika-orange text-[14px] font-bold text-white">
               {t('advika.login.createAccount')}
             </button>
-            <button type="button" onClick={() => setScreenStep(STEP_SUCCESS)} className="text-center text-[12.5px] text-advika-grey650">
+            <button type="button" data-testid="login-skip-button" onClick={() => setScreenStep(STEP_SUCCESS)} className="text-center text-[12.5px] text-advika-grey650">
               {t('advika.login.skipForNow')}
             </button>
           </div>
@@ -350,10 +361,10 @@ export default function LoginPage() {
             </span>
             <h1 className="font-archivoBlack text-[25px] text-advika-chrome">{t('advika.login.loggedIn')}</h1>
             <p className="text-[13.5px] text-advika-grey700">{t('advika.login.loggedInBody')}</p>
-            <button type="button" onClick={() => navigate('/')} className="flex h-[52px] w-full items-center justify-center bg-advika-orange text-[14px] font-bold text-white">
+            <button type="button" data-testid="login-start-shopping-button" onClick={() => navigate('/')} className="flex h-[52px] w-full items-center justify-center bg-advika-orange text-[14px] font-bold text-white">
               {t('advika.login.startShopping')}
             </button>
-            <button type="button" onClick={() => navigate('/profile')} className="flex h-[52px] w-full items-center justify-center border-[1.5px] border-advika-chrome text-[14px] font-bold text-advika-chrome">
+            <button type="button" data-testid="login-view-profile-button" onClick={() => navigate('/profile')} className="flex h-[52px] w-full items-center justify-center border-[1.5px] border-advika-chrome text-[14px] font-bold text-advika-chrome">
               {t('advika.login.viewProfile')}
             </button>
           </div>

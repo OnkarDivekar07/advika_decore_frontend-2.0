@@ -111,6 +111,7 @@ export default function PhoneOtpModal({ isOpen, onClose, onVerified }) {
         <button
           onClick={onClose}
           aria-label={t('otp.close', 'Close')}
+          data-testid="otp-modal-close-button"
           className="absolute top-3 right-3 p-2 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
         >
           <FiX className="w-5 h-5" />
@@ -144,6 +145,7 @@ export default function PhoneOtpModal({ isOpen, onClose, onVerified }) {
                 inputMode="numeric"
                 autoComplete="tel-national"
                 placeholder="98765 43210"
+                data-testid="otp-modal-phone-input"
                 value={phoneDigits}
                 onChange={(e) => setPhoneDigits(e.target.value)}
                 className="flex-1 px-3 py-3 text-sm outline-none"
@@ -153,6 +155,7 @@ export default function PhoneOtpModal({ isOpen, onClose, onVerified }) {
 
             <button
               type="submit"
+              data-testid="otp-modal-send-otp-button"
               disabled={!isPhoneValid || isSubmitting || cooldown > 0}
               className="btn btn-primary w-full py-3 disabled:opacity-50 disabled:cursor-not-allowed"
             >
@@ -179,6 +182,7 @@ export default function PhoneOtpModal({ isOpen, onClose, onVerified }) {
                 <button
                   type="button"
                   onClick={changeNumber}
+                  data-testid="otp-modal-change-number-button"
                   className="text-primary font-medium underline underline-offset-2"
                   disabled={isSubmitting}
                 >
@@ -197,6 +201,7 @@ export default function PhoneOtpModal({ isOpen, onClose, onVerified }) {
               inputMode="numeric"
               autoComplete="one-time-code"
               placeholder="••••••"
+              data-testid="otp-modal-otp-input"
               value={otp}
               onChange={(e) => setOtp(e.target.value)}
               className="rounded-lg border-2 border-gray-200 focus:border-primary outline-none px-3 py-3 text-center text-lg tracking-[0.4em] font-semibold"
@@ -228,6 +233,7 @@ export default function PhoneOtpModal({ isOpen, onClose, onVerified }) {
 
             <button
               type="submit"
+              data-testid="otp-modal-verify-button"
               disabled={!isOtpValid || isSubmitting}
               className="btn btn-primary w-full py-3 disabled:opacity-50 disabled:cursor-not-allowed"
             >
@@ -239,6 +245,7 @@ export default function PhoneOtpModal({ isOpen, onClose, onVerified }) {
             <button
               type="button"
               onClick={handleResend}
+              data-testid="otp-modal-resend-button"
               disabled={cooldown > 0 || isSubmitting}
               className="text-sm text-gray-500 hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >

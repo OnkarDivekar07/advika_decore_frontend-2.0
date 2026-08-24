@@ -98,7 +98,7 @@ export default function OrderListPage() {
             <p className="text-gray-600">
               {t('orders.loadError', "We couldn't load your orders.")}
             </p>
-            <button onClick={handleRetry} className="btn btn-outline px-6">
+            <button onClick={handleRetry} data-testid="order-list-retry-button" className="btn btn-outline px-6">
               {t('buttons.retry', 'Retry')}
             </button>
           </div>
@@ -108,7 +108,7 @@ export default function OrderListPage() {
             <p className="text-gray-600">
               {t('orders.empty', "You haven't placed any orders yet.")}
             </p>
-            <button onClick={() => navigate('/products')} className="btn btn-primary px-6 mt-2">
+            <button onClick={() => navigate('/products')} data-testid="order-list-start-shopping-button" className="btn btn-primary px-6 mt-2">
               {t('orders.startShopping', 'Start Shopping')}
             </button>
           </div>
@@ -122,6 +122,7 @@ export default function OrderListPage() {
               <button
                 onClick={handleLoadMore}
                 disabled={status === STATUS_LOADING_MORE}
+                data-testid="order-list-load-more-button"
                 className="btn btn-outline self-center px-6 mt-2 disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {status === STATUS_LOADING_MORE

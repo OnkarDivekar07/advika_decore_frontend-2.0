@@ -47,7 +47,7 @@ function WishlistItemCard({ item, onRemove, isRemoving }) {
   }, [isAdding, stock.available, addItem, product, t]);
 
   return (
-    <div className="flex flex-col overflow-hidden border border-advika-border-light bg-white">
+    <div className="flex flex-col overflow-hidden border border-advika-border-light bg-white" data-testid={`wishlist-item-${item.productId}`}>
       <div className="relative flex h-[132px] items-center justify-center bg-advika-ink">
         {/* Wattage/spec + voltage badges — README's Domain rule table
             lists "wishlist" as a required voltage-badge surface. */}
@@ -72,6 +72,7 @@ function WishlistItemCard({ item, onRemove, isRemoving }) {
           onClick={() => onRemove(item.productId)}
           disabled={isRemoving}
           aria-label={t('productDetail.removedFromWishlist', 'Remove from wishlist')}
+          data-testid={`wishlist-item-remove-${item.productId}`}
           className="absolute right-[7px] top-[7px] z-10 flex h-[26px] w-[26px] items-center justify-center rounded-full bg-advika-danger-bright"
         >
           <Icon name="close" size={16} className="text-white" />
@@ -105,6 +106,7 @@ function WishlistItemCard({ item, onRemove, isRemoving }) {
           type="button"
           onClick={handleAdd}
           disabled={!stock.available || isAdding}
+          data-testid={`wishlist-item-add-to-cart-${item.productId}`}
           className={`flex h-11 items-center justify-center gap-2 text-[11px] font-bold text-white ${
             !stock.available ? 'cursor-default bg-advika-warm-white text-advika-grey700' : added ? 'bg-advika-success' : 'bg-advika-chrome'
           }`}
@@ -147,16 +149,16 @@ export default function WishlistPage() {
           <div className="flex flex-col items-center gap-4 px-6 py-16 text-center" role="alert">
             <Icon name="error" size={40} className="text-advika-grey650" />
             <p className="text-advika-grey700">{t('wishlist.loadError', "We couldn't load your wishlist.")}</p>
-            <button type="button" onClick={retryLoad} className="h-11 border-[1.5px] border-advika-chrome px-6 text-[13px] font-bold">{t('buttons.retry', 'Retry')}</button>
+            <button type="button" onClick={retryLoad} data-testid="wishlist-retry-button" className="h-11 border-[1.5px] border-advika-chrome px-6 text-[13px] font-bold">{t('buttons.retry', 'Retry')}</button>
           </div>
         ) : items.length === 0 ? (
-          <div className="flex flex-col items-center gap-4 px-6 py-[60px] text-center">
+          <div className="flex flex-col items-center gap-4 px-6 py-[60px] text-center" data-testid="wishlist-empty-state">
             <span className="flex h-[82px] w-[82px] items-center justify-center rounded-full bg-[#e9e7e3]">
               <Icon name="favorite_border" size={40} className="text-advika-grey650" />
             </span>
             <h1 className="font-archivoBlack text-[21px] text-advika-chrome">{t('advika.wishlistPage.emptyTitle')}</h1>
             <p className="max-w-[290px] text-[13.5px] text-advika-grey800">{t('advika.wishlistPage.emptyBody')}</p>
-            <button type="button" onClick={() => navigate('/products')} className="flex h-[54px] items-center bg-advika-orange px-8 text-[14px] font-bold text-white">
+            <button type="button" onClick={() => navigate('/products')} data-testid="wishlist-browse-products-button" className="flex h-[54px] items-center bg-advika-orange px-8 text-[14px] font-bold text-white">
               {t('advika.wishlistPage.browseProducts')}
             </button>
           </div>
@@ -179,6 +181,7 @@ export default function WishlistPage() {
                 type="button"
                 onClick={handleAddAll}
                 disabled={isAddingAll}
+                data-testid="wishlist-add-all-to-cart-button"
                 className="flex h-[52px] items-center justify-center gap-2 bg-advika-orange text-[14px] font-bold text-white disabled:opacity-60"
               >
                 <Icon name="shopping_cart" size={18} /> {t('advika.wishlistPage.addAllToCart')}

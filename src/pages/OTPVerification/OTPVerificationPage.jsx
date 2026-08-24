@@ -119,6 +119,7 @@ export default function OTPVerificationPage() {
                   inputMode="numeric"
                   autoComplete="tel-national"
                   placeholder={t('otp.phonePlaceholder', '10-digit mobile number')}
+                  data-testid="otp-page-phone-input"
                   value={phoneDigits}
                   onChange={(e) => setPhoneDigits(e.target.value)}
                   className="flex-1 px-4 py-3 outline-none"
@@ -127,6 +128,7 @@ export default function OTPVerificationPage() {
               </div>
               <button
                 type="submit"
+                data-testid="otp-page-send-otp-button"
                 className="btn btn-primary w-full py-3"
                 disabled={!isPhoneValid || isSubmitting || cooldown > 0}
               >
@@ -151,6 +153,7 @@ export default function OTPVerificationPage() {
                 inputMode="numeric"
                 autoComplete="one-time-code"
                 placeholder={t('otp.otpPlaceholder', 'Enter 6-digit code')}
+                data-testid="otp-page-otp-input"
                 value={otp}
                 onChange={(e) => setOtp(e.target.value)}
                 className="border border-gray-300 rounded-lg px-4 py-3 tracking-widest text-center text-lg focus:outline-none focus:ring-2 focus:ring-[var(--clr-primary)]"
@@ -182,6 +185,7 @@ export default function OTPVerificationPage() {
 
               <button
                 type="submit"
+                data-testid="otp-page-verify-button"
                 className="btn btn-primary w-full py-3"
                 disabled={!isOtpValid || isSubmitting}
               >
@@ -190,6 +194,7 @@ export default function OTPVerificationPage() {
               <button
                 type="button"
                 onClick={handleResend}
+                data-testid="otp-page-resend-button"
                 className="text-sm text-[var(--clr-primary)] disabled:text-gray-500 disabled:cursor-not-allowed self-center"
                 disabled={isSubmitting || cooldown > 0}
               >
@@ -200,6 +205,7 @@ export default function OTPVerificationPage() {
               <button
                 type="button"
                 onClick={changeNumber}
+                data-testid="otp-page-change-number-button"
                 className="btn btn-outline w-full"
                 disabled={isSubmitting}
               >

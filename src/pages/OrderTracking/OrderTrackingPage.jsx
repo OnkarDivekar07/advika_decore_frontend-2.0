@@ -84,11 +84,11 @@ export default function OrderTrackingPage() {
           </h1>
           <div className="flex gap-3">
             {state === 'error' && (
-              <button type="button" onClick={fetchOrder} className="h-11 border-[1.5px] border-advika-chrome px-6 text-[13px] font-bold">
+              <button type="button" onClick={fetchOrder} data-testid="order-tracking-retry-button" className="h-11 border-[1.5px] border-advika-chrome px-6 text-[13px] font-bold">
                 {t('checkout.retry', 'Retry')}
               </button>
             )}
-            <Link to="/" className="flex h-11 items-center bg-advika-orange px-6 text-[13px] font-bold text-white">
+            <Link to="/" data-testid="order-tracking-continue-shopping-link" className="flex h-11 items-center bg-advika-orange px-6 text-[13px] font-bold text-white">
               {t('orderSuccess.continueShopping', 'Continue Shopping')}
             </Link>
           </div>

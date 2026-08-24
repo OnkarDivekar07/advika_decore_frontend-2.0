@@ -113,7 +113,7 @@ export default function AddressBookPage() {
               <p className="text-advika-grey800">
                 {t('addresses.loadError', "We couldn't load your addresses.")}
               </p>
-              <button type="button" onClick={load} className="h-11 border-[1.5px] border-advika-chrome px-6 text-[13px] font-bold">
+              <button type="button" onClick={load} data-testid="address-book-retry-button" className="h-11 border-[1.5px] border-advika-chrome px-6 text-[13px] font-bold">
                 {t('buttons.retry', 'Retry')}
               </button>
             </div>
@@ -167,6 +167,7 @@ export default function AddressBookPage() {
                     setEditingAddress(null);
                     setShowForm(true);
                   }}
+                  data-testid="address-book-add-new-button"
                   className="flex h-14 items-center justify-center gap-2 border-[1.5px] border-dashed border-advika-grey400 bg-advika-off-white text-[13.5px] font-semibold text-advika-grey700"
                 >
                   <Icon name="add" size={18} />

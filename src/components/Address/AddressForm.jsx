@@ -159,6 +159,7 @@ export default function AddressForm({
         <label htmlFor={fieldId('name')} className={`${labelClass} mb-1.5 block`}>{t('checkout.fields.name', 'Full name')}</label>
         <input
           id={fieldId('name')} ref={registerField('name')} className={boxClass('name')}
+          data-testid="address-form-name-input"
           value={form.name} onChange={(e) => setField('name', e.target.value)} maxLength={80} autoComplete="name"
           aria-invalid={!!errors.name} aria-describedby={describedBy('name')}
         />
@@ -171,6 +172,7 @@ export default function AddressForm({
           <span className="aa-mono pl-3 pr-1 text-[14px] text-advika-grey700" aria-hidden>+91</span>
           <input
             id={fieldId('phone')} ref={registerField('phone')} className="aa-mono h-full flex-1 rounded-[3px] px-2 text-[14px] outline-none"
+            data-testid="address-form-phone-input"
             value={form.phone} onChange={(e) => setField('phone', sanitizePhoneInput(e.target.value))}
             inputMode="numeric" maxLength={10} autoComplete="tel-national"
             aria-invalid={!!errors.phone} aria-describedby={describedBy('phone')}
@@ -183,6 +185,7 @@ export default function AddressForm({
         <label htmlFor={fieldId('pincode')} className={`${labelClass} mb-1.5 block`}>{t('checkout.fields.pincode', 'Pincode')}</label>
         <input
           id={fieldId('pincode')} ref={registerField('pincode')} className={`aa-mono ${boxClass('pincode')}`}
+          data-testid="address-form-pincode-input"
           value={form.pincode} onChange={(e) => setField('pincode', sanitizePincodeInput(e.target.value))}
           inputMode="numeric" maxLength={6} autoComplete="postal-code"
           aria-invalid={!!errors.pincode} aria-describedby={describedBy('pincode')}
@@ -200,6 +203,7 @@ export default function AddressForm({
         <label htmlFor={fieldId('city')} className={`${labelClass} mb-1.5 block`}>{t('checkout.fields.city', 'City')}</label>
         <input
           id={fieldId('city')} ref={registerField('city')} className={boxClass('city')}
+          data-testid="address-form-city-input"
           value={form.city} onChange={(e) => setField('city', e.target.value)} maxLength={80} autoComplete="address-level2"
           aria-invalid={!!errors.city} aria-describedby={describedBy('city')}
         />
@@ -210,6 +214,7 @@ export default function AddressForm({
         <label htmlFor={fieldId('houseArea')} className={`${labelClass} mb-1.5 block`}>{t('checkout.fields.houseArea', 'Full address')}</label>
         <input
           id={fieldId('houseArea')} ref={registerField('houseArea')} className={boxClass('houseArea')}
+          data-testid="address-form-house-area-input"
           value={form.houseArea} onChange={(e) => setField('houseArea', e.target.value)} maxLength={200} autoComplete="address-line1"
           aria-invalid={!!errors.houseArea} aria-describedby={describedBy('houseArea')}
         />
@@ -220,6 +225,7 @@ export default function AddressForm({
         <label htmlFor={fieldId('area')} className={`${labelClass} mb-1.5 block`}>{t('checkout.fields.area', 'Area / locality')}</label>
         <input
           id={fieldId('area')} ref={registerField('area')} className={boxClass('area')}
+          data-testid="address-form-area-input"
           value={form.area} onChange={(e) => setField('area', e.target.value)} maxLength={100}
           placeholder={t('checkout.fields.areaPlaceholder', 'e.g. Kothrud')} autoComplete="address-line2"
           aria-invalid={!!errors.area} aria-describedby={describedBy('area')}
@@ -231,6 +237,7 @@ export default function AddressForm({
         <label htmlFor={fieldId('state')} className={`${labelClass} mb-1.5 block`}>{t('checkout.fields.state', 'State')}</label>
         <input
           id={fieldId('state')} ref={registerField('state')} className={boxClass('state')}
+          data-testid="address-form-state-input"
           value={form.state} onChange={(e) => setField('state', e.target.value)} maxLength={80} autoComplete="address-level1"
           aria-invalid={!!errors.state} aria-describedby={describedBy('state')}
         />
@@ -241,6 +248,7 @@ export default function AddressForm({
         <label htmlFor={fieldId('landmark')} className={`${labelClass} mb-1.5 block`}>{t('checkout.fields.landmark', 'Landmark (optional)')}</label>
         <input
           id={fieldId('landmark')} ref={registerField('landmark')} className={boxClass('landmark')}
+          data-testid="address-form-landmark-input"
           value={form.landmark} onChange={(e) => setField('landmark', e.target.value)} maxLength={100}
         />
       </div>
@@ -252,6 +260,7 @@ export default function AddressForm({
         <textarea
           id={fieldId('deliveryInstructions')} ref={registerField('deliveryInstructions')}
           className={`w-full rounded-[3px] border px-3 py-2 text-[14px] outline-none ${errors.deliveryInstructions ? 'border-red-400' : 'border-advika-grey400'}`}
+          data-testid="address-form-delivery-instructions-input"
           value={form.deliveryInstructions} onChange={(e) => setField('deliveryInstructions', e.target.value)}
           maxLength={DELIVERY_INSTRUCTIONS_MAX} rows={2}
           placeholder={t('checkout.fields.deliveryInstructionsPlaceholder', 'e.g. Leave with the security guard, call before arriving')}
@@ -272,6 +281,7 @@ export default function AddressForm({
         <label htmlFor={fieldId('isDefault')} className="flex select-none items-center gap-2 text-[13px] text-advika-grey800">
           <input
             id={fieldId('isDefault')} type="checkbox" className="h-4 w-4 rounded border-advika-grey400 accent-advika-orange"
+            data-testid="address-form-is-default-checkbox"
             checked={isLockedDefault ? true : form.isDefault} disabled={isLockedDefault}
             onChange={(e) => setField('isDefault', e.target.checked)}
           />
@@ -282,13 +292,13 @@ export default function AddressForm({
       )}
 
       <div className="flex gap-3">
-        <button type="submit" disabled={isSubmitting} className="flex h-[52px] flex-1 items-center justify-center bg-advika-orange text-[14px] font-bold text-white disabled:opacity-60">
+        <button type="submit" disabled={isSubmitting} data-testid="address-form-submit-button" className="flex h-[52px] flex-1 items-center justify-center bg-advika-orange text-[14px] font-bold text-white disabled:opacity-60">
           {isSubmitting
             ? t('checkout.savingAddress', 'Saving…')
             : isEditing ? t('checkout.updateAddress', 'Update address') : t('checkout.continue', 'CONTINUE')}
         </button>
         {onCancel && (
-          <button type="button" onClick={onCancel} className="h-[52px] shrink-0 border-[1.5px] border-advika-chrome px-5 text-[13px] font-bold text-advika-chrome">
+          <button type="button" onClick={onCancel} data-testid="address-form-cancel-button" className="h-[52px] shrink-0 border-[1.5px] border-advika-chrome px-5 text-[13px] font-bold text-advika-chrome">
             {t('buttons.cancel', 'Cancel')}
           </button>
         )}

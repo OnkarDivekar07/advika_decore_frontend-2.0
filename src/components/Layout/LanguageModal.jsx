@@ -56,6 +56,7 @@ export default function LanguageModal({ isOpen, onClose }) {
               key={opt.code}
               type="button"
               onClick={() => choose(opt.code)}
+              data-testid={`language-modal-option-${opt.code}`}
               className="flex h-[58px] items-center gap-[13px] rounded-[5px] border-[1.5px] border-advika-border-dark4 px-4 text-left transition-colors hover:border-advika-orange"
             >
               <Icon name="translate" className="text-advika-orange" size={22} />

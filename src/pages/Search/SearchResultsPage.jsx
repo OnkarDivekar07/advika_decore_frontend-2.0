@@ -85,6 +85,7 @@ export default function SearchResultsPage() {
               ref={inputRef}
               type="search"
               autoFocus
+              data-testid="search-results-input"
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               placeholder={t('search.placeholder', 'Search for truck, tempo, tractor parts…')}
@@ -92,7 +93,7 @@ export default function SearchResultsPage() {
               aria-label={t('search.title', 'Search Products')}
             />
             {inputValue && (
-              <button type="button" onClick={handleClear} aria-label={t('search.clear', 'Clear search')} className="shrink-0 text-advika-grey600">
+              <button type="button" onClick={handleClear} aria-label={t('search.clear', 'Clear search')} data-testid="search-results-clear-button" className="shrink-0 text-advika-grey600">
                 <Icon name="close" size={18} />
               </button>
             )}
@@ -121,7 +122,7 @@ export default function SearchResultsPage() {
             <div className="flex flex-col items-center gap-3 px-6 py-16 text-center" role="alert">
               <Icon name="error" size={40} className="text-advika-grey650" />
               <p className="text-advika-grey800">{t('search.error', 'Something went wrong while searching.')}</p>
-              <button type="button" onClick={retry} className="h-11 border-[1.5px] border-advika-chrome px-6 text-[13px] font-bold">
+              <button type="button" onClick={retry} data-testid="search-results-retry-button" className="h-11 border-[1.5px] border-advika-chrome px-6 text-[13px] font-bold">
                 {t('search.retry', 'Try Again')}
               </button>
             </div>
@@ -152,6 +153,7 @@ export default function SearchResultsPage() {
                     type="button"
                     onClick={loadMore}
                     disabled={status === STATUS_LOADING_MORE}
+                    data-testid="search-results-load-more-button"
                     className="border-[1.5px] border-advika-chrome px-8 py-3 text-[13px] font-bold disabled:opacity-50"
                   >
                     {status === STATUS_LOADING_MORE ? t('search.loadingMore', 'Loading…') : t('search.loadMore', 'Load More')}

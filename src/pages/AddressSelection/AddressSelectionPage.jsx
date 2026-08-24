@@ -148,6 +148,7 @@ export default function AddressSelectionPage() {
         <button
           type="button"
           onClick={() => { setEditingAddress(null); setShowForm(true); }}
+          data-testid="address-selection-add-new-button"
           className="flex h-12 items-center justify-center gap-2 self-start border-[1.5px] border-dashed border-advika-grey400 px-5 text-[13px] font-semibold text-advika-grey700"
         >
           <Icon name="add" size={17} /> {t('checkout.addNewAddress', 'Add a new address')}
@@ -159,6 +160,7 @@ export default function AddressSelectionPage() {
           type="button"
           onClick={handleContinue}
           disabled={!selectedAddressId || isContinuing || draftStatus === 'loading'}
+          data-testid="address-selection-continue-button"
           className="flex h-[52px] items-center justify-center bg-advika-orange text-[14px] font-bold text-white disabled:opacity-60"
         >
           {isContinuing || draftStatus === 'loading'

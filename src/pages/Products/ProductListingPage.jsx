@@ -146,6 +146,7 @@ export default function ProductListingPage() {
             <Icon name="search" size={19} className="text-advika-grey700" />
             <input
               type="search"
+              data-testid="product-listing-search-input"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               placeholder={t('advika.categoryPage.searchPlaceholder')}
@@ -159,6 +160,7 @@ export default function ProductListingPage() {
           <button
             type="button"
             onClick={() => updateParams({ category: '', voltage: '' })}
+            data-testid="product-listing-category-chip-all"
             className={`flex h-[38px] shrink-0 items-center gap-[7px] rounded-full px-[15px] text-[12.5px] font-semibold ${
               !categoryParam ? 'bg-advika-orange text-white' : 'border border-[#333] text-advika-grey600'
             }`}
@@ -170,6 +172,7 @@ export default function ProductListingPage() {
               key={cat.id}
               type="button"
               onClick={() => selectCategory(cat.label)}
+              data-testid={`product-listing-category-chip-${cat.id}`}
               className={`flex h-[38px] shrink-0 items-center gap-[7px] rounded-full px-[15px] text-[12.5px] font-semibold ${
                 activeCategory?.id === cat.id ? 'bg-advika-orange text-white' : 'border border-[#333] text-advika-grey600'
               }`}
@@ -194,6 +197,7 @@ export default function ProductListingPage() {
               <button
                 type="button"
                 onClick={() => toggleVoltage('12V')}
+                data-testid="product-listing-filter-voltage-12v"
                 className={`flex h-9 shrink-0 items-center gap-[6px] rounded-[3px] px-3 text-[11.5px] font-semibold ${
                   voltageFilter === '12V' ? 'border border-advika-orange bg-advika-orange-tint text-advika-orange-darker' : 'border border-advika-border-light text-advika-grey700'
                 }`}
@@ -203,6 +207,7 @@ export default function ProductListingPage() {
               <button
                 type="button"
                 onClick={() => toggleVoltage('24V')}
+                data-testid="product-listing-filter-voltage-24v"
                 className={`flex h-9 shrink-0 items-center gap-[6px] rounded-[3px] px-3 text-[11.5px] font-semibold ${
                   voltageFilter === '24V' ? 'border border-advika-orange bg-advika-orange-tint text-advika-orange-darker' : 'border border-advika-border-light text-advika-grey700'
                 }`}
@@ -215,6 +220,7 @@ export default function ProductListingPage() {
             type="button"
             onClick={toggleCodOnly}
             aria-pressed={codOnly}
+            data-testid="product-listing-filter-cod-only"
             className={`flex h-9 shrink-0 items-center gap-[6px] rounded-[3px] px-3 text-[11.5px] font-semibold ${
               codOnly ? 'border border-advika-orange bg-advika-orange-tint text-advika-orange-darker' : 'border border-advika-border-light text-advika-grey700'
             }`}
@@ -224,6 +230,7 @@ export default function ProductListingPage() {
           <button
             type="button"
             onClick={toggleUnder3000}
+            data-testid="product-listing-filter-under-3000"
             className={`flex h-9 shrink-0 items-center gap-[6px] rounded-[3px] px-3 text-[11.5px] font-semibold ${
               under3000 ? 'border border-advika-orange bg-advika-orange-tint text-advika-orange-darker' : 'border border-advika-border-light text-advika-grey700'
             }`}
@@ -252,7 +259,7 @@ export default function ProductListingPage() {
           {status === STATUS_ERROR && (
             <div className="flex flex-col items-center gap-3 py-16 text-center">
               <p className="text-advika-grey700">{t('products.error', 'Something went wrong while loading products.')}</p>
-              <button type="button" onClick={retry} className="border-[1.5px] border-advika-chrome px-6 py-2 text-[13px] font-bold">
+              <button type="button" onClick={retry} data-testid="product-listing-retry-button" className="border-[1.5px] border-advika-chrome px-6 py-2 text-[13px] font-bold">
                 {t('buttons.retry', 'Retry')}
               </button>
             </div>
@@ -291,6 +298,7 @@ export default function ProductListingPage() {
                     type="button"
                     onClick={() => setPage((p) => p + 1)}
                     disabled={status === STATUS_LOADING_MORE}
+                    data-testid="product-listing-load-more-button"
                     className="border-[1.5px] border-advika-chrome px-8 py-3 text-[13px] font-bold disabled:opacity-50"
                   >
                     {status === STATUS_LOADING_MORE ? t('search.loadingMore', 'Loading…') : t('search.loadMore', 'Load More')}
