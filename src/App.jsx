@@ -12,6 +12,7 @@ import { CartProvider } from '@/contexts/CartContext';
 import { WishlistProvider } from '@/contexts/WishlistContext';
 import GlobalSeo from '@/components/Shared/GlobalSeo';
 import OfflineBanner from '@/components/Shared/OfflineBanner';
+import ScrollToTop from '@/components/Shared/ScrollToTop';
 import AppRoutes from './routes/AppRoutes';
 
 export default function App() {
@@ -38,6 +39,7 @@ export default function App() {
           <WishlistProvider>
           <LanguageProvider>
             <Router>
+              <ScrollToTop />
               <AuthGateProvider>
                 <AppRoutes />
               </AuthGateProvider>

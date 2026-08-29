@@ -79,6 +79,28 @@ a { color: inherit; text-decoration: none; }
 ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 99px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--clr-primary-dark); }
 
+/* Hides the scrollbar on an `overflow-x-auto` row while keeping it
+   scrollable (touch/drag/programmatic) — for horizontally-scrolling chip
+   rows (e.g. the vehicle-class pills) where a visible scrollbar track
+   reads as a stray line under the content rather than a real page
+   control. Doesn't touch gap/padding/snap, unlike `.scroll-strip`. */
+.aa-hide-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+.aa-hide-scrollbar::-webkit-scrollbar { display: none; }
+
+/* Smoothly expands/collapses a block whose presence toggles (e.g. the
+   category listing's voltage-relevant banner) instead of it abruptly
+   appearing/disappearing and shifting everything below it. Always keep
+   the element mounted and toggle `.aa-collapse-open` rather than
+   conditionally rendering it, so the transition has something to
+   animate. The padding/border of the actual visible content must live on
+   a element NESTED INSIDE `.aa-collapse-inner`, not on that wrapper
+   itself — Chromium still enforces an element's own padding as a hard
+   minimum size even with `overflow: hidden; min-height: 0`, so a direct
+   child with padding never actually collapses to 0. */
+.aa-collapse { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 220ms ease; }
+.aa-collapse.aa-collapse-open { grid-template-rows: 1fr; }
+.aa-collapse-inner { overflow: hidden; min-height: 0; }
+
 /* ─── Keyframes ───────────────────────────────── */
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(14px); }
@@ -304,6 +326,7 @@ a { color: inherit; text-decoration: none; }
   .aa-section-title {
     font-family: var(--font-black);
     font-size: 26px;
+    line-height: 1.05;
   }
 
   /* Mono role: prices, order ids, timestamps, specs, tracking numbers,
@@ -314,7 +337,7 @@ a { color: inherit; text-decoration: none; }
   /* Tracked micro-labels (eyebrows, badges) — tracking drops to 0 on hi/mr. */
   .aa-label {
     font-family: var(--font-mono);
-    letter-spacing: 0.07em;
+    letter-spacing: 0.08em;
   }
   html:lang(hi) .aa-label, html:lang(mr) .aa-label { letter-spacing: 0; }
 

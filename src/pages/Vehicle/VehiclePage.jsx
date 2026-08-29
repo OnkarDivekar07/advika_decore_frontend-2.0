@@ -1,6 +1,6 @@
 // src/pages/Vehicle/VehiclePage.jsx — Advika Auto Vehicle class
 // See design_handoff_advika_auto/README.md, screen 2 "Vehicle class".
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import Icon from '@/components/Shared/Icon';
@@ -11,15 +11,26 @@ import PromiseStrip from '@/components/Shared/PromiseStrip';
 import AdvikaProductCard from '@/components/Product/AdvikaProductCard';
 import { fetchProducts } from '@/services/productsService';
 import { handleError } from '@/utils/errorHandler';
-import { VEHICLE_CLASSES, CATEGORIES, BRAND_PHONE_TEL, getVehicleClass } from '@/config/advikaAuto';
+import { useBrandPhone } from '@/hooks/useBrandPhone';
+import { VEHICLE_CLASSES, CATEGORIES, getVehicleClass } from '@/config/advikaAuto';
 
 export default function VehiclePage() {
   const { t } = useTranslation();
   const { classId } = useParams();
   const navigate = useNavigate();
+  const { tel: BRAND_PHONE_TEL } = useBrandPhone();
   const activeClass = getVehicleClass(classId);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const activePillRef = useRef(null);
+
+  // Centers the active pill in the scroll strip on every class change, so
+  // the next pill (e.g. selecting "Medium vehicle" reveals "Big vehicle")
+  // peeks into view instead of the selection landing flush against the
+  // edge with no hint there's more to scroll to.
+  useEffect(() => {
+    activePillRef.current?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+  }, [activeClass.id]);
 
   useEffect(() => {
     if (!classId || !VEHICLE_CLASSES.some((c) => c.id === classId)) {
@@ -62,7 +73,12 @@ export default function VehiclePage() {
       <AdvikaHeader />
 
       <main id="main-content" tabIndex={-1}>
-        {/* Class hero */}
+        {/* Class hero + voltage card + class chips. This is one shared
+            component for every vehicle class (small/medium/big/tractor) —
+            the structure/styling below is identical for all four; only
+            activeClass's data (icon, title, subtitle, voltage, battery
+            copy) changes per page, so all four stay pixel-consistent by
+            construction. */}
         <div className="flex flex-col gap-[15px] bg-advika-near-black px-4 pb-5 pt-[22px]">
           <Link to="/" className="aa-label flex items-center gap-[6px] text-[10.5px] uppercase text-advika-grey600">
             <Icon name="arrow_back" size={15} /> {t('common.home', 'Home')}
@@ -75,44 +91,46 @@ export default function VehiclePage() {
               <span className="text-[12.5px] text-advika-grey600">{t(`advika.vehicleClass.examples.${activeClass.id}`)}</span>
             </div>
           </div>
-        </div>
 
-        {/* Voltage band */}
-        <div className="mx-4 mt-[14px] flex items-center gap-[11px] rounded border border-[#333] bg-advika-panel p-[13px]">
-          <Icon name="bolt" size={22} className="text-advika-orange" />
-          <div className="flex flex-col gap-1">
-            <div className="flex items-center gap-[7px]">
-              <span className="aa-mono text-[15px] font-semibold text-advika-orange">{activeClass.voltage}</span>
-              <span className="h-1 w-1 rounded-full bg-advika-border-dark4" />
-              <span className="text-[11px] font-semibold text-advika-grey600">
-                {t(`advika.battery.${activeClass.voltage}`)}
-              </span>
+          {/* Voltage card */}
+          <div className="flex items-center gap-[11px] rounded border border-[#333] bg-advika-panel p-[13px]">
+            <Icon name="bolt" size={22} className="text-advika-orange" />
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-[7px]">
+                <span className="aa-mono text-[15px] font-semibold text-advika-orange">{activeClass.voltage}</span>
+                <span className="h-1 w-1 rounded-full bg-advika-border-dark4" />
+                <span className="text-[11px] font-semibold text-advika-grey600">
+                  {t(`advika.battery.${activeClass.voltage}`)}
+                </span>
+              </div>
+              <p className="text-[11.5px] leading-[1.45] text-[#e5e5e5]">
+                {t(`advika.vehicle.voltageNote.${activeClass.id}`)}
+              </p>
+              <p className="text-[11px] font-bold text-advika-orange">
+                {t('advika.vehicle.voltPick', "Pick parts to match your vehicle's voltage")}
+              </p>
             </div>
-            <p className="text-[11.5px] leading-[1.45] text-[#e5e5e5]">
-              {t(`advika.vehicle.voltageNote.${activeClass.id}`)}
-            </p>
-            <p className="text-[11px] font-bold text-advika-orange">
-              {t('advika.categoryPage.voltPick', 'Pick the voltage that matches your vehicle — 12V or 24V')}
-            </p>
           </div>
-        </div>
 
-        {/* Class chips */}
-        <div className="flex gap-2 overflow-x-auto border-b border-advika-border-dark bg-advika-chrome px-[14px] py-3">
-          {VEHICLE_CLASSES.map((cls) => (
-            <Link
-              key={cls.id}
-              to={`/vehicle/${cls.id}`}
-              className={`flex h-[38px] shrink-0 items-center gap-[7px] rounded-full px-[15px] text-[12.5px] font-semibold ${
-                cls.id === activeClass.id
-                  ? 'bg-advika-orange text-white'
-                  : 'border border-[#333] text-advika-grey600'
-              }`}
-            >
-              <Icon name={cls.icon} size={17} />
-              {t(`advika.vehicleClass.${cls.id}`)}
-            </Link>
-          ))}
+          {/* Class chips — full-width scroll row, no outer card; only the
+              individual pills carry their own border/rounding. */}
+          <div className="aa-hide-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4">
+            {VEHICLE_CLASSES.map((cls) => (
+              <Link
+                key={cls.id}
+                ref={cls.id === activeClass.id ? activePillRef : null}
+                to={`/vehicle/${cls.id}`}
+                className={`flex h-[38px] shrink-0 items-center gap-[7px] rounded-full px-[15px] text-[12.5px] font-semibold ${
+                  cls.id === activeClass.id
+                    ? 'bg-advika-orange text-white'
+                    : 'border border-[#333] text-advika-grey600'
+                }`}
+              >
+                <Icon name={cls.icon} size={17} />
+                {t(`advika.vehicleClass.${cls.id}`)}
+              </Link>
+            ))}
+          </div>
         </div>
 
         {/* Is your vehicle in this group? */}
@@ -143,30 +161,6 @@ export default function VehiclePage() {
           </div>
         </section>
 
-        {/* Parts for your [class] */}
-        <section className="px-4 pt-6">
-          <h2 className="mb-[11px] font-archivoBlack text-[19px] text-advika-chrome">
-            {t('advika.vehicle.partsForTitle', { class: className })}
-          </h2>
-          <div className="grid grid-cols-2 gap-[11px]">
-            {/* Vehicle page's own category grid omits Safety & Tools — the
-                wireframe's per-page `cats` array for this screen is
-                Lights/Horns/Interior/Exterior/Electrical/Spares only,
-                unlike Landing's 7-tile set (see Advika Auto - Vehicle.dc.html). */}
-            {CATEGORIES.filter((cat) => cat.id !== 'safety').map((cat) => (
-              <Link
-                key={cat.id}
-                to={`/products?category=${encodeURIComponent(cat.label)}&vehicle=${activeClass.id}`}
-                className="flex flex-col gap-[7px] border border-advika-border-light bg-white px-[13px] py-[14px]"
-              >
-                <Icon name={cat.icon} size={26} className="text-advika-orange" />
-                <span className="text-[13.5px] font-bold text-advika-chrome">{t(`advika.category.${cat.id}`)}</span>
-                <span className="text-[10px] text-advika-grey700">{t(`advika.category.count.${cat.id}`, { defaultValue: '' })}</span>
-              </Link>
-            ))}
-          </div>
-        </section>
-
         {/* Popular in this group */}
         <section className="px-4 pb-6 pt-6">
           <div className="mb-[11px] flex items-baseline justify-between">
@@ -180,7 +174,27 @@ export default function VehiclePage() {
           </div>
         </section>
 
-        <div className="px-4 pb-6">
+        {/* Parts for your [class] */}
+        <section className="px-4 pt-6">
+          <h2 className="mb-[11px] font-archivoBlack text-[19px] text-advika-chrome">
+            {t('advika.vehicle.partsForTitle', { class: className })}
+          </h2>
+          <div className="grid grid-cols-2 gap-[11px]">
+            {CATEGORIES.map((cat) => (
+              <Link
+                key={cat.id}
+                to={`/products?category=${encodeURIComponent(cat.label)}&vehicle=${activeClass.id}`}
+                className="flex flex-col gap-[7px] border border-advika-border-light bg-white px-[13px] py-[14px]"
+              >
+                <Icon name={cat.icon} size={26} className="text-advika-orange" />
+                <span className="text-[13.5px] font-bold text-advika-chrome">{t(`advika.category.${cat.id}`)}</span>
+                <span className="text-[10px] text-advika-grey700">{t(`advika.category.count.${cat.id}`, { defaultValue: '' })}</span>
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        <div className="px-4 pb-6 pt-6">
           <PromiseStrip
             compact
             items={[

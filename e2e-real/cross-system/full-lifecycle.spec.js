@@ -72,7 +72,7 @@ test('full cross-system lifecycle: admin creates a product a real customer buys,
   await adminPage.goto(`${ADMIN_REAL_BASE_URL}/products`);
   await adminPage.getByTestId('products-add-new-btn').click();
   await adminPage.getByTestId('product-name-input').fill(productName);
-  await adminPage.getByTestId('product-category-checkbox-Safety & Tools').check();
+  await adminPage.getByTestId('product-category-checkbox-Useful Items').check();
   await adminPage.getByTestId('product-brand-input').fill('Advika E2E');
   await adminPage.getByTestId('product-price-input').fill('850');
   await adminPage.getByTestId('product-stock-input').fill('5');

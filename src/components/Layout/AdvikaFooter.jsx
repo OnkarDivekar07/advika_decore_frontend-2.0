@@ -7,7 +7,8 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import Icon from '@/components/Shared/Icon';
 import { useAuth } from '@/contexts/AuthContext';
-import { BRAND_PHONE_DISPLAY, BRAND_PHONE_TEL } from '@/config/advikaAuto';
+import { useSiteContent } from '@/hooks/useSiteContent';
+import { useBrandPhone } from '@/hooks/useBrandPhone';
 
 function LinkRow({ to, href, icon, label }) {
   const content = (
@@ -26,21 +27,23 @@ function LinkRow({ to, href, icon, label }) {
 }
 
 export default function AdvikaFooter() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { isAuthenticated } = useAuth();
+  const { getText } = useSiteContent();
+  const { tel: BRAND_PHONE_TEL, display: BRAND_PHONE_DISPLAY } = useBrandPhone();
 
   return (
     <footer className="mt-[30px] flex flex-col gap-[22px] border-t border-advika-border-dark bg-advika-ink px-4 pt-7">
       {/* Brand block */}
       <div className="flex flex-col gap-3">
-        <Link to="/" className="flex items-center gap-2">
+        <Link to="/" className="flex items-center gap-[9px]">
           <span className="flex h-[30px] w-[30px] items-center justify-center rounded-[6px] bg-advika-orange">
             <Icon name="bolt" className="text-white" size={18} />
           </span>
           <span className="font-archivoBlack text-[15px] text-white">{t('advika.brand.name', 'ADVIKA AUTO')}</span>
         </Link>
-        <p className="text-[13px] leading-[1.6] text-advika-grey600">
-          {t('advika.footer.blurb', 'Decorative lights and accessories for trucks, pickups, tempos and tractors.')}
+        <p className="text-[13px] leading-[1.6] text-advika-grey600" data-testid="footer-blurb">
+          {getText('footer.blurb', i18n.language, t('advika.footer.blurb', 'Decorative lights and accessories for trucks, pickups, tempos and tractors.'))}
         </p>
       </div>
 
@@ -60,18 +63,24 @@ export default function AdvikaFooter() {
 
       {/* Contact block */}
       <div className="flex flex-col gap-[14px] border-t border-advika-border-dark pt-5">
-        <a href={BRAND_PHONE_TEL} className="flex items-center gap-3">
+        <a href={BRAND_PHONE_TEL} className="flex items-start gap-[11px]">
           <Icon name="call" size={18} className="text-advika-orange" />
           <span className="flex flex-col">
-            <span className="aa-mono text-[14px] text-white">{BRAND_PHONE_DISPLAY}</span>
-            <span className="text-[10.5px] text-[#737373]">{t('advika.footer.hours', 'Mon-Sat, 9AM-7PM')}</span>
+            <span className="aa-mono text-[14px] text-white" data-testid="footer-phone">{BRAND_PHONE_DISPLAY}</span>
+            <span className="text-[10.5px] text-[#737373]" data-testid="footer-hours">
+              {getText('footer.hours', i18n.language, t('advika.footer.hours', 'Mon-Sat, 9AM-7PM'))}
+            </span>
           </span>
         </a>
-        <div className="flex items-center gap-3">
+        <div className="flex items-start gap-[11px]">
           <Icon name="location_on" size={18} className="text-advika-orange" />
           <span className="flex flex-col">
-            <span className="text-[13px] text-white">{t('advika.footer.address1', 'Wakad, Pune — 411057')}</span>
-            <span className="text-[11px] text-[#737373]">{t('advika.footer.address2', 'Maharashtra, India')}</span>
+            <span className="text-[13px] text-white" data-testid="footer-address1">
+              {getText('footer.address1', i18n.language, t('advika.footer.address1', 'Wakad, Pune — 411057'))}
+            </span>
+            <span className="text-[11px] text-[#737373]" data-testid="footer-address2">
+              {getText('footer.address2', i18n.language, t('advika.footer.address2', 'Maharashtra, India'))}
+            </span>
           </span>
         </div>
       </div>

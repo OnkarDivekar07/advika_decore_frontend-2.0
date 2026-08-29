@@ -26,19 +26,34 @@ import { getProductById, getRelatedProducts } from '@/services/productsService';
 import { useServiceabilityCheck } from '@/features/shipping/hooks/useServiceabilityCheck';
 import { handleError } from '@/utils/errorHandler';
 import { getLocalized } from '@/utils/i18nUtils';
-import { getStockInfo, formatPrice } from '@/utils/productUtils';
+import { getStockInfo, formatPrice, getProductUnit } from '@/utils/productUtils';
 import { sanitizeHtml } from '@/utils/sanitizeHtml';
 import { sanitizePincodeInput, PINCODE_REGEX } from '@/utils/pincodeValidation';
 import { buildProductPath, htmlToMetaDescription, buildAbsoluteUrl } from '@/seo/seoUtils';
 import { buildProductJsonLd } from '@/seo/structuredData';
-import { getVoltageInfo, getCategoryByLabel, getVehicleIcon, BRAND_PHONE_TEL } from '@/config/advikaAuto';
+import { getVoltageInfo, getCategoryByLabel, getVehicleIcon } from '@/config/advikaAuto';
+import { useBrandPhone } from '@/hooks/useBrandPhone';
 
 const TABS = ['description', 'specifications', 'reviews'];
+
+// The gallery's 4-slot media row (Front/Video/Lit/Close-up) — a fixed,
+// always-shown set of angles/media types, independent of how many real
+// photos a product actually has (falls back to the category icon tile
+// per slot, same as the main image area, so the layout is identical
+// whether photography exists yet or not). `imageIndex: null` (Video) has
+// no photo slot at all — it's a distinct media type, not a missing photo.
+const MEDIA_SLOTS = [
+  { key: 'front', label: 'Front', imageIndex: 0 },
+  { key: 'video', label: 'Video', imageIndex: null },
+  { key: 'lit', label: 'Lit', imageIndex: 1 },
+  { key: 'closeup', label: 'Close-up', imageIndex: 2 },
+];
 
 export default function ProductDetailPage() {
   const { id } = useParams();
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
+  const { tel: BRAND_PHONE_TEL } = useBrandPhone();
   const lang = i18n.language || 'en';
   const { addItem, setBuyNow } = useCart();
   const { isWishlisted, toggle: toggleWishlist } = useWishlist();
@@ -58,6 +73,8 @@ export default function ProductDetailPage() {
   const [isBuyNowPending, setIsBuyNowPending] = useState(false);
   const [isWishlistPending, setIsWishlistPending] = useState(false);
   const [selectedImage, setSelectedImage] = useState(0);
+  const [selectedMediaSlot, setSelectedMediaSlot] = useState(0);
+  const [imageLoadFailed, setImageLoadFailed] = useState({});
   const [pincode, setPincode] = useState('');
   const { status: pincodeStatus, data: pincodeData, retry: retryPincode } = useServiceabilityCheck(pincode, { debounceMs: 0, enabled: PINCODE_REGEX.test(pincode) });
 
@@ -70,6 +87,8 @@ export default function ProductDetailPage() {
       setProduct(data);
       setVariantIndex({});
       setSelectedImage(0);
+      setSelectedMediaSlot(0);
+      setImageLoadFailed({});
       setQuantity(1);
     } catch (err) {
       if (err?.response?.status === 404) setNotFound(true);
@@ -120,6 +139,7 @@ export default function ProductDetailPage() {
 
   const hasDiscount = typeof activeVariantMrp === 'number' && activeVariantMrp > activeVariantPrice;
   const discountPct = hasDiscount ? Math.round(((activeVariantMrp - activeVariantPrice) / activeVariantMrp) * 100) : null;
+  const unit = getProductUnit(product, lang);
 
   const seoData = useMemo(() => {
     if (!product) return null;
@@ -242,12 +262,23 @@ export default function ProductDetailPage() {
       </div>
 
       <main id="main-content" tabIndex={-1}>
+        {/* Gallery through Quantity/CTAs sit on a soft grey backdrop (the
+            price card stays explicitly white on top of it); "Fits these
+            vehicles" and everything after resumes the page's plain white
+            background. */}
+        <div className="bg-advika-off-white pb-[18px]">
         {/* Gallery */}
         <div className="flex flex-col gap-[10px] px-[14px] pt-[14px]">
           <div className="relative flex h-[230px] items-center justify-center rounded-[5px] bg-advika-ink">
-            {selectedWatt && (
+            {wattageGroup ? (
+              selectedWatt && (
+                <span className="aa-mono absolute left-[10px] top-[10px] rounded-sm bg-advika-orange px-[7px] py-[4px] text-[10px] font-semibold text-white">
+                  {selectedWatt}
+                </span>
+              )
+            ) : (
               <span className="aa-mono absolute left-[10px] top-[10px] rounded-sm bg-advika-orange px-[7px] py-[4px] text-[10px] font-semibold text-white">
-                {selectedWatt}
+                {MEDIA_SLOTS[selectedMediaSlot].label}
               </span>
             )}
             <button
@@ -259,48 +290,113 @@ export default function ProductDetailPage() {
             >
               <Icon name={wishlisted ? 'favorite' : 'favorite_border'} size={19} className={wishlisted ? 'text-advika-orange' : 'text-[#e5e5e5]'} />
             </button>
-            {images[selectedImage] ? (
-              <ImageWithFallback src={images[selectedImage]} alt="" className="h-full w-full object-contain" />
-            ) : (
-              <Icon name={category?.icon || 'auto_awesome'} size={104} className="text-advika-orange" />
-            )}
+            {wattageGroup ? (
+              images[selectedImage] && !imageLoadFailed[images[selectedImage]] ? (
+                <ImageWithFallback
+                  src={images[selectedImage]}
+                  alt=""
+                  className="h-full w-full object-contain"
+                  onError={() => setImageLoadFailed((prev) => ({ ...prev, [images[selectedImage]]: true }))}
+                />
+              ) : (
+                <Icon name={category?.icon || 'auto_awesome'} size={104} className="text-advika-orange" />
+              )
+            ) : MEDIA_SLOTS[selectedMediaSlot].key === 'video' ? (
+              <Icon name="play_circle" size={104} className="text-advika-orange" />
+            ) : (() => {
+              const src = images[MEDIA_SLOTS[selectedMediaSlot].imageIndex];
+              return src && !imageLoadFailed[src] ? (
+                <ImageWithFallback
+                  src={src}
+                  alt=""
+                  className="h-full w-full object-contain"
+                  onError={() => setImageLoadFailed((prev) => ({ ...prev, [src]: true }))}
+                />
+              ) : (
+                <Icon name={category?.icon || 'auto_awesome'} size={104} className="text-advika-orange" />
+              );
+            })()}
           </div>
-          {/* Thumbnails double as the wattage variant selector (README:
-              "each labelled with its wattage and acting as the variant
-              selector") — shown whenever there's a Wattage variant group
-              OR more than one photo, not gated on real photography
-              existing (the design's own placeholder catalog has none). */}
-          {(wattageGroup?.options?.length > 1 || images.length > 1) && (
-            <div className="grid grid-cols-4 gap-[9px]">
-              {(wattageGroup?.options ?? images.map((_, idx) => ({ label: null, idx }))).map((opt, idx) => {
-                const isSelected = wattageGroup
-                  ? idx === (variantIndex[wattageGroup.label] ?? wattageGroup.defaultIndex ?? 0)
-                  : idx === selectedImage;
-                const handleSelect = () => {
-                  setSelectedImage(Math.min(idx, Math.max(images.length - 1, 0)));
-                  if (wattageGroup) {
+          {wattageGroup ? (
+            /* Thumbnails double as the wattage variant selector (README:
+               "each labelled with its wattage and acting as the variant
+               selector") — shown whenever there's more than one wattage
+               option, existing behavior, untouched. */
+            wattageGroup.options?.length > 1 && (
+              <div className="grid grid-cols-4 gap-[9px]">
+                {wattageGroup.options.map((opt, idx) => {
+                  const isSelected = idx === (variantIndex[wattageGroup.label] ?? wattageGroup.defaultIndex ?? 0);
+                  const handleSelect = () => {
+                    setSelectedImage(Math.min(idx, Math.max(images.length - 1, 0)));
                     setVariantIndex((prev) => ({ ...prev, [wattageGroup.label]: idx }));
-                  }
-                };
+                  };
+                  const src = images[idx];
+                  return (
+                    <button
+                      key={opt.label ?? idx}
+                      type="button"
+                      onClick={handleSelect}
+                      data-testid={`product-detail-thumbnail-${idx}`}
+                      className={`relative flex h-[60px] items-center justify-center rounded bg-advika-ink ${isSelected ? 'border-2 border-advika-orange' : 'border-2 border-advika-border-dark'}`}
+                    >
+                      {opt.label && (
+                        <span className="aa-mono absolute bottom-[3px] left-1/2 -translate-x-1/2 text-[8px] font-semibold text-advika-grey600">
+                          {opt.label}
+                        </span>
+                      )}
+                      {src && !imageLoadFailed[src] ? (
+                        <ImageWithFallback
+                          src={src}
+                          alt=""
+                          className="h-full w-full object-cover"
+                          onError={() => setImageLoadFailed((prev) => ({ ...prev, [src]: true }))}
+                        />
+                      ) : (
+                        <Icon name={category?.icon || 'auto_awesome'} size={20} className="text-advika-orange" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            )
+          ) : (
+            /* Fixed 4-slot media row (Front/Video/Lit/Close-up) — always
+               shown, independent of how many real photos exist yet (each
+               slot falls back to the category icon tile on its own, same
+               as the main image area above). Video has no photo slot; it
+               always shows a play-icon tile, since there's no video
+               playback support yet. Labels sit below the tile, not
+               overlaid — matches the reference gallery's media strip,
+               distinct from the wattage selector's overlaid labels above. */
+            <div className="grid grid-cols-4 gap-[9px]">
+              {MEDIA_SLOTS.map((slot, idx) => {
+                const isSelected = idx === selectedMediaSlot;
+                const src = slot.imageIndex != null ? images[slot.imageIndex] : null;
                 return (
-                  <button
-                    key={opt.label ?? idx}
-                    type="button"
-                    onClick={handleSelect}
-                    data-testid={`product-detail-thumbnail-${idx}`}
-                    className={`relative flex h-[60px] items-center justify-center rounded bg-advika-ink ${isSelected ? 'border-2 border-advika-orange' : 'border-2 border-advika-border-dark'}`}
-                  >
-                    {opt.label && (
-                      <span className="aa-mono absolute bottom-[3px] left-1/2 -translate-x-1/2 text-[8px] font-semibold text-advika-grey600">
-                        {opt.label}
-                      </span>
-                    )}
-                    {images[idx] ? (
-                      <ImageWithFallback src={images[idx]} alt="" className="h-full w-full object-cover" />
-                    ) : (
-                      <Icon name={category?.icon || 'auto_awesome'} size={20} className="text-advika-orange" />
-                    )}
-                  </button>
+                  <div key={slot.key} className="flex flex-col items-center gap-[5px]">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedMediaSlot(idx)}
+                      data-testid={`product-detail-media-slot-${slot.key}`}
+                      className={`flex h-[60px] w-full items-center justify-center rounded bg-advika-ink ${isSelected ? 'border-2 border-advika-orange' : 'border-2 border-advika-border-dark'}`}
+                    >
+                      {slot.key === 'video' ? (
+                        <Icon name="play_circle" size={22} className="text-advika-orange" />
+                      ) : src && !imageLoadFailed[src] ? (
+                        <ImageWithFallback
+                          src={src}
+                          alt=""
+                          className="h-full w-full object-cover"
+                          onError={() => setImageLoadFailed((prev) => ({ ...prev, [src]: true }))}
+                        />
+                      ) : (
+                        <Icon name={category?.icon || 'auto_awesome'} size={20} className="text-advika-orange" />
+                      )}
+                    </button>
+                    <span className={`aa-mono text-[8px] font-semibold ${isSelected ? 'text-advika-orange' : 'text-advika-grey600'}`}>
+                      {slot.label}
+                    </span>
+                  </div>
                 );
               })}
             </div>
@@ -322,11 +418,12 @@ export default function ProductDetailPage() {
                 {t('advika.product.dualVoltageNote')}
               </span>
             ) : (
-              // README: "For a single-voltage SKU: a neutral voltage chip
-              // stating the requirement plainly ('24V vehicles only')."
-              <span className="flex w-fit items-center gap-2 rounded-sm border border-advika-border-light bg-advika-off-white px-[10px] py-[6px] text-[11.5px] font-bold text-advika-grey900">
-                <Icon name="bolt" size={16} className="text-advika-grey700" />
-                {t('advika.product.singleVoltageChip', { voltage: voltage.label })}
+              <span className="flex w-fit items-center gap-2 rounded-sm border border-advika-orange-border bg-advika-orange-tint px-[10px] py-[6px] text-[11.5px] font-bold text-advika-orange-darker2">
+                <Icon name="bolt" size={16} className="text-advika-orange-dark" />
+                {t('advika.product.singleVoltageChip', {
+                  voltage: voltage.label,
+                  batteryPhrase: t(`advika.battery.${voltage.label}`, voltage.label),
+                })}
               </span>
             )
           )}
@@ -351,15 +448,18 @@ export default function ProductDetailPage() {
         </div>
 
         {/* Price card */}
-        <div className="mx-[14px] mt-[18px] flex flex-col gap-2 rounded border border-advika-border-light p-4">
+        <div className="mx-[14px] mt-[18px] flex flex-col gap-1 rounded border border-advika-border-light bg-white p-3">
           <div className="flex items-center gap-2">
-            <span className="aa-mono text-[29px] font-semibold text-advika-chrome">₹{formatPrice(activeVariantPrice) ?? activeVariantPrice}</span>
+            <span className="aa-mono text-[29px] font-semibold text-advika-chrome">
+              ₹{formatPrice(activeVariantPrice) ?? activeVariantPrice}
+              {unit && <span className="text-[15px] font-normal text-advika-grey650">/{unit}</span>}
+            </span>
             {hasDiscount && <span className="aa-mono text-[15px] text-advika-grey650 line-through">₹{formatPrice(activeVariantMrp)}</span>}
             {discountPct != null && (
               <span className="rounded-[3px] bg-advika-success-tint2 px-2 py-1 text-[11.5px] font-bold text-advika-success-dark">-{discountPct}%</span>
             )}
           </div>
-          <p className="pt-[6px] text-[11.5px] text-advika-grey700">{t('advika.product.taxesShipping')}</p>
+          <p className="text-[11.5px] text-advika-grey700">{t('advika.product.taxesShipping')}</p>
         </div>
 
         {/* Variant pickers */}
@@ -398,6 +498,11 @@ export default function ProductDetailPage() {
 
         {/* Quantity + CTAs */}
         <div className="flex flex-col gap-[11px] px-[14px] pt-[18px]">
+          {unit && (
+            <span className="aa-label text-[10px] font-bold text-advika-orange">
+              {t('advika.product.quantityLabel', { unitLabel: t(`advika.product.unit.${unit}`, unit) })}
+            </span>
+          )}
           <div className="flex gap-[11px]">
             <div className="flex h-[52px] overflow-hidden rounded border border-advika-grey400">
               <button type="button" onClick={() => setQuantity((q) => Math.max(1, q - 1))} data-testid="product-detail-quantity-decrease" className="w-[42px] border-r border-advika-border-light text-lg">−</button>
@@ -417,7 +522,9 @@ export default function ProductDetailPage() {
               onClick={handleAddToCart}
               disabled={!stockInfo.available || isAdding}
               data-testid="product-detail-add-to-cart-button"
-              className={`flex h-[52px] flex-1 items-center justify-center gap-2 text-[13px] font-bold text-white ${added ? 'bg-advika-success' : 'bg-advika-orange'} disabled:opacity-60`}
+              className={`flex h-[52px] flex-1 items-center justify-center gap-2 rounded border-[1.5px] text-[13px] font-bold disabled:opacity-60 ${
+                added ? 'border-advika-success bg-advika-success text-white' : 'border-advika-orange bg-white text-advika-orange'
+              }`}
             >
               <Icon name={added ? 'check' : 'add_shopping_cart'} size={18} />
               {added ? t('advika.product.addedToCart') : t('advika.cardAddToCart', 'ADD TO CART')}
@@ -428,57 +535,15 @@ export default function ProductDetailPage() {
             onClick={handleBuyNow}
             disabled={!stockInfo.available || isBuyNowPending}
             data-testid="product-detail-buy-now-button"
-            className="flex h-[52px] items-center justify-center border-[1.5px] border-advika-chrome text-[13px] font-bold text-advika-chrome disabled:opacity-60"
+            className="flex h-[52px] items-center justify-center bg-advika-orange text-[13px] font-bold text-white disabled:opacity-60"
           >
             {t('advika.product.buyNow', 'BUY NOW')}
           </button>
         </div>
+        </div>
 
-        {/* Fits these vehicles — sits between the quantity/CTA block and
-            the pincode check (README: "after the user has chosen a
-            variant but before they commit to buying"). */}
-        {compatibility && (
-          <div className="mx-[14px] mt-[18px] flex flex-col gap-[14px] rounded border border-advika-border-light p-4">
-            <div className="flex items-center gap-2">
-              <Icon name="local_shipping" size={19} className="text-advika-orange" />
-              <span className="text-[14.5px] font-bold text-advika-chrome">{t('advika.product.fitsVehicles', 'Fits these vehicles')}</span>
-            </div>
-            <div className="flex items-start gap-[9px] rounded-[3px] border border-advika-orange-border bg-advika-orange-tint2 p-3">
-              <Icon name="bolt" size={17} className="shrink-0 text-advika-orange-dark" />
-              <p className="text-[11.5px] font-semibold text-advika-orange-darker2">
-                {voltage.isDual
-                  ? t('advika.product.fitmentDualNote')
-                  : t('advika.product.fitmentSingleWarning', {
-                      voltage: voltage.label,
-                      otherVoltage: voltage.has24 ? '12V' : '24V',
-                    })}
-              </p>
-            </div>
-            {Object.entries(compatibility).map(([volt, models]) => (
-              <div key={volt} className="flex flex-col gap-[9px] border-t border-advika-divider-light pt-[13px]">
-                <div className="flex items-center gap-2">
-                  <span className={`aa-mono rounded-sm px-2 py-1 text-[11px] font-semibold text-white ${volt.includes('24') ? 'bg-advika-chrome' : 'bg-advika-orange'}`}>{volt}</span>
-                  <span className="text-[12px] text-advika-grey700">{volt.includes('24') ? t('advika.product.heavyGroup') : t('advika.product.smallGroup')}</span>
-                </div>
-                <div className="flex flex-wrap gap-[7px]">
-                  {(models || []).map((m) => (
-                    <span key={m} className="flex items-center gap-[6px] rounded-[3px] border border-advika-border-light bg-advika-off-white px-[10px] py-[7px] text-[12px] font-semibold text-advika-grey900">
-                      <Icon name={getVehicleIcon(m)} size={15} className="text-advika-grey650" /> {m}
-                    </span>
-                  ))}
-                  <span className="flex items-center gap-[6px] rounded-[3px] border border-dashed border-advika-grey400 px-[10px] py-[7px] text-[12px] font-semibold text-advika-grey650">
-                    <Icon name="more_horiz" size={15} className="text-advika-grey650" /> {t('advika.product.andSimilar', 'and similar')}
-                  </span>
-                </div>
-              </div>
-            ))}
-            <a href={BRAND_PHONE_TEL} className="flex h-11 items-center justify-center gap-2 border-[1.5px] border-advika-chrome text-[12px] font-bold text-advika-chrome">
-              <Icon name="chat" size={16} /> {t('advika.product.vehicleNotListed')}
-            </a>
-          </div>
-        )}
-
-        {/* Pincode serviceability */}
+        {/* Pincode serviceability — now sits before "Fits these vehicles"
+            per explicit instruction, ahead of its original position. */}
         <div className="mx-[14px] mt-[18px] flex flex-col gap-3 rounded border border-advika-border-light p-4">
           <div className="flex items-center gap-2">
             <Icon name="where_to_vote" size={19} className="text-advika-orange" />
@@ -521,6 +586,48 @@ export default function ProductDetailPage() {
             <p className="text-[12px] font-semibold text-advika-warning">{t('checkout.shipmentCheckFailed', "Couldn't check delivery for this pincode.")}</p>
           )}
         </div>
+
+        {/* Fits these vehicles */}
+        {compatibility && (
+          <div className="mx-[14px] mt-[18px] flex flex-col gap-[14px] rounded border border-advika-border-light p-4">
+            <div className="flex items-center gap-2">
+              <Icon name="local_shipping" size={19} className="text-advika-orange" />
+              <span className="text-[14.5px] font-bold text-advika-chrome">{t('advika.product.fitsVehicles', 'Fits these vehicles')}</span>
+            </div>
+            <div className="flex items-start gap-[9px] rounded-[3px] border border-advika-orange-border bg-advika-orange-tint2 p-3">
+              <Icon name="bolt" size={17} className="shrink-0 text-advika-orange-dark" />
+              <p className="text-[11.5px] font-semibold text-advika-orange-darker2">
+                {voltage.isDual
+                  ? t('advika.product.fitmentDualNote')
+                  : t('advika.product.fitmentSingleWarning', {
+                      voltage: voltage.label,
+                      otherVoltage: voltage.has24 ? '12V' : '24V',
+                    })}
+              </p>
+            </div>
+            {Object.entries(compatibility).map(([volt, models]) => (
+              <div key={volt} className="flex flex-col gap-[9px] border-t border-advika-divider-light pt-[13px]">
+                <div className="flex items-center gap-2">
+                  <span className={`aa-mono rounded-sm px-2 py-1 text-[11px] font-semibold text-white ${volt.includes('24') ? 'bg-advika-chrome' : 'bg-advika-orange'}`}>{volt}</span>
+                  <span className="text-[12px] text-advika-grey700">{volt.includes('24') ? t('advika.product.heavyGroup') : t('advika.product.smallGroup')}</span>
+                </div>
+                <div className="flex flex-wrap gap-[7px]">
+                  {(models || []).map((m) => (
+                    <span key={m} className="flex items-center gap-[6px] rounded-[3px] border border-advika-border-light bg-advika-off-white px-[10px] py-[7px] text-[12px] font-semibold text-advika-grey900">
+                      <Icon name={getVehicleIcon(m)} size={15} className="text-advika-grey650" /> {m}
+                    </span>
+                  ))}
+                  <span className="flex items-center gap-[6px] rounded-[3px] border border-dashed border-advika-grey400 px-[10px] py-[7px] text-[12px] font-semibold text-advika-grey650">
+                    <Icon name="more_horiz" size={15} className="text-advika-grey650" /> {t('advika.product.andSimilar', 'and similar')}
+                  </span>
+                </div>
+              </div>
+            ))}
+            <a href={BRAND_PHONE_TEL} className="flex h-11 items-center justify-center gap-2 border-[1.5px] border-advika-chrome text-[12px] font-bold text-advika-chrome">
+              <Icon name="chat" size={16} /> {t('advika.product.vehicleNotListed')}
+            </a>
+          </div>
+        )}
 
         <div className="px-[14px] pt-[18px]">
           <PromiseStrip

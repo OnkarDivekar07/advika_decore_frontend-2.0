@@ -2,7 +2,7 @@
 // See design_handoff_advika_auto/README.md, screen 3 "Category listing".
 // Reuses useProductListing (URL-driven filters/pagination against the
 // real GET /api/products) — only the presentation layer is new.
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import Icon from '@/components/Shared/Icon';
@@ -34,6 +34,15 @@ export default function ProductListingPage() {
   const voltageFilter = searchParams.get('voltage') || ''; // '12V' | '24V' | ''
   const [searchInput, setSearchInput] = useState('');
   const [page, setPage] = useState(1);
+  const activeChipRef = useRef(null);
+
+  // Same treatment as the vehicle page's class pills: centers the active
+  // category chip in the scroll strip on every change, so the next chip
+  // peeks into view instead of the selection landing flush against the
+  // edge with no hint there's more to scroll to.
+  useEffect(() => {
+    activeChipRef.current?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+  }, [categoryParam]);
 
   const updateParams = useCallback(
     (patch) => {
@@ -51,10 +60,11 @@ export default function ProductListingPage() {
 
   const selectCategory = useCallback(
     (label) => {
-      // Voltage only means anything for lights/electrical — switching to a
-      // category that isn't voltage-relevant clears a stale voltage
-      // filter, matching the design's rule that results are never
-      // silently narrowed by a control the user can no longer see.
+      // Voltage only means anything for voltage-relevant categories (see
+      // advikaAuto.js's CATEGORIES) — switching to a category that isn't
+      // voltage-relevant clears a stale voltage filter, matching the
+      // design's rule that results are never silently narrowed by a
+      // control the user can no longer see.
       const cat = getCategoryByLabel(label);
       updateParams({ category: label, voltage: cat?.voltageRelevant ? voltageFilter : '' });
     },
@@ -101,6 +111,19 @@ export default function ProductListingPage() {
 
   const { status, items, meta, hasMore, retry } = useProductListing(filters, page);
 
+  // useProductListing resets `meta` to null the instant a new category's
+  // fetch starts, before the new count is known. Rendering that directly
+  // made the "N products…" line collapse to 0 height and re-expand on
+  // every single category switch — and since it sits right above the
+  // search bar and category chips, they visibly shifted in sync with
+  // that animation. Keeping the last known meta on screen until the new
+  // one arrives (stale-while-revalidating) means that line's height
+  // never actually changes on a normal switch, so nothing above it has
+  // anything to shift for.
+  const lastMetaRef = useRef(null);
+  if (meta) lastMetaRef.current = meta;
+  const displayMeta = meta || lastMetaRef.current;
+
   // The backend has no `voltage` field yet (see prisma/schema.prisma) —
   // this filters client-side against whatever the API returns so the
   // chip is functional the moment that field lands, and a harmless no-op
@@ -136,12 +159,18 @@ export default function ProductListingPage() {
           <button type="button" onClick={() => navigate('/')} className="aa-label flex items-center gap-[6px] text-left text-[10.5px] uppercase text-advika-grey600">
             <Icon name="arrow_back" size={15} /> {t('common.home', 'Home')}
           </button>
-          <h1 className="aa-title-md text-white">{categoryTitle}</h1>
-          {meta?.total != null && (
-            <p className="text-[11.5px] text-advika-grey600">
-              {t('advika.categoryPage.resultCount', { count: meta.total })}
-            </p>
-          )}
+          {/* min-h reserves room for a 2-line title (48px per line) so a
+              short name like "Lights" and a long one like "Tassels &
+              Hangings" that wraps don't leave the search bar/category
+              chips below at two different heights depending on category. */}
+          <h1 className="aa-title-md min-h-[96px] text-white">{categoryTitle}</h1>
+          {/* min-h reserves the line's height for the brief window before
+              the very first fetch ever resolves (displayMeta is null only
+              then) — after that it always shows the last known count
+              instead of blanking out, so this never needs to animate. */}
+          <p className="min-h-[18px] text-[11.5px] text-advika-grey600">
+            {displayMeta?.total != null ? t('advika.categoryPage.resultCount', { count: displayMeta.total }) : ''}
+          </p>
           <form onSubmit={handleSearchSubmit} className="flex h-[46px] items-center gap-2 rounded border border-[#333] bg-advika-panel px-[13px]">
             <Icon name="search" size={19} className="text-advika-grey700" />
             <input
@@ -156,9 +185,10 @@ export default function ProductListingPage() {
         </div>
 
         {/* Category chips */}
-        <div className="flex gap-2 overflow-x-auto border-b border-advika-border-dark bg-advika-chrome px-[14px] py-3">
+        <div className="aa-hide-scrollbar flex gap-2 overflow-x-auto border-b border-advika-border-dark bg-advika-chrome px-[14px] py-3">
           <button
             type="button"
+            ref={!categoryParam ? activeChipRef : null}
             onClick={() => updateParams({ category: '', voltage: '' })}
             data-testid="product-listing-category-chip-all"
             className={`flex h-[38px] shrink-0 items-center gap-[7px] rounded-full px-[15px] text-[12.5px] font-semibold ${
@@ -171,6 +201,7 @@ export default function ProductListingPage() {
             <button
               key={cat.id}
               type="button"
+              ref={activeCategory?.id === cat.id ? activeChipRef : null}
               onClick={() => selectCategory(cat.label)}
               data-testid={`product-listing-category-chip-${cat.id}`}
               className={`flex h-[38px] shrink-0 items-center gap-[7px] rounded-full px-[15px] text-[12.5px] font-semibold ${
@@ -178,7 +209,7 @@ export default function ProductListingPage() {
               }`}
             >
               <Icon name={cat.icon} size={17} />
-              {t(`advika.category.${cat.id === 'interior' ? 'interiorShort' : cat.id === 'exterior' ? 'exteriorShort' : cat.id === 'electrical' ? 'electricalShort' : cat.id === 'spares' ? 'sparesShort' : cat.id}`)}
+              {t(`advika.category.${cat.id}`)}
             </button>
           ))}
         </div>
@@ -239,14 +270,19 @@ export default function ProductListingPage() {
           </button>
         </div>
 
-        {activeCategory?.voltageRelevant && (
-          <div className="flex items-center gap-2 border-b border-advika-orange-border bg-advika-orange-tint px-[14px] py-[10px]">
-            <Icon name="bolt" size={16} className="shrink-0 text-advika-orange-dark" />
-            <p className="text-[12px] font-semibold text-advika-orange-darker2">
-              {t('advika.categoryPage.voltPick', 'Pick the voltage that matches your vehicle — 12V or 24V')}
-            </p>
+        {/* Always mounted so switching categories smoothly collapses/
+            expands this instead of it abruptly popping in/out and
+            shifting the grid below it. */}
+        <div className={`aa-collapse ${activeCategory?.voltageRelevant ? 'aa-collapse-open' : ''}`}>
+          <div className="aa-collapse-inner">
+            <div className="flex items-center gap-2 border-b border-advika-orange-border bg-advika-orange-tint px-[14px] py-[10px]">
+              <Icon name="bolt" size={16} className="shrink-0 text-advika-orange-dark" />
+              <p className="text-[12px] font-semibold text-advika-orange-darker2">
+                {t('advika.categoryPage.voltPick', 'Pick the voltage that matches your vehicle — 12V or 24V')}
+              </p>
+            </div>
           </div>
-        )}
+        </div>
 
         {/* Product grid */}
         <div className="px-[14px] pt-[14px]">

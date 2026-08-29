@@ -18,13 +18,15 @@ import { useAuthGate } from '@/contexts/AuthGateContext';
 import { fetchProducts } from '@/services/productsService';
 import { getStockInfo, formatPrice } from '@/utils/productUtils';
 import { getLocalized as getLocalizedI18n } from '@/utils/i18nUtils';
-import { getCategoryByLabel, getVoltageInfo, BRAND_PHONE_TEL } from '@/config/advikaAuto';
+import { getCategoryByLabel, getVoltageInfo } from '@/config/advikaAuto';
+import { useBrandPhone } from '@/hooks/useBrandPhone';
 import { buildProductPath } from '@/seo/seoUtils';
 
 export default function CartPage() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { requireAuth } = useAuthGate();
+  const { tel: BRAND_PHONE_TEL } = useBrandPhone();
   const {
     items: cartItems,
     subtotal,

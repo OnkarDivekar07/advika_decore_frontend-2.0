@@ -72,14 +72,21 @@ export const getVehicleClass = (id) => VEHICLE_CLASSES.find((v) => v.id === id) 
 // category is reachable (landing tile, direct link) but doesn't get its
 // own chip on the Category listing's filter row — matches the design's
 // own chip row, which is shorter than its full landing tile grid.
+// Replaced with the real Advika Auto decoration-accessory taxonomy per the
+// reference screenshots — names/examples/counts are admin-editable via
+// SiteContent (see HomePage.jsx's category section + useSiteContent.js),
+// `label` here is only the filter-query value (GET /api/products?category=)
+// and isn't itself shown to a customer anywhere.
 export const CATEGORIES = [
   { id: 'lights', label: 'Lights', icon: 'wb_incandescent', voltageRelevant: true, chip: true, feature: true },
-  { id: 'horns', label: 'Horns & Air', icon: 'volume_up', voltageRelevant: false, chip: true },
-  { id: 'interior', label: 'Interior & Comfort', icon: 'airline_seat_recline_extra', voltageRelevant: false, chip: true },
-  { id: 'exterior', label: 'Exterior Styling', icon: 'auto_awesome', voltageRelevant: false, chip: true },
-  { id: 'electrical', label: 'Electrical & Wiring', icon: 'cable', voltageRelevant: true, chip: true },
-  { id: 'safety', label: 'Safety & Tools', icon: 'health_and_safety', voltageRelevant: false, chip: false },
-  { id: 'spares', label: 'Spares & Fitting', icon: 'build', voltageRelevant: false, chip: true },
+  { id: 'steering-cover', label: 'Steering Cover', icon: 'trip_origin', voltageRelevant: false, chip: true },
+  { id: 'tassels-hangings', label: 'Tassels & Hangings', icon: 'auto_awesome', voltageRelevant: false, chip: true },
+  { id: 'rubber-matting', label: 'Rubber & Matting', icon: 'view_stream', voltageRelevant: false, chip: true },
+  { id: 'garland-vine-flag', label: 'Garland, Vine & Flag', icon: 'filter_vintage', voltageRelevant: false, chip: true },
+  { id: 'cloth-decoration', label: 'Cloth Decoration', icon: 'dry_cleaning', voltageRelevant: false, chip: true },
+  { id: 'fan-charger-horn', label: 'Fan, Charger & Horn', icon: 'mode_fan', voltageRelevant: false, chip: true },
+  { id: 'useful-items', label: 'Useful Items', icon: 'handyman', voltageRelevant: false, chip: false },
+  { id: 'mirror-wheelcap', label: 'Mirror & Wheel Cap', icon: 'build', voltageRelevant: false, chip: true },
 ];
 
 export const getCategory = (id) => CATEGORIES.find((c) => c.id === id);

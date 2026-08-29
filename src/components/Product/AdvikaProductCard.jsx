@@ -87,9 +87,15 @@ export default function AdvikaProductCard({ product, imageHeight = 128, dense = 
     <article className="relative flex flex-col border border-advika-border-light bg-white" data-testid={`product-card-${product.id}`}>
       <Link to={buildProductPath(product, name)} className="absolute inset-0 z-0" aria-label={name} />
 
-      {/* Image area */}
+      {/* Image area. pointer-events-none on this whole wrapper — it's a
+          `relative`-positioned sibling that comes after the card-covering
+          Link in the DOM, so without this it painted (and hit-tested)
+          above the Link and ate every click on the product photo itself,
+          the single largest and most-clicked part of the card. The
+          wishlist button below opts back into pointer-events-auto since
+          it's a real control, not decoration. */}
       <div
-        className="relative flex items-center justify-center bg-advika-ink p-[14px]"
+        className="pointer-events-none relative flex items-center justify-center bg-[#151515] p-[14px]"
         style={{ height: imageHeight }}
       >
         <div className="absolute left-2 top-2 z-10 flex gap-1">
@@ -100,7 +106,7 @@ export default function AdvikaProductCard({ product, imageHeight = 128, dense = 
           )}
           {voltage.hasVoltage && (
             <span
-              className={`aa-mono rounded-sm px-[5px] py-[3px] text-[8px] font-semibold text-white ${
+              className={`aa-mono rounded-sm px-[6px] py-[3px] text-[9.5px] font-semibold text-white ${
                 voltage.isDual ? 'bg-advika-success' : 'border border-white/[.32] bg-white/[.14]'
               }`}
             >
@@ -120,7 +126,7 @@ export default function AdvikaProductCard({ product, imageHeight = 128, dense = 
             aria-pressed={wishlisted}
             aria-label={wishlisted ? t('productDetail.removedFromWishlist', 'Remove from wishlist') : t('productDetail.addToWishlist', 'Add to wishlist')}
             data-testid={`product-card-wishlist-toggle-${product.id}`}
-            className={`absolute right-[6px] top-[6px] z-10 flex h-[34px] w-[34px] items-center justify-center rounded-full ${
+            className={`pointer-events-auto absolute right-[6px] top-[6px] z-10 flex h-[34px] w-[34px] items-center justify-center rounded-full ${
               wishlisted ? 'bg-advika-orange/[.18]' : 'bg-white/[.12]'
             }`}
           >
@@ -135,7 +141,7 @@ export default function AdvikaProductCard({ product, imageHeight = 128, dense = 
       </div>
 
       {/* Body */}
-      <div className="flex flex-1 flex-col gap-[9px] p-[11px] pb-[13px]">
+      <div className="flex flex-1 flex-col gap-[9px] px-[11px] pt-3 pb-[13px]">
         {dense ? (
           <div className={`flex items-start justify-between gap-2 ${typeof product.rating !== 'number' ? 'min-h-[33px]' : ''}`}>
             <h3 className="text-[12.5px] font-bold leading-[1.35] text-advika-chrome line-clamp-2">{name}</h3>
@@ -167,18 +173,18 @@ export default function AdvikaProductCard({ product, imageHeight = 128, dense = 
         )}
         <div className="flex items-baseline gap-[6px]">
           <span className="aa-mono text-[15px] font-semibold text-advika-chrome">₹{formatPrice(product.price) ?? product.price}</span>
-          {hasDiscount && <span className="aa-mono text-[10.5px] text-advika-grey650 line-through">₹{formatPrice(mrp)}</span>}
+          {hasDiscount && <span className="aa-mono text-[10.5px] text-advika-grey600 line-through">₹{formatPrice(mrp)}</span>}
         </div>
         <span className="flex w-fit items-center gap-1 self-start rounded-sm border border-advika-success-border bg-advika-success-tint px-[6px] py-1">
           <Icon name="payments" size={12} className="text-advika-success" />
-          <span className="aa-label text-[9px] font-semibold text-advika-success-dark">{t(codLabelKey, codLabelDefault)}</span>
+          <span className="aa-mono text-[9px] font-semibold text-advika-success-dark">{t(codLabelKey, codLabelDefault)}</span>
         </span>
         <button
           type="button"
           onClick={handleAddToCart}
           disabled={isAdding || !stockInfo.available}
           data-testid={`product-card-add-to-cart-${product.id}`}
-          className={`aa-label relative z-10 mt-auto flex items-center justify-center gap-2 font-bold text-white transition-colors disabled:cursor-default ${
+          className={`aa-label relative z-10 mt-auto flex items-center justify-center gap-[6px] font-bold text-white transition-colors disabled:cursor-default ${
             dense ? 'h-[42px] text-[10.5px]' : 'h-11 text-[11px]'
           } ${
             !stockInfo.available

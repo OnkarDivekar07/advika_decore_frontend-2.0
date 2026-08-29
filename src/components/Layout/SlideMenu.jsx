@@ -8,7 +8,7 @@ import { useTranslation } from 'react-i18next';
 import Icon from '@/components/Shared/Icon';
 import { useWishlist } from '@/contexts/WishlistContext';
 import LanguageModal from '@/components/Layout/LanguageModal';
-import { BRAND_PHONE_TEL } from '@/config/advikaAuto';
+import { useBrandPhone } from '@/hooks/useBrandPhone';
 
 function Row({ to, href, icon, label, badge, onClick, testId }) {
   const content = (
@@ -16,11 +16,11 @@ function Row({ to, href, icon, label, badge, onClick, testId }) {
       <Icon name={icon} size={21} className="text-advika-orange" />
       <span className="flex-1 text-[14.5px] text-white">{label}</span>
       {!!badge && (
-        <span className="aa-mono flex h-[15px] min-w-[15px] items-center justify-center rounded-full bg-advika-orange px-[3px] text-[8px] font-semibold text-white">
+        <span className="aa-mono flex h-[19px] min-w-[19px] items-center justify-center rounded-full bg-advika-orange px-[5px] text-[9.5px] font-semibold text-white">
           {badge > 99 ? '99+' : badge}
         </span>
       )}
-      <Icon name="chevron_right" size={18} className="text-advika-grey600" />
+      <Icon name="chevron_right" size={18} className="text-[#525252]" />
     </>
   );
   const className = 'flex h-14 items-center gap-[13px] border-b border-[#2e2e2e] px-4';
@@ -41,6 +41,7 @@ function Row({ to, href, icon, label, badge, onClick, testId }) {
 export default function SlideMenu({ open, onClose }) {
   const { t } = useTranslation();
   const { count: wishlistCount } = useWishlist();
+  const { tel: BRAND_PHONE_TEL } = useBrandPhone();
   const [langModalOpen, setLangModalOpen] = useState(false);
 
   if (!open) return null;

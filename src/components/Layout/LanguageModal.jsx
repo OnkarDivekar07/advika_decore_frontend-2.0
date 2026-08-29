@@ -61,7 +61,7 @@ export default function LanguageModal({ isOpen, onClose }) {
             >
               <Icon name="translate" className="text-advika-orange" size={22} />
               <span className="flex-1 text-[16px] font-semibold text-white">{t(opt.labelKey)}</span>
-              <Icon name="chevron_right" className="text-advika-grey600" size={20} />
+              <Icon name="chevron_right" className="text-[#525252]" size={20} />
             </button>
           ))}
         </div>

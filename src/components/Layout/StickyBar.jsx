@@ -1,26 +1,30 @@
 // src/components/Layout/StickyBar.jsx
 //
-// Sticky bottom bars — see design_handoff_advika_auto/README.md, Landing
+// Bottom bars — see design_handoff_advika_auto/README.md, Landing
 // section 12 (CALL / WHATSAPP / VIEW CART) and the Product/Cart per-page
 // variants (a summary line beside one primary action).
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import Icon from '@/components/Shared/Icon';
 import { useCart } from '@/contexts/CartContext';
-import { BRAND_PHONE_TEL, BRAND_WHATSAPP_URL } from '@/config/advikaAuto';
+import { useBrandPhone } from '@/hooks/useBrandPhone';
 
+// Not `position: fixed` — renders in normal document flow, right after
+// AdvikaFooter (see HomePage.jsx), so it sits at the very bottom of the
+// page instead of pinned over the content while scrolling.
 export function LandingStickyBar() {
   const { t } = useTranslation();
   const { itemCount } = useCart();
+  const { tel, whatsapp } = useBrandPhone();
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-[60] mx-auto grid max-w-shell grid-cols-[1fr_1fr_1.4fr] border-t border-[#333] bg-advika-chrome">
-      <a href={BRAND_PHONE_TEL} className="flex h-[66px] flex-col items-center justify-center gap-1 border-r border-[#333]">
+    <div className="mx-auto grid max-w-shell grid-cols-[1fr_1fr_1.4fr] border-t border-[#333] bg-advika-chrome">
+      <a href={tel} className="flex h-[66px] flex-col items-center justify-center gap-1 border-r border-[#333]">
         <Icon name="call" size={22} className="text-advika-orange" />
         <span className="aa-mono text-[9.5px] text-[#e5e5e5]">{t('advika.landing.callLabel', 'CALL')}</span>
       </a>
       <a
-        href={`${BRAND_WHATSAPP_URL}`}
+        href={whatsapp}
         target="_blank"
         rel="noopener noreferrer"
         className="flex h-[66px] flex-col items-center justify-center gap-1 border-r border-[#333]"

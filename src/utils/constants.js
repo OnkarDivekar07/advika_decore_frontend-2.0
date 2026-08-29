@@ -33,9 +33,3 @@ export const OTP_EXPECTED_TTL_MS = 5 * 60 * 1000;
 
 // Session
 export const AUTH_TOKEN_KEY = 'authToken';
-
-// --- Product catalog ---------------------------------------------------
-// Vehicle categories a product can belong to. Kept as a single source of
-// truth so the homepage category widget (components/Product/Categories)
-// and the full product listing page (pages/Products) never drift apart.
-export const PRODUCT_CATEGORIES = ['Truck', 'Tempo', 'Pickup', 'Car', 'Two Wheeler', 'Tractor'];

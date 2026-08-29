@@ -17,7 +17,8 @@ import Spinner from '@/components/Shared/Spinner';
 import AdvikaHeader from '@/components/Layout/AdvikaHeader';
 import * as orderService from '@/services/orderService';
 import * as shippingService from '@/services/shippingService';
-import { getCategoryByLabel, BRAND_PHONE_TEL } from '@/config/advikaAuto';
+import { getCategoryByLabel } from '@/config/advikaAuto';
+import { useBrandPhone } from '@/hooks/useBrandPhone';
 import { formatPrice } from '@/utils/productUtils';
 import {
   STAGES,
@@ -31,6 +32,7 @@ import {
 export default function OrderTrackingPage() {
   const { t } = useTranslation();
   const { orderId } = useParams();
+  const { tel: BRAND_PHONE_TEL } = useBrandPhone();
 
   const [state, setState] = useState('loading');
   const [order, setOrder] = useState(null);
