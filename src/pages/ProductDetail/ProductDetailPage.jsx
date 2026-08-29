@@ -263,7 +263,7 @@ export default function ProductDetailPage() {
   // to the total price (not just the unit price) — see the wireframe's
   // own renderVals: `price: money(w.price * qtyNow)`. Combined with the
   // variant meta (if any) so a wattage/pack selection stays visible too.
-  const quantityTotalLabel = unit ? t('advika.product.quantityTotalLabel', { qty: quantity, unit }) : '';
+  const quantityTotalLabel = unit ? t('advika.product.quantityTotalLabel', { qty: quantity, unit: t(`advika.product.unit.${unit}`, unit) }) : '';
   const stickyMetaLabel = [variantMetaLabel, quantityTotalLabel].filter(Boolean).join(' · ');
   // The gallery's main-frame badge shows only the selected wattage
   // (README: "A wattage badge sits top:10px;left:10px"), not the full

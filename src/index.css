@@ -399,7 +399,7 @@ a { color: inherit; text-decoration: none; }
      just without the font-family change. */
   .aa-tracking { letter-spacing: 0.08em; }
   html:lang(hi) .aa-tracking, html:lang(mr) .aa-tracking { letter-spacing: 0; }
-  .aa-page-vehicle .aa-tracking, .aa-page-category .aa-tracking, .aa-page-product .aa-tracking, .aa-page-cart .aa-tracking, .aa-page-wishlist .aa-tracking, .aa-page-checkout .aa-tracking, .aa-page-login .aa-tracking, .aa-page-tracking .aa-tracking { letter-spacing: 0.07em; }
+  .aa-page-vehicle .aa-tracking, .aa-page-category .aa-tracking, .aa-page-product .aa-tracking, .aa-page-cart .aa-tracking, .aa-page-wishlist .aa-tracking, .aa-page-checkout .aa-tracking, .aa-page-login .aa-tracking, .aa-page-tracking .aa-tracking, .aa-page-account .aa-tracking { letter-spacing: 0.07em; }
   html:lang(hi) .aa-page-vehicle .aa-tracking, html:lang(mr) .aa-page-vehicle .aa-tracking,
   html:lang(hi) .aa-page-category .aa-tracking, html:lang(mr) .aa-page-category .aa-tracking,
   html:lang(hi) .aa-page-product .aa-tracking, html:lang(mr) .aa-page-product .aa-tracking,
@@ -407,7 +407,8 @@ a { color: inherit; text-decoration: none; }
   html:lang(hi) .aa-page-wishlist .aa-tracking, html:lang(mr) .aa-page-wishlist .aa-tracking,
   html:lang(hi) .aa-page-checkout .aa-tracking, html:lang(mr) .aa-page-checkout .aa-tracking,
   html:lang(hi) .aa-page-login .aa-tracking, html:lang(mr) .aa-page-login .aa-tracking,
-  html:lang(hi) .aa-page-tracking .aa-tracking, html:lang(mr) .aa-page-tracking .aa-tracking { letter-spacing: 0; }
+  html:lang(hi) .aa-page-tracking .aa-tracking, html:lang(mr) .aa-page-tracking .aa-tracking,
+  html:lang(hi) .aa-page-account .aa-tracking, html:lang(mr) .aa-page-account .aa-tracking { letter-spacing: 0; }
 
   /* Announcement ticker — duplicated content translates by -50% so the
      loop is seamless (see Landing page build). */
