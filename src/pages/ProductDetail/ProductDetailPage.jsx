@@ -6,7 +6,7 @@
 // on the backend's Product model yet — every such section renders nothing
 // rather than fake data when the field is absent, and lights up
 // automatically once the backend task adds them.
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
@@ -18,7 +18,7 @@ import AdvikaHeader from '@/components/Layout/AdvikaHeader';
 import AdvikaFooter from '@/components/Layout/AdvikaFooter';
 import PromiseStrip from '@/components/Shared/PromiseStrip';
 import AdvikaProductCard from '@/components/Product/AdvikaProductCard';
-import { StickyActionBar } from '@/components/Layout/StickyBar';
+import { ProductStickyBar } from '@/components/Layout/StickyBar';
 import { useCart } from '@/contexts/CartContext';
 import { useWishlist } from '@/contexts/WishlistContext';
 import { useAuthGate } from '@/contexts/AuthGateContext';
@@ -77,6 +77,32 @@ export default function ProductDetailPage() {
   const [imageLoadFailed, setImageLoadFailed] = useState({});
   const [pincode, setPincode] = useState('');
   const { status: pincodeStatus, data: pincodeData, retry: retryPincode } = useServiceabilityCheck(pincode, { debounceMs: 0, enabled: PINCODE_REGEX.test(pincode) });
+
+  // Design's sticky bar only appears once the inline Add to Cart/Buy Now
+  // section has scrolled fully past (never both on screen at once) — see
+  // the wireframe's own componentDidMount: a scroll listener toggling
+  // `showBar` based on `buyRef`'s bounding rect. Mirrored here with a ref
+  // + scroll/resize listener rather than an IntersectionObserver so the
+  // "has it scrolled ABOVE the viewport" check (bottom < 0) matches
+  // exactly — a plain visibility observer would also fire when the
+  // section is still below the viewport (not yet scrolled to).
+  const buyRef = useRef(null);
+  const [showStickyBar, setShowStickyBar] = useState(false);
+  useEffect(() => {
+    const onScroll = () => {
+      const el = buyRef.current;
+      if (!el) return;
+      const show = el.getBoundingClientRect().bottom < 0;
+      setShowStickyBar((prev) => (prev !== show ? show : prev));
+    };
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+    };
+  }, [product]);
 
   const fetchProduct = useCallback(async () => {
     setLoading(true);
@@ -233,6 +259,12 @@ export default function ProductDetailPage() {
   const specs = product.specs && typeof product.specs === 'object' ? Object.entries(product.specs) : [];
   const compatibility = product.compatibility && typeof product.compatibility === 'object' ? product.compatibility : null; // { '24V': ['Tata Signa', ...], '12V': [...] }
   const variantMetaLabel = variantGroups.map((g) => g.options?.[variantIndex[g.label] ?? g.defaultIndex ?? 0]?.label).filter(Boolean).join(' · ');
+  // Design's sticky bar shows a running "{qty} {unit} =" calculation next
+  // to the total price (not just the unit price) — see the wireframe's
+  // own renderVals: `price: money(w.price * qtyNow)`. Combined with the
+  // variant meta (if any) so a wattage/pack selection stays visible too.
+  const quantityTotalLabel = unit ? t('advika.product.quantityTotalLabel', { qty: quantity, unit }) : '';
+  const stickyMetaLabel = [variantMetaLabel, quantityTotalLabel].filter(Boolean).join(' · ');
   // The gallery's main-frame badge shows only the selected wattage
   // (README: "A wattage badge sits top:10px;left:10px"), not the full
   // "100W · Combo" meta line the sticky bar uses.
@@ -242,31 +274,26 @@ export default function ProductDetailPage() {
     : null;
 
   return (
-    <div className="aa-shell min-h-screen bg-white pb-[92px]">
+    <div className="aa-shell aa-page-product min-h-screen bg-advika-warm-white pb-[126px]">
       {seoData && <Seo title={name} canonicalPath={seoData.canonicalPath} jsonLd={seoData.jsonLd} image={images[0]} ogType="product" />}
       <AdvikaHeader />
 
       {/* Breadcrumb */}
-      <div className="flex items-center gap-[7px] overflow-hidden border-b border-advika-border-light px-[14px] py-[11px] text-[11.5px]">
+      <div className="flex items-center gap-[7px] overflow-hidden border-b border-advika-border-light bg-white px-[14px] py-[11px] text-[11.5px]">
         <Link to="/" className="shrink-0 text-advika-grey700">{t('common.home', 'Home')}</Link>
-        <span className="text-advika-grey700">›</span>
+        <Icon name="chevron_right" size={14} className="text-advika-grey400" />
         {category && (
           <>
             <Link to={`/products?category=${encodeURIComponent(category.label)}`} className="shrink-0 text-advika-grey700">
               {t(`advika.category.${category.id}`)}
             </Link>
-            <span className="text-advika-grey700">›</span>
+            <Icon name="chevron_right" size={14} className="text-advika-grey400" />
           </>
         )}
         <span className="truncate font-semibold text-advika-orange-dark">{name}</span>
       </div>
 
       <main id="main-content" tabIndex={-1}>
-        {/* Gallery through Quantity/CTAs sit on a soft grey backdrop (the
-            price card stays explicitly white on top of it); "Fits these
-            vehicles" and everything after resumes the page's plain white
-            background. */}
-        <div className="bg-advika-off-white pb-[18px]">
         {/* Gallery */}
         <div className="flex flex-col gap-[10px] px-[14px] pt-[14px]">
           <div className="relative flex h-[230px] items-center justify-center rounded-[5px] bg-advika-ink">
@@ -340,7 +367,7 @@ export default function ProductDetailPage() {
                       className={`relative flex h-[60px] items-center justify-center rounded bg-advika-ink ${isSelected ? 'border-2 border-advika-orange' : 'border-2 border-advika-border-dark'}`}
                     >
                       {opt.label && (
-                        <span className="aa-mono absolute bottom-[3px] left-1/2 -translate-x-1/2 text-[8px] font-semibold text-advika-grey600">
+                        <span className={`absolute bottom-[3px] left-1/2 -translate-x-1/2 text-[9px] font-semibold ${isSelected ? 'text-advika-orange-dark' : 'text-advika-grey600'}`}>
                           {opt.label}
                         </span>
                       )}
@@ -352,7 +379,7 @@ export default function ProductDetailPage() {
                           onError={() => setImageLoadFailed((prev) => ({ ...prev, [src]: true }))}
                         />
                       ) : (
-                        <Icon name={category?.icon || 'auto_awesome'} size={20} className="text-advika-orange" />
+                        <Icon name={category?.icon || 'auto_awesome'} size={28} className="text-advika-orange" />
                       )}
                     </button>
                   );
@@ -381,7 +408,7 @@ export default function ProductDetailPage() {
                       className={`flex h-[60px] w-full items-center justify-center rounded bg-advika-ink ${isSelected ? 'border-2 border-advika-orange' : 'border-2 border-advika-border-dark'}`}
                     >
                       {slot.key === 'video' ? (
-                        <Icon name="play_circle" size={22} className="text-advika-orange" />
+                        <Icon name="play_circle" size={28} className="text-advika-orange" />
                       ) : src && !imageLoadFailed[src] ? (
                         <ImageWithFallback
                           src={src}
@@ -390,10 +417,10 @@ export default function ProductDetailPage() {
                           onError={() => setImageLoadFailed((prev) => ({ ...prev, [src]: true }))}
                         />
                       ) : (
-                        <Icon name={category?.icon || 'auto_awesome'} size={20} className="text-advika-orange" />
+                        <Icon name={category?.icon || 'auto_awesome'} size={28} className="text-advika-orange" />
                       )}
                     </button>
-                    <span className={`aa-mono text-[8px] font-semibold ${isSelected ? 'text-advika-orange' : 'text-advika-grey600'}`}>
+                    <span className={`text-[9px] font-semibold ${isSelected ? 'text-advika-orange-dark' : 'text-advika-grey600'}`}>
                       {slot.label}
                     </span>
                   </div>
@@ -406,19 +433,19 @@ export default function ProductDetailPage() {
         {/* Title block */}
         <div className="flex flex-col gap-[13px] px-[14px] pt-[18px]">
           {product.isBestSeller && (
-            <span className="flex items-center gap-1 text-[10px] font-bold text-advika-orange-dark">
+            <span className="aa-label flex items-center gap-[6px] text-[10px] font-bold text-advika-orange-dark">
               <Icon name="military_tech" size={16} /> {t('advika.product.bestSeller', 'BEST SELLER')}
             </span>
           )}
           <h1 className="aa-title-product text-advika-chrome">{name}</h1>
           {voltage.hasVoltage && (
             voltage.isDual ? (
-              <span className="flex w-fit items-center gap-2 rounded-sm border border-advika-success-border bg-advika-success-tint px-[10px] py-[6px] text-[11.5px] font-bold text-advika-success-dark">
-                <Icon name="bolt" size={16} />
+              <span className="flex w-fit items-center gap-[7px] rounded-[3px] border border-advika-success-border bg-advika-success-tint px-[11px] py-2 text-[11.5px] font-bold text-advika-success-dark">
+                <Icon name="bolt" size={16} className="text-advika-success" />
                 {t('advika.product.dualVoltageNote')}
               </span>
             ) : (
-              <span className="flex w-fit items-center gap-2 rounded-sm border border-advika-orange-border bg-advika-orange-tint px-[10px] py-[6px] text-[11.5px] font-bold text-advika-orange-darker2">
+              <span className="flex w-fit items-center gap-[7px] rounded-[3px] border border-advika-orange-border bg-advika-orange-tint px-[11px] py-2 text-[11.5px] font-bold text-advika-orange-darker2">
                 <Icon name="bolt" size={16} className="text-advika-orange-dark" />
                 {t('advika.product.singleVoltageChip', {
                   voltage: voltage.label,
@@ -427,34 +454,36 @@ export default function ProductDetailPage() {
               </span>
             )
           )}
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-[10px]">
             {typeof product.rating === 'number' && (
-              <span className="flex items-center gap-1">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Icon key={i} name="star" size={15} className={i < Math.round(product.rating) ? 'text-advika-orange' : 'text-advika-grey400'} />
-                ))}
-                <span className="aa-mono ml-1 text-[14px] font-semibold text-advika-chrome">{product.rating.toFixed(1)}</span>
+              <>
+                <span className="flex items-center gap-[2px]">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Icon key={i} name="star" size={15} className={i < Math.round(product.rating) ? 'text-advika-orange' : 'text-advika-grey400'} />
+                  ))}
+                </span>
+                <span className="aa-mono text-[14px] font-semibold text-advika-chrome">{product.rating.toFixed(1)}</span>
                 {typeof product.reviewCount === 'number' && (
                   <span className="text-[12px] text-advika-grey700">{t('advika.product.reviewsCount', { count: product.reviewCount })}</span>
                 )}
-              </span>
+              </>
             )}
             {stockInfo.available && (
               <span className="flex items-center gap-1 text-[12px] font-semibold text-advika-success">
-                <Icon name="check_circle" size={14} /> {t('productDetail.inStock', 'In Stock')}
+                <Icon name="check_circle" size={15} /> {t('productDetail.inStock', 'In Stock')}
               </span>
             )}
           </div>
         </div>
 
         {/* Price card */}
-        <div className="mx-[14px] mt-[18px] flex flex-col gap-1 rounded border border-advika-border-light bg-white p-3">
-          <div className="flex items-center gap-2">
+        <div className="mx-[14px] mt-[18px] flex flex-col gap-2 rounded border border-advika-border-light bg-white p-4">
+          <div className="flex items-center gap-[10px]">
             <span className="aa-mono text-[29px] font-semibold text-advika-chrome">
               ₹{formatPrice(activeVariantPrice) ?? activeVariantPrice}
-              {unit && <span className="text-[15px] font-normal text-advika-grey650">/{unit}</span>}
+              {unit && <span className="text-[15px] font-semibold text-advika-grey700">/{unit}</span>}
             </span>
-            {hasDiscount && <span className="aa-mono text-[15px] text-advika-grey650 line-through">₹{formatPrice(activeVariantMrp)}</span>}
+            {hasDiscount && <span className="aa-mono text-[15px] text-advika-grey600 line-through">₹{formatPrice(activeVariantMrp)}</span>}
             {discountPct != null && (
               <span className="rounded-[3px] bg-advika-success-tint2 px-2 py-1 text-[11.5px] font-bold text-advika-success-dark">-{discountPct}%</span>
             )}
@@ -469,7 +498,7 @@ export default function ProductDetailPage() {
               const idx = variantIndex[group.label] ?? group.defaultIndex ?? 0;
               return (
                 <div key={group.label} className="flex flex-col gap-2">
-                  <div className="flex items-baseline gap-2 text-[13.5px]">
+                  <div className="flex items-baseline gap-[7px] text-[13.5px]">
                     <span className="font-bold text-advika-chrome">{group.label}</span>
                     <span className="font-bold text-advika-orange">{group.options?.[idx]?.label}</span>
                   </div>
@@ -480,7 +509,7 @@ export default function ProductDetailPage() {
                         type="button"
                         onClick={() => setVariantIndex((prev) => ({ ...prev, [group.label]: optIdx }))}
                         data-testid={`product-detail-variant-${group.label}-${opt.label}`}
-                        className={`aa-mono flex h-11 items-center justify-center rounded px-3 text-[13px] font-semibold ${
+                        className={`flex h-11 items-center justify-center rounded px-3 text-[13px] font-semibold ${
                           group.label === 'Wattage' ? 'min-w-[62px]' : 'min-w-[70px]'
                         } ${
                           optIdx === idx ? 'border-[1.5px] border-advika-orange bg-advika-orange text-white' : 'border-[1.5px] border-advika-grey400 text-advika-grey900'
@@ -497,24 +526,26 @@ export default function ProductDetailPage() {
         )}
 
         {/* Quantity + CTAs */}
-        <div className="flex flex-col gap-[11px] px-[14px] pt-[18px]">
+        <div ref={buyRef} className="flex flex-col gap-[11px] px-[14px] pt-[18px]">
           {unit && (
-            <span className="aa-label text-[10px] font-bold text-advika-orange">
+            <span className="aa-label text-[9.5px] font-semibold text-advika-orange-dark">
               {t('advika.product.quantityLabel', { unitLabel: t(`advika.product.unit.${unit}`, unit) })}
             </span>
           )}
           <div className="flex gap-[11px]">
             <div className="flex h-[52px] overflow-hidden rounded border border-advika-grey400">
-              <button type="button" onClick={() => setQuantity((q) => Math.max(1, q - 1))} data-testid="product-detail-quantity-decrease" className="w-[42px] border-r border-advika-border-light text-lg">−</button>
+              <button type="button" onClick={() => setQuantity((q) => Math.max(1, q - 1))} data-testid="product-detail-quantity-decrease" className="flex w-[42px] items-center justify-center border-r border-advika-border-light">
+                <Icon name="remove" size={18} className="text-advika-grey900" />
+              </button>
               <span className="aa-mono flex min-w-[42px] items-center justify-center text-[16px] font-semibold" data-testid="product-detail-quantity-value">{quantity}</span>
               <button
                 type="button"
                 onClick={() => setQuantity((q) => Math.min(maxSelectableQuantity, q + 1))}
                 disabled={quantity >= maxSelectableQuantity}
                 data-testid="product-detail-quantity-increase"
-                className="w-[42px] border-l border-advika-border-light text-lg disabled:opacity-40"
+                className="flex w-[42px] items-center justify-center border-l border-advika-border-light disabled:opacity-40"
               >
-                +
+                <Icon name="add" size={18} className="text-advika-grey900" />
               </button>
             </div>
             <button
@@ -522,8 +553,8 @@ export default function ProductDetailPage() {
               onClick={handleAddToCart}
               disabled={!stockInfo.available || isAdding}
               data-testid="product-detail-add-to-cart-button"
-              className={`flex h-[52px] flex-1 items-center justify-center gap-2 rounded border-[1.5px] text-[13px] font-bold disabled:opacity-60 ${
-                added ? 'border-advika-success bg-advika-success text-white' : 'border-advika-orange bg-white text-advika-orange'
+              className={`aa-tracking flex h-[52px] flex-1 items-center justify-center gap-2 rounded border-[1.5px] bg-white text-[13px] font-bold disabled:opacity-60 ${
+                added ? 'border-advika-success text-advika-success-bright' : 'border-advika-orange text-advika-orange'
               }`}
             >
               <Icon name={added ? 'check' : 'add_shopping_cart'} size={18} />
@@ -535,21 +566,20 @@ export default function ProductDetailPage() {
             onClick={handleBuyNow}
             disabled={!stockInfo.available || isBuyNowPending}
             data-testid="product-detail-buy-now-button"
-            className="flex h-[52px] items-center justify-center bg-advika-orange text-[13px] font-bold text-white disabled:opacity-60"
+            className="aa-tracking flex h-[52px] items-center justify-center rounded bg-advika-orange text-[13px] font-bold text-white disabled:opacity-60"
           >
             {t('advika.product.buyNow', 'BUY NOW')}
           </button>
         </div>
-        </div>
 
         {/* Pincode serviceability — now sits before "Fits these vehicles"
             per explicit instruction, ahead of its original position. */}
-        <div className="mx-[14px] mt-[18px] flex flex-col gap-3 rounded border border-advika-border-light p-4">
-          <div className="flex items-center gap-2">
+        <div className="mx-[14px] mt-[18px] flex flex-col gap-[9px] rounded border border-advika-border-light bg-white p-4">
+          <div className="flex items-center gap-[9px]">
             <Icon name="where_to_vote" size={19} className="text-advika-orange" />
             <span className="text-[14.5px] font-bold text-advika-chrome">{t('advika.product.deliversToArea')}</span>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-[9px]">
             <input
               type="text"
               inputMode="numeric"
@@ -558,25 +588,25 @@ export default function ProductDetailPage() {
               onChange={(e) => setPincode(sanitizePincodeInput(e.target.value))}
               maxLength={6}
               placeholder={t('advika.product.pincodePlaceholder')}
-              className="aa-mono h-12 flex-1 rounded-[3px] border border-advika-grey400 px-3 text-[15px] tracking-[.08em] outline-none"
+              className="aa-mono h-12 flex-1 rounded-[3px] border border-advika-grey400 px-[13px] text-[15px] tracking-[.08em] outline-none"
             />
             <button
               type="button"
               onClick={retryPincode}
               data-testid="product-detail-pincode-check-button"
-              className="h-12 shrink-0 rounded-[3px] bg-advika-chrome px-4 text-[12px] font-bold text-white"
+              className="aa-tracking h-12 shrink-0 rounded-[3px] bg-advika-chrome px-[18px] text-[12px] font-bold text-white"
             >
               {t('advika.product.check', 'CHECK')}
             </button>
           </div>
           {pincodeStatus === 'ready' && pincodeData?.serviceable && (
-            <div className="flex items-center gap-3 rounded-[3px] border border-advika-success-border bg-advika-success-tint p-3">
+            <div className="flex items-start gap-[9px] rounded-[3px] border border-advika-success-border bg-advika-success-tint p-3">
               <Icon name="local_shipping" size={18} className="text-advika-success" />
               <div>
                 <p className="text-[12.5px] font-bold text-advika-success-dark">
                   {t('advika.product.pinGood', { pincode })}
                 </p>
-                <p className="text-[11.5px] text-advika-success-dark">
+                <p className="text-[11.5px] leading-[1.45] text-advika-success-dark">
                   {t('advika.product.pinEta')}
                 </p>
               </div>
@@ -589,14 +619,14 @@ export default function ProductDetailPage() {
 
         {/* Fits these vehicles */}
         {compatibility && (
-          <div className="mx-[14px] mt-[18px] flex flex-col gap-[14px] rounded border border-advika-border-light p-4">
-            <div className="flex items-center gap-2">
+          <div className="mx-[14px] mt-[18px] flex flex-col gap-[14px] rounded border border-advika-border-light bg-white p-4">
+            <div className="flex items-center gap-[9px]">
               <Icon name="local_shipping" size={19} className="text-advika-orange" />
               <span className="text-[14.5px] font-bold text-advika-chrome">{t('advika.product.fitsVehicles', 'Fits these vehicles')}</span>
             </div>
-            <div className="flex items-start gap-[9px] rounded-[3px] border border-advika-orange-border bg-advika-orange-tint2 p-3">
+            <div className="flex items-start gap-[9px] rounded-[3px] border border-advika-orange-border bg-advika-orange-tint p-3">
               <Icon name="bolt" size={17} className="shrink-0 text-advika-orange-dark" />
-              <p className="text-[11.5px] font-semibold text-advika-orange-darker2">
+              <p className="text-[11.5px] font-semibold leading-[1.5] text-advika-orange-darker2">
                 {voltage.isDual
                   ? t('advika.product.fitmentDualNote')
                   : t('advika.product.fitmentSingleWarning', {
@@ -614,22 +644,22 @@ export default function ProductDetailPage() {
                 <div className="flex flex-wrap gap-[7px]">
                   {(models || []).map((m) => (
                     <span key={m} className="flex items-center gap-[6px] rounded-[3px] border border-advika-border-light bg-advika-off-white px-[10px] py-[7px] text-[12px] font-semibold text-advika-grey900">
-                      <Icon name={getVehicleIcon(m)} size={15} className="text-advika-grey650" /> {m}
+                      <Icon name={getVehicleIcon(m)} size={15} className="text-advika-grey600" /> {m}
                     </span>
                   ))}
-                  <span className="flex items-center gap-[6px] rounded-[3px] border border-dashed border-advika-grey400 px-[10px] py-[7px] text-[12px] font-semibold text-advika-grey650">
-                    <Icon name="more_horiz" size={15} className="text-advika-grey650" /> {t('advika.product.andSimilar', 'and similar')}
+                  <span className="flex items-center gap-[6px] rounded-[3px] border border-dashed border-advika-grey400 px-[10px] py-[7px] text-[12px] font-semibold text-advika-grey600">
+                    <Icon name="more_horiz" size={15} className="text-advika-grey500" /> {t('advika.product.andSimilar', 'and similar')}
                   </span>
                 </div>
               </div>
             ))}
-            <a href={BRAND_PHONE_TEL} className="flex h-11 items-center justify-center gap-2 border-[1.5px] border-advika-chrome text-[12px] font-bold text-advika-chrome">
+            <a href={BRAND_PHONE_TEL} className="flex h-11 items-center justify-center gap-[7px] rounded-[3px] border-[1.5px] border-advika-chrome text-[12px] font-bold text-advika-chrome">
               <Icon name="chat" size={16} /> {t('advika.product.vehicleNotListed')}
             </a>
           </div>
         )}
 
-        <div className="px-[14px] pt-[18px]">
+        <div className="px-[14px] pt-4">
           <PromiseStrip
             compact
             items={[
@@ -641,15 +671,15 @@ export default function ProductDetailPage() {
         </div>
 
         {/* Tabbed detail */}
-        <div className="mx-[14px] mt-[18px] overflow-hidden rounded border border-advika-border-light">
-          <div className="flex border-b border-advika-divider-light">
+        <div className="mx-[14px] mt-[22px] overflow-hidden rounded border border-advika-border-light bg-white">
+          <div className="flex border-b border-advika-border-light">
             {TABS.map((tab) => (
               <button
                 key={tab}
                 type="button"
                 onClick={() => setActiveTab(tab)}
                 data-testid={`product-detail-tab-${tab}`}
-                className={`h-[50px] flex-1 border-b-[2.5px] text-[12.5px] font-bold ${
+                className={`h-[50px] flex-1 border-b-[2.5px] px-[6px] text-[12.5px] font-bold leading-[1.25] ${
                   activeTab === tab ? 'border-advika-orange text-advika-orange-dark' : 'border-transparent text-advika-grey700'
                 }`}
               >
@@ -659,33 +689,37 @@ export default function ProductDetailPage() {
               </button>
             ))}
           </div>
-          <div className="p-4">
-            {activeTab === 'description' && (
-              product.description ? (
+          {activeTab === 'description' && (
+            <div className="p-4">
+              {product.description ? (
                 <div
                   className="text-[13.5px] leading-[1.7] text-advika-grey900"
                   dangerouslySetInnerHTML={{ __html: sanitizeHtml(getLocalized(product.description, lang)) }}
                 />
               ) : (
                 <p className="text-[13px] text-advika-grey700">{t('advika.product.noSpecs')}</p>
-              )
-            )}
-            {activeTab === 'specifications' && (
-              specs.length > 0 ? (
+              )}
+            </div>
+          )}
+          {activeTab === 'specifications' && (
+            <div className="px-4 pb-3 pt-1">
+              {specs.length > 0 ? (
                 <div className="flex flex-col">
                   {specs.map(([key, value]) => (
-                    <div key={key} className="flex justify-between gap-3 border-b border-advika-divider-light py-[13px] last:border-0">
-                      <span className="w-[44%] shrink-0 text-[12.5px] text-advika-grey650">{key}</span>
-                      <span className="text-right text-[13px] font-semibold text-advika-grey900">{String(value)}</span>
+                    <div key={key} className="flex justify-between gap-[14px] border-b border-advika-divider-light py-[13px] last:border-0">
+                      <span className="w-[44%] shrink-0 text-[12.5px] text-advika-grey600">{key}</span>
+                      <span className="text-right text-[13px] font-semibold leading-[1.4] text-advika-chrome">{String(value)}</span>
                     </div>
                   ))}
                 </div>
               ) : (
                 <p className="text-[13px] text-advika-grey700">{t('advika.product.noSpecs')}</p>
-              )
-            )}
-            {activeTab === 'reviews' && (
-              typeof product.rating === 'number' && product.reviewCount > 0 ? (
+              )}
+            </div>
+          )}
+          {activeTab === 'reviews' && (
+            <div className="p-4">
+              {typeof product.rating === 'number' && product.reviewCount > 0 ? (
                 // No per-review list/rating-distribution data exists on the
                 // backend yet (Review isn't aggregated per product beyond
                 // the pre-aggregated rating/reviewCount fields — see
@@ -697,7 +731,7 @@ export default function ProductDetailPage() {
                 <div className="flex items-center gap-4">
                   <div className="text-center">
                     <div className="font-archivoBlack text-[34px] leading-none text-advika-chrome">{product.rating.toFixed(1)}</div>
-                    <div className="aa-label text-[9.5px] text-advika-grey650">{t('advika.product.outOf5', 'OUT OF 5')}</div>
+                    <div className="aa-label text-[9.5px] text-advika-grey600">{t('advika.product.outOf5', 'OUT OF 5')}</div>
                   </div>
                   <div className="flex items-center gap-1 text-[13px] text-advika-grey700">
                     {Array.from({ length: 5 }).map((_, i) => (
@@ -708,9 +742,9 @@ export default function ProductDetailPage() {
                 </div>
               ) : (
                 <p className="text-[13px] text-advika-grey700">{t('advika.product.noReviews')}</p>
-              )
-            )}
-          </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Related products */}
@@ -721,7 +755,7 @@ export default function ProductDetailPage() {
               <span className="text-advika-orange">{t('advika.product.alsoLike2', 'LIKE')}</span>
             </h2>
             <div className="grid grid-cols-2 gap-3">
-              {related.map((p) => <AdvikaProductCard key={p.id} product={p} imageHeight={110} />)}
+              {related.map((p) => <AdvikaProductCard key={p.id} product={p} imageHeight={110} compact fallbackIconSize={44} />)}
             </div>
           </div>
         )}
@@ -731,18 +765,24 @@ export default function ProductDetailPage() {
         </div>
       </main>
 
-      <StickyActionBar eyebrow={variantMetaLabel} value={`₹${formatPrice(activeVariantPrice) ?? activeVariantPrice}`}>
-        <button
-          type="button"
-          onClick={handleAddToCart}
-          disabled={!stockInfo.available || isAdding}
-          data-testid="product-detail-sticky-add-to-cart-button"
-          className={`flex h-[52px] w-full items-center justify-center gap-2 text-[13px] font-bold text-white ${added ? 'bg-advika-success' : 'bg-advika-orange'} disabled:opacity-60`}
-        >
-          <Icon name={added ? 'check' : 'add_shopping_cart'} size={18} />
-          {added ? t('advika.product.addedToCart') : t('buttons.addToCart', 'Add to Cart')}
-        </button>
-      </StickyActionBar>
+      <ProductStickyBar
+        visible={showStickyBar}
+        metaLabel={stickyMetaLabel}
+        price={`₹${formatPrice(activeVariantPrice * quantity) ?? activeVariantPrice * quantity}`}
+        mrp={hasDiscount ? `₹${formatPrice(activeVariantMrp * quantity)}` : null}
+        quantity={quantity}
+        onDecrease={() => setQuantity((q) => Math.max(1, q - 1))}
+        onIncrease={() => setQuantity((q) => Math.min(maxSelectableQuantity, q + 1))}
+        canIncrease={quantity < maxSelectableQuantity}
+        onAddToCart={handleAddToCart}
+        addToCartDisabled={!stockInfo.available || isAdding}
+        added={added}
+        addToCartIcon={added ? 'check' : 'add_shopping_cart'}
+        addToCartLabel={added ? t('advika.product.addedToCart') : t('buttons.addToCart', 'Add to Cart')}
+        onBuyNow={handleBuyNow}
+        buyNowDisabled={!stockInfo.available || isBuyNowPending}
+        buyNowLabel={t('advika.product.buyNow', 'BUY NOW')}
+      />
     </div>
   );
 }

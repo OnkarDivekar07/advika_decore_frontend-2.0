@@ -115,9 +115,9 @@ export default function AddressSelectionPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-2 border border-advika-border-light bg-white p-4">
-        <Icon name="location_on" size={19} className="text-advika-orange" />
-        <h2 className="text-[15px] font-bold text-advika-chrome">{t('checkout.selectAddress', 'Delivery Address')}</h2>
+      <div className="flex items-center gap-[9px] rounded border border-advika-border-light bg-white p-4">
+        <Icon name="location_on" size={20} className="text-advika-orange" />
+        <h2 className="text-[16px] font-bold text-advika-chrome">{t('checkout.selectAddress', 'Delivery Address')}</h2>
       </div>
 
       {addresses.map((address) =>
@@ -149,7 +149,7 @@ export default function AddressSelectionPage() {
           type="button"
           onClick={() => { setEditingAddress(null); setShowForm(true); }}
           data-testid="address-selection-add-new-button"
-          className="flex h-12 items-center justify-center gap-2 self-start border-[1.5px] border-dashed border-advika-grey400 px-5 text-[13px] font-semibold text-advika-grey700"
+          className="flex h-12 items-center justify-center gap-2 self-start rounded border-[1.5px] border-dashed border-advika-grey400 px-5 text-[13px] font-semibold text-advika-grey700"
         >
           <Icon name="add" size={17} /> {t('checkout.addNewAddress', 'Add a new address')}
         </button>
@@ -161,11 +161,11 @@ export default function AddressSelectionPage() {
           onClick={handleContinue}
           disabled={!selectedAddressId || isContinuing || draftStatus === 'loading'}
           data-testid="address-selection-continue-button"
-          className="flex h-[52px] items-center justify-center bg-advika-orange text-[14px] font-bold text-white disabled:opacity-60"
+          className="aa-tracking flex h-[52px] items-center justify-center gap-[9px] rounded bg-advika-orange text-[14px] font-bold text-white disabled:opacity-60"
         >
           {isContinuing || draftStatus === 'loading'
             ? t('checkout.preparingOrder', 'Preparing your order…')
-            : t('checkout.continue', 'CONTINUE')}
+            : <>{t('checkout.continue', 'CONTINUE')} <span>→</span></>}
         </button>
       )}
 

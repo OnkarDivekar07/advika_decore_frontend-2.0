@@ -116,10 +116,10 @@ export default function ReviewPage() {
       {conflicts && <OrderConflictsNotice conflicts={conflicts} onRefresh={handleRefreshOrder} isRefreshing={isRefreshingOrder} />}
 
       {/* Order items */}
-      <div className="border border-advika-border-light bg-white p-4">
-        <div className="mb-3 flex items-center gap-2">
-          <Icon name="inventory_2" size={19} className="text-advika-orange" />
-          <h2 className="text-[15px] font-bold text-advika-chrome">{t('advika.checkout.orderItems', 'Order items')}</h2>
+      <div className="rounded border border-advika-border-light bg-white p-4">
+        <div className="mb-3 flex items-center gap-[9px]">
+          <Icon name="inventory_2" size={20} className="text-advika-orange" />
+          <h2 className="text-[16px] font-bold text-advika-chrome">{t('advika.checkout.orderItems', 'Order items')}</h2>
         </div>
         <div className="flex flex-col">
           {orderItems.map((item) => {
@@ -134,13 +134,13 @@ export default function ReviewPage() {
               voltage.hasVoltage ? voltage.label : null,
             ].filter(Boolean);
             return (
-              <div key={item.id} className="flex items-center gap-3 border-t border-advika-divider-light py-3 first:border-0 first:pt-0">
-                <div className="relative flex h-14 w-14 shrink-0 items-center justify-center bg-advika-ink">
+              <div key={item.id} className="flex items-center gap-3 border-t border-advika-divider-light pt-3 first:border-0 first:pt-0">
+                <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-[3px] bg-[#151515]">
                   <Icon name={category?.icon || 'auto_awesome'} size={26} className="text-advika-orange" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-[13.5px] font-bold text-advika-chrome">{item.product?.name ?? t('checkout.itemFallback', 'Item')}</p>
-                  <p className="text-[10px] text-advika-grey700">{metaParts.join(' · ')}</p>
+                  <p className="truncate text-[13.5px] font-bold leading-[1.3] text-advika-chrome">{item.product?.name ?? t('checkout.itemFallback', 'Item')}</p>
+                  <p className="aa-label text-[10px] text-advika-grey700">{metaParts.join(' · ')}</p>
                 </div>
                 <span className="aa-mono shrink-0 text-[15px] font-semibold text-advika-chrome">₹{formatPrice(item.price * item.quantity)}</span>
               </div>
@@ -150,10 +150,10 @@ export default function ReviewPage() {
       </div>
 
       {/* Delivering to */}
-      <div className="border border-advika-border-light bg-white p-4">
-        <div className="mb-3 flex items-center gap-2">
-          <Icon name="local_shipping" size={19} className="text-advika-orange" />
-          <h2 className="text-[15px] font-bold text-advika-chrome">{t('advika.checkout.deliveringTo', 'Delivering to')}</h2>
+      <div className="rounded border border-advika-border-light bg-white p-4">
+        <div className="mb-3 flex items-center gap-[9px]">
+          <Icon name="local_shipping" size={20} className="text-advika-orange" />
+          <h2 className="text-[16px] font-bold text-advika-chrome">{t('advika.checkout.deliveringTo', 'Delivering to')}</h2>
         </div>
         {selectedAddress ? (
           <>
@@ -177,11 +177,11 @@ export default function ReviewPage() {
               />
             )}
             {deliveryLabel && (
-              <div className="mt-3 flex items-center gap-2 rounded-[3px] border border-advika-orange-border bg-advika-orange-tint2 p-3">
+              <div className="mt-3 flex items-start gap-[9px] rounded-[3px] border border-advika-orange-border bg-advika-orange-tint2 p-3">
                 <Icon name="event_available" size={18} className="text-advika-orange-dark" />
                 <div>
                   <p className="text-[12.5px] font-semibold text-advika-orange-darker2">{deliveryLabel}</p>
-                  <p className="text-[11px] text-advika-orange-darker">{t('advika.checkout.freeShipping', 'FREE SHIPPING')}</p>
+                  <p className="aa-label text-[11px] text-advika-orange-darker">{t('advika.checkout.freeShipping', 'FREE SHIPPING')}</p>
                 </div>
               </div>
             )}
@@ -197,12 +197,12 @@ export default function ReviewPage() {
         </p>
       )}
 
-      <div className="flex gap-3">
+      <div className="flex gap-[10px]">
         <button
           type="button"
           onClick={() => navigate('/checkout')}
           data-testid="review-back-button"
-          className="flex h-[52px] items-center justify-center gap-2 border-[1.5px] border-advika-grey400 px-5 text-[13px] font-bold text-advika-chrome"
+          className="flex h-[52px] items-center justify-center gap-[7px] rounded border-[1.5px] border-advika-grey400 px-[18px] text-[13px] font-semibold text-advika-chrome"
         >
           <Icon name="arrow_back" size={16} /> {t('advika.checkout.back', 'Back')}
         </button>
@@ -211,9 +211,9 @@ export default function ReviewPage() {
           onClick={handleProceed}
           disabled={!canProceedToReview || !!conflicts || shippingBlocksProceed}
           data-testid="review-proceed-to-payment-button"
-          className="flex h-[52px] flex-1 items-center justify-center bg-advika-orange text-[13px] font-bold text-white disabled:opacity-60"
+          className="aa-tracking flex h-[52px] flex-1 items-center justify-center gap-2 rounded bg-advika-orange text-[13.5px] font-bold text-white disabled:opacity-60"
         >
-          {shippingCheckPending ? t('checkout.checkingServiceability', 'Checking delivery availability…') : t('advika.checkout.proceedToPayment', 'PROCEED TO PAYMENT')}
+          {shippingCheckPending ? t('checkout.checkingServiceability', 'Checking delivery availability…') : <>{t('advika.checkout.proceedToPayment', 'PROCEED TO PAYMENT')} <span>→</span></>}
         </button>
       </div>
 

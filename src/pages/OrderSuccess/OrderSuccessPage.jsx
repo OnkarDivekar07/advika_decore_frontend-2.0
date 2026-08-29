@@ -126,22 +126,22 @@ export default function OrderSuccessPage() {
     return (
       <div className="aa-shell min-h-screen bg-white">
         <Seo title={t('orderSuccess.title', 'Order placed!')} noindex />
-        <div className="flex flex-col items-center gap-[14px] px-5 pb-8 pt-11 text-center">
-          <span className="flex h-[78px] w-[78px] items-center justify-center rounded-2xl bg-advika-success">
+        <div className="aa-page-checkout flex flex-col items-center gap-[14px] px-5 pb-8 pt-11 text-center">
+          <span className="flex h-[78px] w-[78px] items-center justify-center rounded-[14px] bg-advika-success">
             <Icon name="check_circle" size={44} className="text-white" />
           </span>
-          <h1 className="font-archivoBlack text-[27px] text-advika-chrome">{t('advika.checkout.orderPlaced', 'ORDER PLACED!')}</h1>
-          <p className="text-[14px] text-advika-chrome">{t('advika.checkout.orderNumber', { id: order.id })}</p>
+          <h1 className="font-archivoBlack text-[27px] leading-[1.1] text-advika-chrome">{t('advika.checkout.orderPlaced', 'ORDER PLACED!')}</h1>
+          <p className="text-[14px] text-advika-grey800">{t('advika.checkout.orderNumber', { id: order.id })}</p>
           <p className="text-[12px] text-advika-orange-dark">
             {paymentMethod === 'cod'
               ? t('orderSuccess.codBody', "Pay ₹{{amount}} in cash when it's delivered.", { amount: formatPrice(order.total ?? 0) })
               : t('orderSuccess.paidBody', 'Your payment was received and your order is confirmed.')}
           </p>
-          <div className="mt-2 flex w-full items-center gap-3 border border-advika-border-light bg-white p-4 text-left">
+          <div className="mt-2 flex w-full items-center gap-[11px] rounded border border-advika-border-light bg-white p-4 text-left">
             <Icon name="inventory" size={21} className="text-advika-orange" />
             <div>
               <p className="text-[13.5px] font-bold text-advika-chrome">{t('advika.checkout.packedInfo', 'Your items are being packed')}</p>
-              <p className="text-[11.5px] text-advika-grey700">{t('advika.checkout.smsUpdates', { phone: `+91 ${order.address?.phone ? order.address.phone.slice(-10) : ''}` })}</p>
+              <p className="text-[11.5px] leading-[1.45] text-advika-grey700">{t('advika.checkout.smsUpdates', { phone: `+91 ${order.address?.phone ? order.address.phone.slice(-10) : ''}` })}</p>
             </div>
           </div>
           {/* Delivery estimate — README screen 6 step 4: `t.expectedDelivery`
@@ -153,15 +153,17 @@ export default function OrderSuccessPage() {
               strip, checkout note all promise the same "3-4 days")
               rather than fabricating a per-order date with nothing
               behind it. */}
-          <p className="text-[12px] font-semibold text-advika-orange-dark">
+          <p className="aa-label text-[12px] font-semibold text-advika-orange-dark">
             {t('advika.checkout.expectedDeliveryGeneric', 'Expected delivery in 3-4 days')}
           </p>
-          <Link to={`/orders/${order.id}/track`} data-testid="order-success-track-order-link" className="mt-2 flex h-[52px] w-full items-center justify-center gap-2 border-[1.5px] border-advika-chrome text-[14px] font-bold text-advika-chrome">
-            {t('advika.checkout.trackMyOrder', 'TRACK MY ORDER')}
-          </Link>
-          <Link to="/" data-testid="order-success-continue-shopping-primary-link" className="flex h-[52px] w-full items-center justify-center bg-advika-orange text-[14px] font-bold text-white">
-            {t('advika.checkout.continueShopping', 'CONTINUE SHOPPING')}
-          </Link>
+          <div className="mt-2 flex w-full flex-col gap-[10px]">
+            <Link to={`/orders/${order.id}/track`} data-testid="order-success-track-order-link" className="flex h-[52px] w-full items-center justify-center gap-2 rounded border-[1.5px] border-advika-chrome text-[14px] font-bold text-advika-chrome">
+              {t('advika.checkout.trackMyOrder', 'TRACK MY ORDER')}
+            </Link>
+            <Link to="/" data-testid="order-success-continue-shopping-primary-link" className="aa-tracking flex h-[52px] w-full items-center justify-center rounded bg-advika-orange text-[14px] font-bold text-white">
+              {t('advika.checkout.continueShopping', 'CONTINUE SHOPPING')}
+            </Link>
+          </div>
         </div>
       </div>
     );

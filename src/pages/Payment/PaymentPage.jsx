@@ -107,7 +107,7 @@ export default function PaymentPage() {
             return (
               <label
                 key={m.id}
-                className={`flex items-center gap-3 rounded p-[13px] ${
+                className={`flex items-center gap-3 rounded px-[13px] py-[14px] ${
                   selected ? 'border-[1.5px] border-advika-orange bg-advika-orange-tint' : 'border-[1.5px] border-advika-border-light bg-white'
                 }`}
               >
@@ -122,18 +122,19 @@ export default function PaymentPage() {
                 <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${selected ? 'border-advika-orange' : 'border-advika-grey400'}`}>
                   {selected && <span className="h-[9px] w-[9px] rounded-full bg-advika-orange" />}
                 </span>
-                <Icon name={m.icon} size={22} className={selected ? 'text-advika-orange' : 'text-advika-grey650'} />
+                <Icon name={m.icon} size={22} className={selected ? 'text-advika-orange' : 'text-advika-grey600'} />
                 <span>
                   <span className={`block text-[14px] font-bold ${selected ? 'text-advika-orange-darker2' : 'text-advika-chrome'}`}>{t(m.titleKey)}</span>
-                  <span className="block text-[11.5px] text-advika-grey700">{t(m.bodyKey)}</span>
+                  <span className="block text-[11.5px] leading-[1.35] text-advika-grey700">{t(m.bodyKey)}</span>
                 </span>
               </label>
             );
           })}
         </div>
         {method === 'cod' && (
-          <div className="mt-3 rounded-[3px] border border-advika-success-border bg-advika-success-tint p-3">
-            <p className="text-[11.5px] font-semibold text-advika-success-dark">
+          <div className="mt-3 flex items-start gap-[9px] rounded-[3px] border border-advika-success-border bg-advika-success-tint p-3">
+            <Icon name="payments" size={18} className="text-advika-success" />
+            <p className="text-[12px] leading-[1.5] text-advika-success-dark">
               {t('advika.checkout.codNote', { amount: formatPrice(total) })}
             </p>
           </div>
@@ -142,13 +143,13 @@ export default function PaymentPage() {
 
       <CheckoutDarkSummary order={draftOrder} />
 
-      <div className="flex gap-3">
+      <div className="flex gap-[10px]">
         <button
           type="button"
           onClick={() => navigate('/checkout/review')}
           disabled={isPlacingOrder}
           data-testid="payment-back-button"
-          className="flex h-14 items-center justify-center gap-2 border-[1.5px] border-advika-grey400 px-5 text-[13px] font-bold text-advika-chrome disabled:opacity-60"
+          className="flex h-[52px] items-center justify-center gap-[7px] rounded border-[1.5px] border-advika-grey400 px-[18px] text-[13px] font-semibold text-advika-chrome disabled:opacity-60"
         >
           <Icon name="arrow_back" size={16} /> {t('advika.checkout.back', 'Back')}
         </button>
@@ -157,9 +158,9 @@ export default function PaymentPage() {
           onClick={handlePlaceOrder}
           disabled={!canPay || isPlacingOrder || !!conflicts}
           data-testid={paymentNotice ? 'payment-retry-payment-button' : 'payment-place-order-button'}
-          className="flex h-14 flex-1 flex-col items-center justify-center bg-advika-orange text-white disabled:opacity-60"
+          className="flex h-14 flex-1 flex-col items-center justify-center gap-px rounded bg-advika-orange text-white disabled:opacity-60"
         >
-          <span className="text-[14px] font-bold">
+          <span className="aa-tracking text-[14px] font-bold">
             {isPlacingOrder
               ? t('checkout.placingOrder', 'Placing your order…')
               : method === 'cod'
@@ -168,7 +169,7 @@ export default function PaymentPage() {
                   ? t('checkout.retryPayment', 'Retry payment')
                   : t('advika.checkout.payAmount', { amount: formatPrice(total) })}
           </span>
-          {!isPlacingOrder && <span className="text-[9px] text-[#ffedd5]">{t('advika.checkout.securely', 'SECURELY')}</span>}
+          {!isPlacingOrder && <span className="aa-label text-[9px] text-[#ffedd5]">{t('advika.checkout.securely', 'SECURELY')}</span>}
         </button>
       </div>
     </div>

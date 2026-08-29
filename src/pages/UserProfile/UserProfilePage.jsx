@@ -82,25 +82,25 @@ export default function UserProfilePage() {
   const initial = (profile?.name || '?')[0]?.toUpperCase();
 
   return (
-    <div className="aa-shell min-h-screen bg-white">
+    <div className="aa-shell aa-page-account min-h-screen bg-white">
       <Seo title={t('advika.account.tabProfile', 'My Profile')} noindex />
       <AdvikaHeader />
 
       <main id="main-content" tabIndex={-1}>
         {/* Identity block */}
         <div className="flex flex-col gap-[18px] bg-advika-near-black px-4 pt-5">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-[13px]">
             <span className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-lg bg-advika-orange font-archivoBlack text-[22px] text-white">
               {initial}
             </span>
-            <div className="min-w-0 flex-1">
-              <div className="truncate font-archivoBlack text-[19px] text-white">{profile?.name || '—'}</div>
+            <div className="flex min-w-0 flex-1 flex-col gap-[3px]">
+              <div className="truncate font-archivoBlack text-[19px] leading-[1.1] text-white">{profile?.name || '—'}</div>
               <div className="aa-mono text-[11.5px] text-advika-orange">{profile?.phone}</div>
               {profile?.email && <div className="aa-mono truncate text-[10.5px] text-advika-grey700">{profile.email}</div>}
             </div>
-            <button type="button" onClick={handleLogout} data-testid="profile-logout-button" className="flex shrink-0 flex-col items-center gap-1 text-advika-grey600">
+            <button type="button" onClick={handleLogout} data-testid="profile-logout-button" className="flex shrink-0 flex-col items-center gap-[3px] text-advika-grey600">
               <Icon name="logout" size={19} />
-              <span className="text-[10px]">{t('advika.account.signOut')}</span>
+              <span className="text-[10px] leading-[1.2]">{t('advika.account.signOut')}</span>
             </button>
           </div>
 
@@ -125,10 +125,10 @@ export default function UserProfilePage() {
         {/* Profile tab */}
         {activeTab === 'profile' && (
           <div className="flex flex-col gap-4 px-4 py-5">
-            <div className="border border-advika-border-light p-4">
+            <div className="rounded border border-advika-border-light p-4">
               <div className="mb-3 flex items-center justify-between">
                 <h2 className="text-[16px] font-bold text-advika-chrome">{t('advika.account.personalDetails')}</h2>
-                <span className="flex items-center gap-1 text-[12px] font-semibold text-advika-orange-dark">
+                <span className="flex items-center gap-[5px] text-[12px] font-semibold text-advika-orange-dark">
                   <Icon name="edit" size={15} className="text-advika-orange" /> {t('advika.account.editProfile')}
                 </span>
               </div>
@@ -144,44 +144,46 @@ export default function UserProfilePage() {
                 [t('advika.account.memberSince'), formatDate(profile?.createdAt)],
               ].map(([label, value]) => (
                 <div key={label} className="flex flex-col gap-1 border-t border-advika-divider-light pt-[13px] mt-[13px] first:mt-0 first:border-0 first:pt-0">
-                  <span className="text-[9px] font-semibold text-advika-grey650">{label}</span>
+                  <span className="aa-label text-[9px] font-semibold text-advika-grey600">{label}</span>
                   <span className="text-[14.5px] text-advika-chrome">{value || '—'}</span>
                 </div>
               ))}
             </div>
 
-            <div className="border border-advika-border-light p-4">
+            <div className="rounded border border-advika-border-light p-4">
               <div className="mb-3 flex items-center gap-2">
-                <Icon name="notifications" size={19} className="text-advika-orange" />
-                <h2 className="text-[16px] font-bold text-advika-chrome">{t('advika.account.notificationPrefs')}</h2>
+                <Icon name="notifications" size={18} className="text-advika-orange" />
+                <h2 className="text-[15px] font-bold text-advika-chrome">{t('advika.account.notificationPrefs')}</h2>
               </div>
-              {[
-                ['sms', t('advika.account.prefOrderSms')],
-                ['email', t('advika.account.prefPromoEmail')],
-                ['whatsapp', t('advika.account.prefNewWhatsapp')],
-              ].map(([key, label]) => (
-                <label key={key} className="flex items-center gap-3 border-t border-advika-divider-light py-[11px] first:border-0">
-                  <span
-                    role="checkbox"
-                    aria-checked={prefs[key]}
-                    tabIndex={0}
-                    onClick={() => setPrefs((p) => ({ ...p, [key]: !p[key] }))}
-                    onKeyDown={(e) => {
-                      // Space is the native way to toggle a checkbox — without
-                      // preventDefault it also scrolls the page (WCAG 2.1.1),
-                      // same fix as AddressCard's role="button" handler.
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        setPrefs((p) => ({ ...p, [key]: !p[key] }));
-                      }
-                    }}
-                    className={`flex h-5 w-5 items-center justify-center rounded-[3px] ${prefs[key] ? 'bg-advika-orange' : 'border border-advika-grey400'}`}
-                  >
-                    {prefs[key] && <Icon name="check" size={14} className="text-white" />}
-                  </span>
-                  <span className="text-[13px] text-advika-grey800">{label}</span>
-                </label>
-              ))}
+              <div className="flex flex-col gap-[14px]">
+                {[
+                  ['sms', t('advika.account.prefOrderSms')],
+                  ['email', t('advika.account.prefPromoEmail')],
+                  ['whatsapp', t('advika.account.prefNewWhatsapp')],
+                ].map(([key, label]) => (
+                  <label key={key} className="flex items-center gap-[11px]">
+                    <span
+                      role="checkbox"
+                      aria-checked={prefs[key]}
+                      tabIndex={0}
+                      onClick={() => setPrefs((p) => ({ ...p, [key]: !p[key] }))}
+                      onKeyDown={(e) => {
+                        // Space is the native way to toggle a checkbox — without
+                        // preventDefault it also scrolls the page (WCAG 2.1.1),
+                        // same fix as AddressCard's role="button" handler.
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          setPrefs((p) => ({ ...p, [key]: !p[key] }));
+                        }
+                      }}
+                      className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-[3px] ${prefs[key] ? 'bg-advika-orange' : 'border border-advika-grey400'}`}
+                    >
+                      {prefs[key] && <Icon name="check" size={15} className="text-white" />}
+                    </span>
+                    <span className="text-[13.5px] leading-[1.4] text-advika-grey900">{label}</span>
+                  </label>
+                ))}
+              </div>
             </div>
           </div>
         )}
@@ -203,12 +205,12 @@ export default function UserProfilePage() {
                 const style = STATUS_STYLE[order.status] || STATUS_STYLE.pending;
                 const summary = (order.orderItems || []).map((i) => i.product?.name).filter(Boolean).join(', ');
                 return (
-                  <Link key={order.id} to={`/orders/${order.id}/track`} className="flex flex-col gap-[11px] border border-advika-border-light p-[15px]">
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
+                  <Link key={order.id} to={`/orders/${order.id}/track`} className="flex flex-col gap-[11px] rounded border border-advika-border-light p-[15px]">
+                    <div className="flex items-start justify-between gap-[10px]">
+                      <div className="flex flex-col gap-[5px]">
                         <div className="aa-mono text-[14.5px] font-semibold text-advika-chrome">{order.id}</div>
-                        <div className="mt-1 flex items-center gap-1 text-[11px] text-advika-grey700">
-                          <Icon name="calendar_today" size={14} /> {formatDate(order.createdAt)}
+                        <div className="flex items-center gap-[5px] text-[11px] text-advika-grey700">
+                          <Icon name="calendar_today" size={14} className="text-advika-grey600" /> <span className="aa-label">{formatDate(order.createdAt)}</span>
                         </div>
                       </div>
                       <span className={`shrink-0 rounded-[3px] border px-[9px] py-[5px] text-[11px] font-bold ${style}`}>
@@ -216,15 +218,15 @@ export default function UserProfilePage() {
                       </span>
                     </div>
                     {summary && (
-                      <p className="truncate border-t border-advika-divider-light pt-[13px] text-[13px] font-semibold text-advika-orange-dark">
+                      <p className="truncate border-t border-advika-divider-light pt-[11px] text-[13px] font-semibold leading-[1.4] text-advika-orange-dark">
                         {summary}
                       </p>
                     )}
                     <div className="flex items-center justify-between">
-                      <span className="text-[12.5px] text-advika-grey700">
+                      <span className="text-[12.5px] text-advika-grey800">
                         {t('orders.itemCount', '{{count}} items', { count: (order.orderItems || []).reduce((a, i) => a + (i.quantity || 0), 0) })} · <span className="aa-mono font-semibold text-advika-chrome">₹{(order.total ?? 0).toFixed(2)}</span>
                       </span>
-                      <span className="flex items-center gap-1 text-[12.5px] font-semibold text-advika-orange-dark">
+                      <span className="flex items-center gap-[5px] text-[12.5px] font-semibold text-advika-orange-dark">
                         {t('advika.account.trackOrder')} <Icon name="arrow_forward" size={15} />
                       </span>
                     </div>
@@ -244,30 +246,33 @@ export default function UserProfilePage() {
               <p className="py-4 text-center text-[13.5px] text-advika-grey700">{t('advika.account.noAddresses')}</p>
             ) : (
               addresses.map((addr) => (
-                <div key={addr.id} className={`flex flex-col gap-[11px] border-[1.5px] p-[15px] ${addr.isDefault ? 'border-advika-orange' : 'border-advika-border-light'}`}>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="rounded border border-advika-border-light bg-advika-off-white px-2 py-1 text-[11.5px] font-bold text-advika-grey900">
+                <div key={addr.id} className={`flex flex-col gap-[11px] rounded border-[1.5px] p-[15px] ${addr.isDefault ? 'border-advika-orange' : 'border-advika-border-light'}`}>
+                  <div className="flex items-center justify-between gap-[10px]">
+                    <div className="flex items-center gap-[7px]">
+                      <span className="rounded-[3px] border border-advika-border-light bg-advika-off-white px-[9px] py-[4px] text-[11.5px] font-bold text-advika-grey900">
                         {addr.type || t('advika.account.tabAddresses')}
                       </span>
                       {addr.isDefault && (
-                        <span className="rounded border border-advika-orange-border bg-advika-orange-tint px-2 py-1 text-[11.5px] font-bold text-advika-orange-darker">
+                        <span className="rounded-[3px] border border-advika-orange-border bg-advika-orange-tint px-[9px] py-[4px] text-[11px] font-bold text-advika-orange-darker">
                           {t('advika.account.defaultChip')}
                         </span>
                       )}
                     </div>
-                    <Link to="/addresses" className="text-[12px] font-semibold text-advika-orange-dark">{t('advika.account.edit')}</Link>
+                    <span className="flex items-center gap-[5px] text-[12px] font-semibold text-advika-orange-dark">
+                      <Icon name="edit" size={15} className="text-advika-orange" />
+                      <Link to="/addresses">{t('advika.account.edit')}</Link>
+                    </span>
                   </div>
-                  <div className="border-t border-advika-divider-light pt-[11px]">
+                  <div className="flex flex-col gap-[5px] border-t border-advika-divider-light pt-[11px]">
                     <div className="text-[14px] font-bold text-advika-chrome">{addr.name}</div>
-                    <div className="text-[13px] text-advika-grey800">{addr.houseArea}{addr.area ? `, ${addr.area}` : ''}</div>
-                    <div className="text-[13px] text-advika-grey800">{addr.city}, {addr.state} — {addr.pincode}</div>
+                    <div className="text-[13px] leading-[1.55] text-advika-grey800">{addr.houseArea}{addr.area ? `, ${addr.area}` : ''}</div>
+                    <div className="text-[13px] leading-[1.55] text-advika-grey800">{addr.city}, {addr.state} — {addr.pincode}</div>
                   </div>
                 </div>
               ))
             )}
-            <Link to="/addresses" className="flex h-14 items-center justify-center gap-2 border-[1.5px] border-dashed border-advika-grey400 bg-advika-off-white text-[13.5px] font-semibold text-advika-grey700">
-              <Icon name="add" size={19} /> {t('advika.account.addNewAddress')}
+            <Link to="/addresses" className="flex h-14 items-center justify-center gap-2 rounded border-[1.5px] border-dashed border-advika-grey400 bg-advika-off-white text-[13.5px] font-semibold">
+              <Icon name="add" size={19} className="text-advika-grey700" /> <span className="text-advika-grey800">{t('advika.account.addNewAddress')}</span>
             </Link>
           </div>
         )}

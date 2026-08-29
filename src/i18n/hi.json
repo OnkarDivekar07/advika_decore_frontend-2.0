@@ -432,6 +432,7 @@
       "outOf5": "5 में से",
       "fitsVehicles": "इन गाड़ियों में फिट होता है",
       "quantityLabel": "मात्रा — {{unitLabel}} के हिसाब से",
+      "quantityTotalLabel": "{{qty}} {{unit}} =",
       "unit": { "pc": "नग", "dozen": "दर्जन", "jodi": "जोड़ी" },
       "dualVoltageNote": "12V और 24V दोनों में चलता है — एक या दो बैटरी",
       "singleVoltageNote": "केवल {{voltage}} — फिट करने से पहले अपनी गाड़ी का सिस्टम जांच लें।",

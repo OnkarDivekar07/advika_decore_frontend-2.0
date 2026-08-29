@@ -149,7 +149,7 @@ export default function ProductListingPage() {
   const categoryTitle = activeCategory ? t(`advika.category.${activeCategory.id}`) : t('advika.category.all', 'All');
 
   return (
-    <div className="aa-shell min-h-screen bg-white">
+    <div className="aa-shell aa-page-category min-h-screen bg-white">
       <Seo canonicalPath="/products" description={t('products.seoDescription', 'Browse truck, tempo, pickup and tractor lights, horns and accessories.')} />
       <AdvikaHeader />
 
@@ -159,19 +159,21 @@ export default function ProductListingPage() {
           <button type="button" onClick={() => navigate('/')} className="aa-label flex items-center gap-[6px] text-left text-[10.5px] uppercase text-advika-grey600">
             <Icon name="arrow_back" size={15} /> {t('common.home', 'Home')}
           </button>
-          {/* min-h reserves room for a 2-line title (48px per line) so a
-              short name like "Lights" and a long one like "Tassels &
-              Hangings" that wraps don't leave the search bar/category
-              chips below at two different heights depending on category. */}
-          <h1 className="aa-title-md min-h-[96px] text-white">{categoryTitle}</h1>
-          {/* min-h reserves the line's height for the brief window before
-              the very first fetch ever resolves (displayMeta is null only
-              then) — after that it always shows the last known count
-              instead of blanking out, so this never needs to animate. */}
-          <p className="min-h-[18px] text-[11.5px] text-advika-grey600">
-            {displayMeta?.total != null ? t('advika.categoryPage.resultCount', { count: displayMeta.total }) : ''}
-          </p>
-          <form onSubmit={handleSearchSubmit} className="flex h-[46px] items-center gap-2 rounded border border-[#333] bg-advika-panel px-[13px]">
+          <div className="flex flex-col gap-[6px]">
+            {/* min-h reserves room for a 2-line title (48px per line) so a
+                short name like "Lights" and a long one like "Tassels &
+                Hangings" that wraps don't leave the search bar/category
+                chips below at two different heights depending on category. */}
+            <h1 className="aa-title-md min-h-[96px] text-white">{categoryTitle}</h1>
+            {/* min-h reserves the line's height for the brief window before
+                the very first fetch ever resolves (displayMeta is null only
+                then) — after that it always shows the last known count
+                instead of blanking out, so this never needs to animate. */}
+            <p className="aa-label min-h-[18px] text-[11.5px] text-advika-grey600">
+              {displayMeta?.total != null ? t('advika.categoryPage.resultCount', { count: displayMeta.total }) : ''}
+            </p>
+          </div>
+          <form onSubmit={handleSearchSubmit} className="flex h-[46px] items-center gap-[9px] rounded border border-[#333] bg-advika-panel px-[13px]">
             <Icon name="search" size={19} className="text-advika-grey700" />
             <input
               type="search"
@@ -184,34 +186,41 @@ export default function ProductListingPage() {
           </form>
         </div>
 
-        {/* Category chips */}
-        <div className="aa-hide-scrollbar flex gap-2 overflow-x-auto border-b border-advika-border-dark bg-advika-chrome px-[14px] py-3">
-          <button
-            type="button"
-            ref={!categoryParam ? activeChipRef : null}
-            onClick={() => updateParams({ category: '', voltage: '' })}
-            data-testid="product-listing-category-chip-all"
-            className={`flex h-[38px] shrink-0 items-center gap-[7px] rounded-full px-[15px] text-[12.5px] font-semibold ${
-              !categoryParam ? 'bg-advika-orange text-white' : 'border border-[#333] text-advika-grey600'
-            }`}
-          >
-            <Icon name="grid_view" size={17} /> {t('advika.category.all', 'All')}
-          </button>
-          {CATEGORIES.filter((c) => c.chip).map((cat) => (
+        {/* Category chips — right-edge fade hints there's more to scroll. */}
+        <div className="relative border-b border-advika-border-dark bg-advika-chrome">
+          <div className="aa-hide-scrollbar flex gap-2 overflow-x-auto px-[14px] py-3">
             <button
-              key={cat.id}
               type="button"
-              ref={activeCategory?.id === cat.id ? activeChipRef : null}
-              onClick={() => selectCategory(cat.label)}
-              data-testid={`product-listing-category-chip-${cat.id}`}
+              ref={!categoryParam ? activeChipRef : null}
+              onClick={() => updateParams({ category: '', voltage: '' })}
+              data-testid="product-listing-category-chip-all"
               className={`flex h-[38px] shrink-0 items-center gap-[7px] rounded-full px-[15px] text-[12.5px] font-semibold ${
-                activeCategory?.id === cat.id ? 'bg-advika-orange text-white' : 'border border-[#333] text-advika-grey600'
+                !categoryParam ? 'bg-advika-orange text-white' : 'border border-[#333] text-advika-grey600'
               }`}
             >
-              <Icon name={cat.icon} size={17} />
-              {t(`advika.category.${cat.id}`)}
+              <Icon name="grid_view" size={17} /> {t('advika.category.all', 'All')}
             </button>
-          ))}
+            {CATEGORIES.filter((c) => c.chip).map((cat) => (
+              <button
+                key={cat.id}
+                type="button"
+                ref={activeCategory?.id === cat.id ? activeChipRef : null}
+                onClick={() => selectCategory(cat.label)}
+                data-testid={`product-listing-category-chip-${cat.id}`}
+                className={`flex h-[38px] shrink-0 items-center gap-[7px] rounded-full px-[15px] text-[12.5px] font-semibold ${
+                  activeCategory?.id === cat.id ? 'bg-advika-orange text-white' : 'border border-[#333] text-advika-grey600'
+                }`}
+              >
+                <Icon name={cat.icon} size={17} />
+                {t(`advika.category.${cat.id}`)}
+              </button>
+            ))}
+            <div className="w-[10px] shrink-0" />
+          </div>
+          <div
+            className="pointer-events-none absolute inset-y-0 right-0 w-[34px]"
+            style={{ backgroundImage: 'linear-gradient(90deg, rgba(23,23,23,0) 0%, #171717 74%)' }}
+          />
         </div>
 
         {/* Filter chips */}
@@ -277,7 +286,7 @@ export default function ProductListingPage() {
           <div className="aa-collapse-inner">
             <div className="flex items-center gap-2 border-b border-advika-orange-border bg-advika-orange-tint px-[14px] py-[10px]">
               <Icon name="bolt" size={16} className="shrink-0 text-advika-orange-dark" />
-              <p className="text-[12px] font-semibold text-advika-orange-darker2">
+              <p className="text-[12px] font-semibold leading-[1.4] text-advika-orange-darker2">
                 {t('advika.categoryPage.voltPick', 'Pick the voltage that matches your vehicle — 12V or 24V')}
               </p>
             </div>
@@ -302,13 +311,13 @@ export default function ProductListingPage() {
           )}
 
           {status === STATUS_EMPTY || (status === STATUS_SUCCESS && visibleItems.length === 0) ? (
-            <div className="flex flex-col items-center gap-[15px] px-6 py-12 text-center">
+            <div className="flex flex-col items-center gap-[15px] px-6 pb-[54px] pt-12 text-center">
               <span className="flex h-[78px] w-[78px] items-center justify-center rounded-full bg-[#e9e7e3]">
-                <Icon name="search_off" size={38} className="text-advika-grey650" />
+                <Icon name="search_off" size={38} className="text-advika-grey600" />
               </span>
-              <h2 className="font-archivoBlack text-[20px] text-advika-chrome">{t('advika.categoryPage.emptyTitle')}</h2>
+              <h2 className="font-archivoBlack text-[20px] leading-[1.2] text-advika-chrome">{t('advika.categoryPage.emptyTitle')}</h2>
               <p className="max-w-[290px] text-[13.5px] text-advika-grey800">{t('advika.categoryPage.emptyBody')}</p>
-              <button type="button" onClick={clearAll} className="h-12 bg-advika-chrome px-6 text-[13px] font-bold text-white">
+              <button type="button" onClick={clearAll} className="aa-label mt-1 h-12 rounded bg-advika-chrome px-6 text-[12.5px] font-bold text-white">
                 {t('advika.categoryPage.clearAll')}
               </button>
             </div>
@@ -352,8 +361,9 @@ export default function ProductListingPage() {
           )}
         </div>
 
-        <div className="px-[14px] pt-6">
+        <div className="px-[14px] pt-4">
           <WhatsAppStrip
+            compact
             titleKey="advika.categoryPage.waTitleShort"
             titleDefault="Can't find the part?"
             subtitleKey="advika.categoryPage.waSubtitle"
@@ -361,7 +371,7 @@ export default function ProductListingPage() {
           />
         </div>
 
-        <div className="px-[14px] pb-6 pt-4">
+        <div className="px-[14px] pt-4">
           <PromiseStrip
             compact
             items={[

@@ -433,6 +433,7 @@
       "outOf5": "OUT OF 5",
       "fitsVehicles": "Fits these vehicles",
       "quantityLabel": "QUANTITY — SOLD BY {{unitLabel}}",
+      "quantityTotalLabel": "{{qty}} {{unit}} =",
       "unit": { "pc": "THE PIECE", "dozen": "THE DOZEN", "jodi": "THE JODI" },
       "dualVoltageNote": "Works on 12V AND 24V — single or double battery",
       "singleVoltageNote": "{{voltage}} only — check your vehicle's system before fitting.",

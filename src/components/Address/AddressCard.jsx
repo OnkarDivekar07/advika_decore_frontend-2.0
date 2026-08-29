@@ -110,7 +110,7 @@ export default function AddressCard({
     </>
   );
 
-  const className = `w-full text-left p-4 flex items-start gap-3 transition-colors bg-white border ${
+  const className = `w-full text-left p-4 flex items-start gap-3 rounded transition-colors bg-white border ${
     selectable ? 'cursor-pointer' : ''
   } ${isSelected ? 'border-[1.5px] border-advika-orange' : 'border-advika-border-light'}`;
 

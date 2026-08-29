@@ -99,7 +99,7 @@ export default function CartPage() {
   }
 
   return (
-    <div className="aa-shell min-h-screen bg-white pb-[92px]">
+    <div className="aa-shell aa-page-cart min-h-screen bg-advika-warm-white pb-[92px]">
       <Seo title={t('cart.title', 'Your Cart')} noindex />
       <AdvikaHeader variant="hamburger" menuOpen={menuOpen} onToggleMenu={() => setMenuOpen((v) => !v)} />
       <SlideMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
@@ -114,17 +114,17 @@ export default function CartPage() {
             </button>
           </div>
         ) : cartItems.length === 0 ? (
-          <div data-testid="cart-empty-state" className="flex flex-col items-center gap-4 px-6 py-[60px] text-center">
+          <div data-testid="cart-empty-state" className="flex flex-col items-center gap-4 px-6 pb-[60px] pt-[52px] text-center">
             <span className="flex h-[82px] w-[82px] items-center justify-center rounded-full bg-[#e9e7e3]">
-              <Icon name="remove_shopping_cart" size={40} className="text-advika-grey650" />
+              <Icon name="remove_shopping_cart" size={40} className="text-advika-grey600" />
             </span>
-            <h1 className="font-archivoBlack text-[21px] text-advika-chrome">{t('advika.cartPage.emptyTitle')}</h1>
+            <h1 className="font-archivoBlack text-[21px] leading-[1.2] text-advika-chrome">{t('advika.cartPage.emptyTitle')}</h1>
             <p className="max-w-[280px] text-[13.5px] text-advika-grey800">{t('advika.cartPage.emptyBody')}</p>
-            <Link to="/products" className="flex h-[54px] items-center justify-center bg-advika-orange px-8 text-[14px] font-bold text-white">
-              {t('advika.cartPage.startShopping')}
+            <Link to="/products" className="aa-tracking mt-[6px] flex h-[54px] items-center justify-center gap-[9px] rounded bg-advika-orange px-[26px] text-[14px] font-bold text-white">
+              {t('advika.cartPage.startShopping')} <span>→</span>
             </Link>
-            <a href={BRAND_PHONE_TEL} className="text-[13px] text-advika-grey700 underline">
-              {t('advika.cartPage.emptyHelp')}
+            <a href={BRAND_PHONE_TEL} className="mt-[2px] flex items-center gap-[7px] text-[13px] text-advika-grey800">
+              <Icon name="chat" size={16} className="text-advika-grey800" /> {t('advika.cartPage.emptyHelp')}
             </a>
           </div>
         ) : (
@@ -137,7 +137,7 @@ export default function CartPage() {
               <h1 className="aa-title-xl text-white">
                 {t('advika.cartPage.titleLine1', 'SHOPPING')} <span className="text-advika-orange">{t('advika.cartPage.titleAccent', 'CART')}</span>
               </h1>
-              <p className="text-[11.5px] text-advika-grey600">
+              <p className="aa-label text-[11.5px] text-advika-grey600">
                 {t('advika.cartPage.itemsSummary', { count: cartItems.reduce((a, i) => a + i.quantity, 0), total: formatPrice(total) ?? total })}
               </p>
             </div>
@@ -163,10 +163,10 @@ export default function CartPage() {
                   item.specs?.['Beam Pattern'],
                 ].filter(Boolean);
                 return (
-                  <div key={item.id} data-testid={`cart-item-${item.id}`} className="flex gap-3 border border-advika-border-light p-[13px]">
-                    <Link to={buildProductPath({ id: item.id }, item.name)} className="relative flex h-[78px] w-[78px] shrink-0 items-center justify-center bg-advika-ink">
+                  <div key={item.id} data-testid={`cart-item-${item.id}`} className="flex gap-3 rounded border border-advika-border-light bg-white p-[13px]">
+                    <Link to={buildProductPath({ id: item.id }, item.name)} className="relative flex h-[78px] w-[78px] shrink-0 items-center justify-center rounded-[3px] bg-[#151515]">
                       {discountPct != null && (
-                        <span className="aa-mono absolute left-[6px] top-[6px] z-10 rounded-sm bg-advika-orange px-[5px] py-[2px] text-[8px] font-semibold text-white">
+                        <span className="aa-mono absolute left-[5px] top-[5px] z-10 rounded-sm bg-advika-orange px-[4px] py-[2px] text-[8px] font-semibold text-white">
                           -{discountPct}%
                         </span>
                       )}
@@ -178,36 +178,40 @@ export default function CartPage() {
                     </Link>
                     <div className="flex flex-1 flex-col gap-2">
                       <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0">
+                        <div className="flex min-w-0 flex-col gap-1">
                           {category && (
-                            <div className="text-[9px] font-semibold text-advika-orange-dark">{t(`advika.category.${category.id}`, category.label)}</div>
+                            <div className="aa-label text-[9px] font-semibold text-advika-orange-dark">{t(`advika.category.${category.id}`, category.label)}</div>
                           )}
-                          <Link to={buildProductPath({ id: item.id }, item.name)} className="text-[14px] font-bold text-advika-chrome">
+                          <Link to={buildProductPath({ id: item.id }, item.name)} className="text-[14px] font-bold leading-[1.3] text-advika-chrome">
                             {getLocalizedI18n(item.name, i18n.language)}
                           </Link>
                         </div>
                         <button type="button" onClick={() => removeItem(item.id)} aria-label={t('cart.remove', 'Remove')} data-testid={`cart-item-remove-${item.id}`} className="flex h-8 w-8 shrink-0 items-center justify-center">
-                          <Icon name="delete_outline" size={18} className="text-advika-grey650" />
+                          <Icon name="delete_outline" size={18} className="text-advika-grey600" />
                         </button>
                       </div>
                       {specChips.length > 0 && (
-                        <div className="flex flex-wrap gap-[6px]">
+                        <div className="flex flex-wrap gap-[5px]">
                           {specChips.map((chip) => (
-                            <span key={chip} className="aa-mono rounded-sm border border-advika-border-light bg-advika-off-white px-[7px] py-[4px] text-[9.5px] font-semibold text-advika-grey800">
+                            <span key={chip} className="aa-label rounded-sm border border-advika-border-light bg-advika-off-white px-[7px] py-[4px] text-[9.5px] text-advika-grey800">
                               {chip}
                             </span>
                           ))}
                         </div>
                       )}
-                      <div className="flex items-center justify-between">
-                        <div className="flex h-9 overflow-hidden rounded border border-advika-border-light">
-                          <button type="button" onClick={() => updateQuantity(item.id, item.quantity - 1)} aria-label={t('cart.decreaseQuantity', 'Decrease quantity')} data-testid={`cart-item-decrease-${item.id}`} className="w-9 border-r border-advika-border-light">−</button>
-                          <span className="aa-mono flex w-9 items-center justify-center text-[14px]" data-testid={`cart-item-quantity-${item.id}`}>{item.quantity}</span>
-                          <button type="button" onClick={() => updateQuantity(item.id, item.quantity + 1)} aria-label={t('cart.increaseQuantity', 'Increase quantity')} data-testid={`cart-item-increase-${item.id}`} className="w-9 border-l border-advika-border-light">+</button>
+                      <div className="flex items-center justify-between pt-[2px]">
+                        <div className="flex h-9 overflow-hidden rounded-[3px] border border-advika-grey400">
+                          <button type="button" onClick={() => updateQuantity(item.id, item.quantity - 1)} aria-label={t('cart.decreaseQuantity', 'Decrease quantity')} data-testid={`cart-item-decrease-${item.id}`} className="flex w-9 items-center justify-center border-r border-advika-border-light">
+                            <Icon name="remove" size={17} className="text-advika-grey900" />
+                          </button>
+                          <span className="aa-mono flex min-w-[38px] items-center justify-center text-[14px] font-semibold" data-testid={`cart-item-quantity-${item.id}`}>{item.quantity}</span>
+                          <button type="button" onClick={() => updateQuantity(item.id, item.quantity + 1)} aria-label={t('cart.increaseQuantity', 'Increase quantity')} data-testid={`cart-item-increase-${item.id}`} className="flex w-9 items-center justify-center border-l border-advika-border-light">
+                            <Icon name="add" size={17} className="text-advika-grey900" />
+                          </button>
                         </div>
                         <div className="text-right">
                           <div className="aa-mono text-[16px] font-semibold text-advika-chrome">₹{formatPrice(lineTotal) ?? lineTotal}</div>
-                          {lineMrp && lineMrp > lineTotal && <div className="aa-mono text-[10.5px] text-advika-grey650 line-through">₹{formatPrice(lineMrp)}</div>}
+                          {lineMrp && lineMrp > lineTotal && <div className="aa-mono text-[10.5px] text-advika-grey600 line-through">₹{formatPrice(lineMrp)}</div>}
                         </div>
                       </div>
                     </div>
@@ -227,25 +231,25 @@ export default function CartPage() {
             </div>
 
             {/* Order summary */}
-            <div className="mx-[14px] mt-4 flex flex-col gap-[15px] border border-advika-border-light p-4">
+            <div className="mx-[14px] mt-4 flex flex-col gap-[15px] rounded border border-advika-border-light bg-white p-4">
               <h2 className="font-archivoBlack text-[18px] text-advika-chrome">{t('advika.cartPage.summary', 'Order Summary')}</h2>
               <div className="flex flex-col gap-[11px]">
-                <div className="flex justify-between text-[13px] text-advika-grey800">
+                <div className="flex items-baseline justify-between text-[13px] text-advika-grey800">
                   <span>{t('advika.cartPage.mrpTotal')}</span>
-                  <span className="aa-mono text-[13.5px]">₹{formatPrice(mrpTotal) ?? mrpTotal}</span>
+                  <span className="aa-mono text-[13.5px] text-advika-grey900">₹{formatPrice(mrpTotal) ?? mrpTotal}</span>
                 </div>
                 {savings > 0 && (
-                  <div className="flex justify-between text-[13px] font-semibold text-advika-success">
+                  <div className="flex items-baseline justify-between text-[13px] font-semibold text-advika-success">
                     <span>{t('advika.cartPage.productDiscount')}</span>
-                    <span className="aa-mono">−₹{formatPrice(savings)}</span>
+                    <span className="aa-mono text-[13.5px]">−₹{formatPrice(savings)}</span>
                   </div>
                 )}
-                <div className="flex justify-between text-[13px] text-advika-grey800">
+                <div className="flex items-baseline justify-between text-[13px] text-advika-grey800">
                   <span>{t('advika.cartPage.shipping')}</span>
                   <span className="aa-mono text-[12px] font-semibold text-advika-success">{t('advika.cartPage.free', 'FREE')}</span>
                 </div>
               </div>
-              <div className="flex items-center justify-between border-t border-advika-border-light pt-[15px]">
+              <div className="flex items-baseline justify-between border-t border-advika-border-light pt-3">
                 <span className="text-[16px] font-bold text-advika-chrome">{t('advika.cartPage.total', 'Total')}</span>
                 <span className="aa-mono text-[20px] font-semibold text-advika-chrome">₹{formatPrice(total) ?? total}</span>
               </div>
@@ -255,17 +259,8 @@ export default function CartPage() {
                   {t('cart.resolveBeforeCheckout', 'Remove or update the out-of-stock items in your cart to continue.')}
                 </p>
               )}
-              <button
-                type="button"
-                onClick={() => requireAuth(() => navigate('/checkout'))}
-                disabled={hasUnavailableItem}
-                data-testid="cart-proceed-to-checkout-button"
-                className="flex h-[54px] items-center justify-center bg-advika-orange text-[14px] font-bold text-white disabled:opacity-50"
-              >
-                {t('advika.cartPage.proceed', 'PROCEED TO CHECKOUT')}
-              </button>
-              <Link to="/products" className="flex items-center justify-center gap-1 text-center text-[13px] text-advika-grey800">
-                <Icon name="arrow_back" size={15} />
+              <Link to="/products" className="flex items-center justify-center gap-[7px] text-center text-[13px] text-advika-grey800">
+                <Icon name="arrow_back" size={16} />
                 {t('advika.cartPage.continueShopping')}
               </Link>
             </div>
@@ -277,7 +272,7 @@ export default function CartPage() {
                   <Icon name="savings" size={30} className="text-advika-orange" />
                   <div>
                     <div className="aa-label text-[9.5px] text-advika-orange">{t('advika.cartPage.savings')}</div>
-                    <div className="font-archivoBlack text-[26px] text-white">₹{formatPrice(savings)}</div>
+                    <div className="font-archivoBlack text-[26px] leading-none text-white">₹{formatPrice(savings)}</div>
                     <div className="text-[11.5px] text-advika-grey600">{t('advika.cartPage.onThisOrder')}</div>
                   </div>
                 </div>
@@ -288,28 +283,31 @@ export default function CartPage() {
             {alsoBought.length > 0 && (
               <div className="flex flex-col gap-3 px-4 pb-7 pt-[22px]">
                 <h2 className="font-archivoBlack text-[17px] text-advika-chrome">{t('advika.cartPage.alsoBought')}</h2>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-[11px]">
                   {alsoBought.map((p) => {
                     const category = getCategoryByLabel(p.category?.[0]);
                     return (
-                      <div key={p.id} className="flex flex-col gap-2">
-                        <Link to={buildProductPath(p, getLocalizedI18n(p.name, i18n.language))} className="flex h-24 items-center justify-center bg-advika-ink">
+                      <div key={p.id} className="flex flex-col overflow-hidden rounded border border-advika-border-light bg-white">
+                        <Link to={buildProductPath(p, getLocalizedI18n(p.name, i18n.language))} className="flex h-24 items-center justify-center bg-[#151515]">
                           {p.images?.[0] ? (
                             <ImageWithFallback src={p.images[0]} alt="" className="h-full w-full object-cover" />
                           ) : (
-                            <Icon name={category?.icon || 'auto_awesome'} size={32} className="text-advika-orange" />
+                            <Icon name={category?.icon || 'auto_awesome'} size={36} className="text-advika-orange" />
                           )}
                         </Link>
-                        <span className="text-[12.5px] text-advika-chrome">{getLocalizedI18n(p.name, i18n.language)}</span>
-                        <span className="aa-mono text-[14px] font-semibold text-advika-chrome">₹{formatPrice(p.price) ?? p.price}</span>
-                        <button
-                          type="button"
-                          onClick={() => handleAddAlsoBought(p)}
-                          disabled={addingIds.has(p.id)}
-                          className="flex h-[38px] items-center justify-center border-[1.5px] border-advika-chrome text-[11px] font-bold text-advika-chrome disabled:opacity-60"
-                        >
-                          {t('advika.cartPage.add', 'ADD')}
-                        </button>
+                        <div className="flex flex-col gap-2 p-[11px]">
+                          <span className="min-h-[33px] text-[12.5px] font-semibold leading-[1.3] text-advika-chrome">{getLocalizedI18n(p.name, i18n.language)}</span>
+                          <span className="aa-mono text-[14px] font-semibold text-advika-chrome">₹{formatPrice(p.price) ?? p.price}</span>
+                          <button
+                            type="button"
+                            onClick={() => handleAddAlsoBought(p)}
+                            disabled={addingIds.has(p.id)}
+                            className="aa-tracking flex h-[38px] items-center justify-center gap-[5px] rounded-[3px] border-[1.5px] border-advika-chrome text-[10.5px] font-bold text-advika-chrome disabled:opacity-60"
+                          >
+                            <Icon name="add" size={14} className="text-advika-chrome" />
+                            {t('advika.cartPage.add', 'ADD')}
+                          </button>
+                        </div>
                       </div>
                     );
                   })}
@@ -329,9 +327,9 @@ export default function CartPage() {
             onClick={() => requireAuth(() => navigate('/checkout'))}
             disabled={hasUnavailableItem}
             data-testid="cart-sticky-proceed-to-checkout-button"
-            className="flex h-[52px] w-full items-center justify-center bg-advika-orange text-[13px] font-bold text-white disabled:opacity-50"
+            className="aa-tracking flex h-[52px] w-full items-center justify-center gap-2 rounded bg-advika-orange text-[13.5px] font-bold text-white disabled:opacity-50"
           >
-            {t('advika.cartPage.proceed', 'PROCEED TO CHECKOUT')}
+            {t('advika.cartPage.proceed', 'PROCEED TO CHECKOUT')} <span>→</span>
           </button>
         </StickyActionBar>
       )}

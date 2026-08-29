@@ -277,6 +277,7 @@ a { color: inherit; text-decoration: none; }
   .aa-title-xl {
     font-family: var(--font-black);
     font-size: 38px;
+    line-height: 1.02;
     letter-spacing: -0.01em;
   }
   html:lang(hi) .aa-title-xl, html:lang(mr) .aa-title-xl { font-size: 30px; letter-spacing: 0; }
@@ -285,6 +286,7 @@ a { color: inherit; text-decoration: none; }
   .aa-title-lg {
     font-family: var(--font-black);
     font-size: 34px;
+    line-height: 1.02;
     letter-spacing: -0.01em;
   }
   html:lang(hi) .aa-title-lg, html:lang(mr) .aa-title-lg { font-size: 28px; letter-spacing: 0; }
@@ -293,6 +295,7 @@ a { color: inherit; text-decoration: none; }
   .aa-title-md {
     font-family: var(--font-black);
     font-size: 30px;
+    line-height: 1.02;
     letter-spacing: -0.01em;
   }
   html:lang(hi) .aa-title-md, html:lang(mr) .aa-title-md { font-size: 26px; letter-spacing: 0; }
@@ -301,6 +304,7 @@ a { color: inherit; text-decoration: none; }
   .aa-title-sm {
     font-family: var(--font-black);
     font-size: 31px;
+    line-height: 1.05;
     letter-spacing: -0.01em;
   }
   html:lang(hi) .aa-title-sm, html:lang(mr) .aa-title-sm { font-size: 27px; letter-spacing: 0; }
@@ -310,14 +314,16 @@ a { color: inherit; text-decoration: none; }
     font-family: var(--font-black);
     font-size: 25px;
     line-height: 1.08;
+    letter-spacing: -0.01em;
   }
-  html:lang(hi) .aa-title-product, html:lang(mr) .aa-title-product { font-size: 22px; }
+  html:lang(hi) .aa-title-product, html:lang(mr) .aa-title-product { font-size: 22px; letter-spacing: 0; }
 
   /* Login screen headings — welcome/verify/signup titles (28/24), see
      design_handoff_advika_auto/README.md screen 7. */
   .aa-title-auth {
     font-family: var(--font-black);
     font-size: 28px;
+    line-height: 1.1;
     letter-spacing: -0.01em;
   }
   html:lang(hi) .aa-title-auth, html:lang(mr) .aa-title-auth { font-size: 24px; letter-spacing: 0; }
@@ -340,6 +346,68 @@ a { color: inherit; text-decoration: none; }
     letter-spacing: 0.08em;
   }
   html:lang(hi) .aa-label, html:lang(mr) .aa-label { letter-spacing: 0; }
+
+  /* Vehicle class screen's own English tracking token is .07em, not the
+     .08em every other screen (Landing, etc.) uses — a real per-screen
+     design value, not a typo. .aa-label is shared globally, so this scopes
+     the override to just this page via a wrapper class on VehiclePage's
+     root element rather than changing the shared default. */
+  .aa-page-vehicle .aa-label { letter-spacing: 0.07em; }
+  html:lang(hi) .aa-page-vehicle .aa-label, html:lang(mr) .aa-page-vehicle .aa-label { letter-spacing: 0; }
+
+  /* Category listing's own English tracking token is also .07em (same
+     reasoning as .aa-page-vehicle above). */
+  .aa-page-category .aa-label { letter-spacing: 0.07em; }
+  html:lang(hi) .aa-page-category .aa-label, html:lang(mr) .aa-page-category .aa-label { letter-spacing: 0; }
+
+  /* Product detail's own English tracking token is also .07em. */
+  .aa-page-product .aa-label { letter-spacing: 0.07em; }
+  html:lang(hi) .aa-page-product .aa-label, html:lang(mr) .aa-page-product .aa-label { letter-spacing: 0; }
+
+  /* Cart's own English tracking token is also .07em. */
+  .aa-page-cart .aa-label { letter-spacing: 0.07em; }
+  html:lang(hi) .aa-page-cart .aa-label, html:lang(mr) .aa-page-cart .aa-label { letter-spacing: 0; }
+
+  /* Wishlist's own English tracking token is also .07em. */
+  .aa-page-wishlist .aa-label { letter-spacing: 0.07em; }
+  html:lang(hi) .aa-page-wishlist .aa-label, html:lang(mr) .aa-page-wishlist .aa-label { letter-spacing: 0; }
+
+  /* Checkout's own English tracking token is also .07em. Checkout also
+     shares .aa-title-md with Category, but wants line-height:1 there
+     instead of Category's 1.02 — scoped override, same reasoning as the
+     tracking split above. */
+  .aa-page-checkout .aa-label { letter-spacing: 0.07em; }
+  html:lang(hi) .aa-page-checkout .aa-label, html:lang(mr) .aa-page-checkout .aa-label { letter-spacing: 0; }
+  .aa-page-checkout .aa-title-md { line-height: 1; }
+
+  /* Login's own English tracking token is also .07em. */
+  .aa-page-login .aa-label { letter-spacing: 0.07em; }
+  html:lang(hi) .aa-page-login .aa-label, html:lang(mr) .aa-page-login .aa-label { letter-spacing: 0; }
+
+  /* Track Order's own English tracking token is also .07em. */
+  .aa-page-tracking .aa-label { letter-spacing: 0.07em; }
+  html:lang(hi) .aa-page-tracking .aa-label, html:lang(mr) .aa-page-tracking .aa-label { letter-spacing: 0; }
+
+  /* Account's own English tracking token is also .07em. */
+  .aa-page-account .aa-label { letter-spacing: 0.07em; }
+  html:lang(hi) .aa-page-account .aa-label, html:lang(mr) .aa-page-account .aa-label { letter-spacing: 0; }
+
+  /* Tracked text that does NOT use the mono font-family (Add to Cart /
+     Buy Now / Check buttons, etc. — design applies letter-spacing to
+     these without swapping them to IBM Plex Mono the way .aa-label's
+     eyebrows/badges do). Same per-language tracking rule as .aa-label,
+     just without the font-family change. */
+  .aa-tracking { letter-spacing: 0.08em; }
+  html:lang(hi) .aa-tracking, html:lang(mr) .aa-tracking { letter-spacing: 0; }
+  .aa-page-vehicle .aa-tracking, .aa-page-category .aa-tracking, .aa-page-product .aa-tracking, .aa-page-cart .aa-tracking, .aa-page-wishlist .aa-tracking, .aa-page-checkout .aa-tracking, .aa-page-login .aa-tracking, .aa-page-tracking .aa-tracking { letter-spacing: 0.07em; }
+  html:lang(hi) .aa-page-vehicle .aa-tracking, html:lang(mr) .aa-page-vehicle .aa-tracking,
+  html:lang(hi) .aa-page-category .aa-tracking, html:lang(mr) .aa-page-category .aa-tracking,
+  html:lang(hi) .aa-page-product .aa-tracking, html:lang(mr) .aa-page-product .aa-tracking,
+  html:lang(hi) .aa-page-cart .aa-tracking, html:lang(mr) .aa-page-cart .aa-tracking,
+  html:lang(hi) .aa-page-wishlist .aa-tracking, html:lang(mr) .aa-page-wishlist .aa-tracking,
+  html:lang(hi) .aa-page-checkout .aa-tracking, html:lang(mr) .aa-page-checkout .aa-tracking,
+  html:lang(hi) .aa-page-login .aa-tracking, html:lang(mr) .aa-page-login .aa-tracking,
+  html:lang(hi) .aa-page-tracking .aa-tracking, html:lang(mr) .aa-page-tracking .aa-tracking { letter-spacing: 0; }
 
   /* Announcement ticker — duplicated content translates by -50% so the
      loop is seamless (see Landing page build). */

@@ -117,36 +117,38 @@ export default function OrderTrackingPage() {
   const deliveredStageKey = currentStage === 'delivered' && paymentMethod !== 'cod' ? 'deliveredOnline' : 'delivered';
 
   return (
-    <div className="aa-shell min-h-screen bg-white">
+    <div className="aa-shell aa-page-tracking min-h-screen bg-white">
       <Seo title={t('orderSuccess.detailsTitle', 'Order Details')} noindex />
       <AdvikaHeader />
 
       <div className="flex flex-col gap-[15px] bg-advika-near-black px-4 pb-[22px] pt-6">
-        <Link to="/profile?tab=orders" className="aa-label flex items-center gap-1 text-[10.5px] text-advika-grey600">
+        <Link to="/profile?tab=orders" className="aa-label flex items-center gap-1.5 text-[10.5px] text-advika-grey600">
           <Icon name="arrow_back" size={15} /> {t('advika.tracking.backToOrders', 'BACK TO MY ORDERS')}
         </Link>
-        <h1 className="aa-title-lg text-white">
-          {t('advika.tracking.titleLine1', 'TRACK')} <span className="text-advika-orange">{t('advika.tracking.titleAccent', 'ORDER')}</span>
-        </h1>
-        <div className="flex items-center gap-2">
-          <span className="aa-mono text-[14px] text-advika-orange">#{order.id}</span>
-          <span className="h-1 w-1 rounded-full bg-advika-grey700" />
-          <span className="text-[11px] text-advika-grey600">{t('advika.tracking.placedOn', { date: formatOrderDate(order.createdAt).toUpperCase() })}</span>
+        <div className="flex flex-col gap-[7px]">
+          <h1 className="aa-title-lg text-white">
+            {t('advika.tracking.titleLine1', 'TRACK')} <span className="text-advika-orange">{t('advika.tracking.titleAccent', 'ORDER')}</span>
+          </h1>
+          <div className="flex items-center gap-[9px]">
+            <span className="aa-mono text-[14px] text-advika-orange">#{order.id}</span>
+            <span className="h-1 w-1 rounded-full bg-advika-grey900" />
+            <span className="aa-mono text-[11px] text-advika-grey600">{t('advika.tracking.placedOn', { date: formatOrderDate(order.createdAt).toUpperCase() })}</span>
+          </div>
         </div>
         <div className="flex items-center gap-[13px] rounded bg-advika-orange p-[15px]">
           <Icon name={STAGE_ICONS[currentStage]} size={30} className="text-white" />
           <div>
             <div className="aa-label text-[9.5px] text-[#ffe4cc]">{t('advika.tracking.currentStatus', 'CURRENT STATUS')}</div>
-            <div className="text-[16px] font-bold text-white">{t(`advika.tracking.stage.${currentStage === 'delivered' ? deliveredStageKey : currentStage}.title`)}</div>
-            <div className="text-[11.5px] text-[#fff3e6]">{t(`advika.tracking.stage.${currentStage === 'delivered' ? deliveredStageKey : currentStage}.body`)}</div>
+            <div className="text-[16px] font-bold leading-[1.25] text-white">{t(`advika.tracking.stage.${currentStage === 'delivered' ? deliveredStageKey : currentStage}.title`)}</div>
+            <div className="text-[11.5px] leading-[1.4] text-[#fff3e6]">{t(`advika.tracking.stage.${currentStage === 'delivered' ? deliveredStageKey : currentStage}.body`)}</div>
           </div>
         </div>
       </div>
 
       <div className="flex flex-col gap-3 px-4 py-5">
         {/* Progress timeline */}
-        <div className="border border-advika-border-light bg-white p-4">
-          <h2 className="mb-3 text-[16px] font-bold text-advika-chrome">{t('advika.tracking.orderProgress', 'Order Progress')}</h2>
+        <div className="rounded border border-advika-border-light bg-white p-4">
+          <h2 className="mb-[6px] text-[16px] font-bold text-advika-chrome">{t('advika.tracking.orderProgress', 'Order Progress')}</h2>
           <div className="flex flex-col">
             {STAGES.map((stage, idx) => {
               const isDone = idx < stageIndex;
@@ -186,19 +188,19 @@ export default function OrderTrackingPage() {
                     )}
                   </div>
                   <div className={`flex flex-col gap-1 ${idx < STAGES.length - 1 ? 'pb-5' : ''}`}>
-                    <span className={`text-[14.5px] font-bold ${isFuture ? 'text-advika-grey650' : 'text-advika-chrome'}`}>
+                    <span className={`text-[14.5px] font-bold leading-[1.3] ${isFuture ? 'text-advika-grey600' : 'text-advika-chrome'}`}>
                       {t(`advika.tracking.stage.${stageKey}.title`)}
                     </span>
-                    <span className={`text-[12px] ${isFuture ? 'text-advika-grey550' : 'text-advika-grey700'}`}>
+                    <span className={`text-[12px] leading-[1.5] ${isFuture ? 'text-advika-grey550' : 'text-advika-grey700'}`}>
                       {t(`advika.tracking.stage.${stageKey}.body`)}
                     </span>
                     {stageTimestamp && (
-                      <span className="aa-mono text-[10.5px] text-advika-grey650">{stageTimestamp}</span>
+                      <span className="aa-mono text-[10.5px] text-advika-grey600">{stageTimestamp}</span>
                     )}
                     {isCurrent && (
-                      <div className="mt-1 flex items-center gap-2 rounded-[3px] border border-advika-orange-border bg-advika-orange-tint2 px-[11px] py-[9px]">
+                      <div className="mt-1 flex items-center gap-[7px] rounded-[3px] border border-advika-orange-border bg-advika-orange-tint px-[11px] py-[9px]">
                         <Icon name="schedule" size={15} className="text-advika-orange-dark" />
-                        <span className="text-[11.5px] font-semibold text-advika-orange-darker2">
+                        <span className="text-[11.5px] font-semibold leading-[1.4] text-advika-orange-darker2">
                           {paymentMethod === 'cod'
                             ? t('advika.tracking.currentCallout', { amount: (order.total ?? 0).toFixed(0) })
                             : t('advika.tracking.currentCalloutOnline', 'Arriving today between 2 PM and 7 PM.')}
@@ -214,8 +216,8 @@ export default function OrderTrackingPage() {
 
         {/* Shipment details */}
         {shipment && (
-          <div className="border border-advika-border-light bg-white p-4">
-            <div className="mb-3 flex items-center gap-2">
+          <div className="rounded border border-advika-border-light bg-white p-4">
+            <div className="mb-[13px] flex items-center gap-[9px]">
               <Icon name="local_shipping" size={19} className="text-advika-orange" />
               <h2 className="text-[15px] font-bold text-advika-chrome">{t('advika.tracking.shipmentDetails', 'Shipment Details')}</h2>
             </div>
@@ -225,19 +227,20 @@ export default function OrderTrackingPage() {
               [t('advika.tracking.expected', 'EXPECTED'), formatOrderDate(shipment.estimatedDeliveryDate)],
             ].filter(([, v]) => v).map(([label, value]) => (
               <div key={label} className="flex justify-between border-t border-advika-divider-light py-[10px] first:border-0 first:pt-0">
-                <span className="w-[42%] text-[12.5px] text-advika-grey650">{label}</span>
-                <span className="text-right text-[13px] font-semibold text-advika-grey900">{value}</span>
+                <span className="w-[42%] text-[12.5px] text-advika-grey600">{label}</span>
+                <span className="text-right text-[13px] font-semibold leading-[1.4] text-advika-chrome">{value}</span>
               </div>
             ))}
-            <a href={BRAND_PHONE_TEL} className="mt-3 flex h-12 items-center justify-center bg-advika-whatsapp text-[13px] font-bold text-white">
+            <a href={BRAND_PHONE_TEL} className="mt-[2px] flex h-12 items-center justify-center gap-[9px] rounded-[3px] bg-advika-whatsapp text-[12.5px] font-bold text-white">
+              <Icon name="call" size={18} className="text-white" />
               {t('advika.tracking.callAgent', 'CALL DELIVERY AGENT')}
             </a>
           </div>
         )}
 
         {/* Items */}
-        <div className="border border-advika-border-light bg-white p-4">
-          <div className="mb-3 flex items-center gap-2">
+        <div className="rounded border border-advika-border-light bg-white p-4">
+          <div className="mb-[13px] flex items-center gap-[9px]">
             <Icon name="inventory_2" size={19} className="text-advika-orange" />
             <h2 className="text-[15px] font-bold text-advika-chrome">{t('advika.tracking.itemsInOrder', 'Items in this Order')}</h2>
           </div>
@@ -245,12 +248,12 @@ export default function OrderTrackingPage() {
             const category = getCategoryByLabel(item.product?.category?.[0]);
             return (
               <div key={item.id} className="flex items-center gap-3 border-t border-advika-divider-light py-3 first:border-0 first:pt-0">
-                <div className="flex h-[54px] w-[54px] shrink-0 items-center justify-center bg-advika-ink">
+                <div className="flex h-[54px] w-[54px] shrink-0 items-center justify-center rounded-[3px] bg-advika-ink">
                   <Icon name={category?.icon || 'auto_awesome'} size={26} className="text-advika-orange" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-[13.5px] font-bold text-advika-chrome">{item.product?.name ?? t('checkout.itemFallback', 'Item')}</p>
-                  <p className="text-[10px] text-advika-grey700">{itemMeta(item)}</p>
+                  <p className="truncate text-[13.5px] font-bold leading-[1.3] text-advika-chrome">{item.product?.name ?? t('checkout.itemFallback', 'Item')}</p>
+                  <p className="aa-label text-[10px] text-advika-grey700">{itemMeta(item)}</p>
                 </div>
                 <span className="aa-mono text-[14.5px] font-semibold text-advika-chrome">₹{formatPrice(item.price * item.quantity)}</span>
               </div>
@@ -270,14 +273,16 @@ export default function OrderTrackingPage() {
 
         {/* Delivering to */}
         {order.address && (
-          <div className="border border-advika-border-light bg-white p-4">
-            <div className="mb-3 flex items-center gap-2">
+          <div className="rounded border border-advika-border-light bg-white p-4">
+            <div className="mb-[11px] flex items-center gap-[9px]">
               <Icon name="location_on" size={19} className="text-advika-orange" />
               <h2 className="text-[15px] font-bold text-advika-chrome">{t('advika.tracking.deliveringTo', 'Delivering To')}</h2>
             </div>
-            <p className="border-t border-advika-divider-light pt-[11px] text-[14px] font-bold text-advika-chrome">{order.address.name}</p>
-            <p className="text-[13px] text-advika-grey800">{order.address.houseArea}, {order.address.city}, {order.address.state} — {order.address.pincode}</p>
-            {order.address.phone && <p className="aa-mono mt-1 text-[12.5px] text-advika-grey700">{order.address.phone}</p>}
+            <div className="flex flex-col gap-[5px] border-t border-advika-divider-light pt-[11px]">
+              <p className="text-[14px] font-bold text-advika-chrome">{order.address.name}</p>
+              <p className="text-[13px] leading-[1.55] text-advika-grey800">{order.address.houseArea}, {order.address.city}, {order.address.state} — {order.address.pincode}</p>
+              {order.address.phone && <p className="aa-mono text-[12.5px] text-advika-grey800">{order.address.phone}</p>}
+            </div>
           </div>
         )}
 
@@ -285,10 +290,10 @@ export default function OrderTrackingPage() {
         <div className="flex items-center gap-[13px] rounded bg-advika-near-black p-4">
           <Icon name="support_agent" size={26} className="text-advika-orange" />
           <div className="flex-1">
-            <p className="text-[13.5px] font-bold text-white">{t('advika.tracking.helpTitle', 'Problem with this order?')}</p>
-            <p className="text-[11.5px] text-advika-grey600">{t('advika.tracking.helpBody')}</p>
+            <p className="text-[13.5px] font-bold leading-[1.35] text-white">{t('advika.tracking.helpTitle', 'Problem with this order?')}</p>
+            <p className="text-[11.5px] leading-[1.4] text-advika-grey600">{t('advika.tracking.helpBody')}</p>
           </div>
-          <a href={BRAND_PHONE_TEL} className="shrink-0 rounded bg-advika-orange px-4 py-2 text-[12px] font-bold text-white">
+          <a href={BRAND_PHONE_TEL} className="shrink-0 rounded-[3px] bg-advika-orange px-[13px] py-[11px] text-[11.5px] font-bold text-white">
             {t('advika.tracking.getHelp', 'GET HELP')}
           </a>
         </div>

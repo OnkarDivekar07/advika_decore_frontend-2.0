@@ -18,31 +18,38 @@ export default function CheckoutDarkSummary({ order }) {
   const total = order.total ?? 0;
 
   return (
-    <div className="flex flex-col gap-[15px] rounded bg-advika-near-black p-[18px]">
+    <div className="flex flex-col gap-[14px] rounded bg-advika-near-black p-[18px]">
       <h2 className="font-archivoBlack text-[17px] text-white">{t('checkout.orderSummary', 'Order Summary')}</h2>
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-[11px]">
         {items.map((item) => (
-          <div key={item.id} className="flex justify-between text-[12.5px] text-advika-grey600">
-            <span className="truncate pr-2">
-              {item.product?.name ?? t('checkout.itemFallback', 'Item')} ×{item.quantity}
+          <div key={item.id} className="flex items-baseline justify-between gap-3 text-[12.5px] leading-[1.4] text-advika-grey400">
+            <span className="truncate">
+              {item.product?.name ?? t('checkout.itemFallback', 'Item')} <span className="text-advika-grey700">×{item.quantity}</span>
             </span>
-            <span className="aa-mono shrink-0">₹{(item.price * item.quantity).toFixed(2)}</span>
+            <span className="aa-mono shrink-0 whitespace-nowrap text-white">₹{(item.price * item.quantity).toFixed(2)}</span>
           </div>
         ))}
       </div>
-      <div className="flex justify-between text-[13px] text-advika-grey600">
-        <span>{t('checkout.subtotal', 'Subtotal')}</span>
-        <span className="aa-mono">₹{subtotal.toFixed(2)}</span>
+      <div className="flex flex-col gap-[9px] border-t border-advika-border-dark pt-3">
+        <div className="flex items-baseline justify-between text-[12.5px] text-advika-grey600">
+          <span>{t('checkout.subtotal', 'Subtotal')}</span>
+          <span className="aa-mono text-[13px] text-advika-grey400">₹{subtotal.toFixed(2)}</span>
+        </div>
+        <div className="flex items-baseline justify-between">
+          {deliveryCharge > 0 ? (
+            <>
+              <span className="text-[12.5px] text-advika-grey600">{t('advika.cartPage.shipping')}</span>
+              <span className="aa-mono text-[13px] text-advika-grey400">₹{deliveryCharge.toFixed(2)}</span>
+            </>
+          ) : (
+            <>
+              <span className="text-[12.5px] font-semibold text-advika-success-bright">{t('advika.cartPage.shipping')}</span>
+              <span className="aa-label text-[11.5px] font-semibold text-advika-success-bright">{t('advika.cartPage.free', 'FREE')}</span>
+            </>
+          )}
+        </div>
       </div>
-      <div className="flex justify-between text-[13px] text-advika-grey600">
-        <span>{t('advika.cartPage.shipping')}</span>
-        {deliveryCharge > 0 ? (
-          <span className="aa-mono">₹{deliveryCharge.toFixed(2)}</span>
-        ) : (
-          <span className="aa-mono font-semibold text-advika-success-bright">{t('advika.cartPage.free', 'FREE')}</span>
-        )}
-      </div>
-      <div className="flex items-center justify-between border-t border-advika-border-dark pt-[15px]">
+      <div className="flex items-center justify-between border-t border-advika-border-dark pt-[11px]">
         <span className="text-[15px] font-bold text-white">{t('checkout.total', 'Total')}</span>
         <span className="aa-mono text-[19px] font-semibold text-advika-orange">₹{total.toFixed(2)}</span>
       </div>

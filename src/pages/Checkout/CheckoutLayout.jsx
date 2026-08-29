@@ -73,19 +73,19 @@ function StepIndicator() {
         const isActive = index === activeIndex;
         return (
           <React.Fragment key={step}>
-            <div className="flex items-center gap-[7px]">
+            <div className="flex items-center gap-[6px]">
               <span
-                className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-bold ${
+                className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold ${
                   isDone ? 'bg-advika-success text-white' : isActive ? 'bg-advika-orange text-white' : 'bg-[#2e2e2e] text-[#8b8681]'
                 }`}
               >
-                {isDone ? <Icon name="check" size={13} /> : index + 1}
+                {isDone ? <Icon name="check" size={15} /> : index + 1}
               </span>
               <span className={`text-[12px] font-semibold ${isDone ? 'text-advika-success-bright' : isActive ? 'text-white' : 'text-advika-grey700'}`}>
                 {t(`checkout.step.${step}`, step[0].toUpperCase() + step.slice(1))}
               </span>
             </div>
-            {index < STEPS.length - 1 && <span className="h-px flex-1 bg-[#333]" />}
+            {index < STEPS.length - 1 && <span className="h-px min-w-2 flex-1 bg-[#333]" />}
           </React.Fragment>
         );
       })}
@@ -108,13 +108,13 @@ export default function CheckoutLayout() {
   if (isRestoring || !isAuthenticated) return null;
 
   return (
-    <div className="aa-shell min-h-screen bg-white">
+    <div className="aa-shell aa-page-checkout min-h-screen bg-advika-warm-white">
       <Seo title={t('checkout.title', 'Checkout')} noindex />
 
-      <div className="flex flex-col gap-4 bg-advika-near-black px-4 pb-[18px] pt-[22px]">
+      <div className="flex flex-col gap-4 bg-advika-near-black px-4 pb-4 pt-[22px]">
         <div className="flex items-center justify-between">
           <h1 className="aa-title-md text-white">{t('checkout.title', 'CHECKOUT')}</h1>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-[7px]">
             <LanguageContext.Consumer>
               {({ language, changeLanguage }) => (
                 <div className="flex overflow-hidden rounded border border-advika-border-dark4">
@@ -123,7 +123,7 @@ export default function CheckoutLayout() {
                       key={code}
                       type="button"
                       onClick={() => changeLanguage(code)}
-                      className={`aa-mono flex h-7 min-w-[26px] items-center justify-center px-1.5 text-[10px] font-semibold ${
+                      className={`aa-mono flex h-8 min-w-[30px] items-center justify-center px-1 text-[10px] font-semibold ${
                         language === code ? 'bg-advika-orange text-white' : 'text-advika-grey600'
                       }`}
                     >
@@ -136,10 +136,10 @@ export default function CheckoutLayout() {
             {/* README's nav map: "the header home icon is present on all
                 ten screens, including login" — Checkout.dc.html shows a
                 compact home + close pair beside the language switcher. */}
-            <Link to="/" aria-label={t('common.home', 'Home')} className="text-advika-grey600">
-              <Icon name="home" size={21} />
+            <Link to="/" aria-label={t('common.home', 'Home')} className="flex h-[34px] w-[34px] items-center justify-center text-[#e5e5e5]">
+              <Icon name="home" size={20} />
             </Link>
-            <Link to="/cart" aria-label={t('common.close', 'Close')} className="text-advika-grey600">
+            <Link to="/cart" aria-label={t('common.close', 'Close')} className="flex h-[34px] w-[34px] items-center justify-center text-[#e5e5e5]">
               <Icon name="close" size={21} />
             </Link>
           </div>

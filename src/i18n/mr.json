@@ -432,6 +432,7 @@
       "outOf5": "5 पैकी",
       "fitsVehicles": "या गाड्यांमध्ये बसते",
       "quantityLabel": "प्रमाण — {{unitLabel}} नुसार",
+      "quantityTotalLabel": "{{qty}} {{unit}} =",
       "unit": { "pc": "नग", "dozen": "डझन", "jodi": "जोडी" },
       "dualVoltageNote": "12V आणि 24V दोन्हीत चालते — एक किंवा दोन बॅटरी",
       "singleVoltageNote": "फक्त {{voltage}} — बसवण्यापूर्वी तुमच्या गाडीची सिस्टीम तपासा.",

@@ -23,8 +23,8 @@ export default function PromiseStrip({ compact = false, className = '', items: i
           className="flex flex-col items-center gap-[6px] rounded border border-advika-border-light bg-white px-2 py-[13px] text-center"
         >
           <Icon name={item.icon} size={compact ? 21 : 22} className="text-advika-orange" />
-          <span className="text-[11px] font-bold text-advika-chrome">{item.title}</span>
-          {!compact && <span className="text-[9.5px] text-advika-grey700">{item.body}</span>}
+          <span className={`font-bold text-advika-chrome ${compact ? 'text-[10.5px] leading-[1.35]' : 'text-[11.5px] leading-[1.3]'}`}>{item.title}</span>
+          {!compact && <span className="text-[9.5px] leading-[1.35] text-advika-grey700">{item.body}</span>}
         </div>
       ))}
     </div>

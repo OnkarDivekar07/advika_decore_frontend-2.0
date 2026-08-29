@@ -45,6 +45,7 @@ export default function AdvikaHeader({ variant = 'account', menuOpen, onToggleMe
   // "you are here" icon, and no self-referential badge on Wishlist).
   const isWishlistPage = location.pathname === '/wishlist';
   const isAccountPage = location.pathname === '/profile';
+  const isCartPage = location.pathname === '/cart';
 
   const goAccount = useCallback(() => {
     navigate(isAuthenticated ? '/profile' : '/login');
@@ -124,7 +125,7 @@ export default function AdvikaHeader({ variant = 'account', menuOpen, onToggleMe
               data-testid="header-cart-link"
               className="relative flex h-[38px] w-[38px] items-center justify-center"
             >
-              <Icon name="shopping_cart" size={22} className="text-[#e5e5e5]" />
+              <Icon name="shopping_cart" size={22} className={isCartPage ? 'text-advika-orange' : 'text-[#e5e5e5]'} />
               <Badge count={itemCount} />
             </Link>
 
