@@ -177,7 +177,14 @@ test.describe.serial('Real customer journey (real backend + real DB)', () => {
     await page.getByTestId('address-form-submit-button').click();
     const created = await createRes;
     expect(created.status()).toBe(200);
-    await expect(page.getByText(E2E_ADDRESS.name)).toBeVisible({ timeout: 10000 });
+    // Asserts on this specific address's own card by id rather than by
+    // display name — e2e-real/cross-system/full-lifecycle.spec.js
+    // deliberately creates its own address under this same shared E2E
+    // customer account (by design — see its own comment), reusing
+    // E2E_ADDRESS's `name` field, so a plain getByText(name) match is
+    // ambiguous whenever both specs run in the same invocation.
+    const createdAddressId = (await created.json()).data.id;
+    await expect(page.getByTestId(`address-card-${createdAddressId}`)).toBeVisible({ timeout: 10000 });
   });
 
   test('full COD checkout: address -> review (real shipping calc + totals) -> payment -> real order placed', async () => {

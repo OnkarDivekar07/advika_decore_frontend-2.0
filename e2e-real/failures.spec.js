@@ -200,7 +200,7 @@ test.describe('Real-backend failure scenarios', () => {
     // A throwaway real product created purely so this test can delete it
     // out from under an in-progress checkout — never touches the real
     // seeded catalog.
-    const productsBefore = await realApi.get('/api/products?search=Braided+Wiring');
+    const productsBefore = await realApi.get('/api/products?search=Heavy+Duty+Mud+Flap');
     const productId = productsBefore.body.data[0].id;
 
     await realApi.addToCart(productId, 1, buyerToken);
