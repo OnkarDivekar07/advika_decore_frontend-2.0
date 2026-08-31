@@ -103,8 +103,8 @@ OrderConflictsNotice.propTypes = {
         // Delivery-layer conflicts (see order.service.js's
         // detectAddressConflict, which now also checks the address's
         // pincode via shipping.service.js's checkDeliveryEligibility):
-        'invalid_pincode',              // pincode isn't a real one Ekart recognizes
-        'delivery_unavailable',         // real pincode, but Ekart doesn't cover it
+        'invalid_pincode',              // pincode isn't a real one Delhivery recognizes
+        'delivery_unavailable',         // real pincode, but Delhivery doesn't cover it
         'delivery_check_unavailable',   // carrier check itself couldn't get an answer (fail-closed policy)
         'cod_unavailable',              // covered, but not for Cash on Delivery
       ]),

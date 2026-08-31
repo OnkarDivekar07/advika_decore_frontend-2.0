@@ -8,7 +8,7 @@
 // header comment for what "real" means here and why.
 //
 // Prerequisites (see repo root's E2E_REAL_README.md for the exact
-// commands): backend 2.0's mock MSG91/Ekart servers running, the E2E
+// commands): backend 2.0's mock MSG91/Delhivery servers running, the E2E
 // database reset+seeded, and the real E2E backend server running on 5001,
 // all BEFORE this spec runs.
 //

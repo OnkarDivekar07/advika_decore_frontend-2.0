@@ -58,7 +58,7 @@ import * as shippingService from '@/services/shippingService';
  *   (`{ serviceable, reason, estimatedDays, estimatedDeliveryDate, codAvailable }`)
  *   once `status === 'ready'`, otherwise null. `retry()` re-fires the exact
  *   same request on demand — the real backend call a "Retry" button should
- *   invoke after an `error`, not a fake local reset that never asks Ekart
+ *   invoke after an `error`, not a fake local reset that never asks Delhivery
  *   again.
  */
 export function useServiceabilityCheck(
@@ -75,7 +75,7 @@ export function useServiceabilityCheck(
 
   // Bumped by retry() to force the effect below to re-fire the same
   // request even when none of pincode/paymentMode/weightKg actually
-  // changed — e.g. retrying after a transient network/Ekart error against
+  // changed — e.g. retrying after a transient network/Delhivery error against
   // the exact same address. Doesn't participate in anything else.
   const [retryTick, setRetryTick] = useState(0);
 
@@ -84,7 +84,7 @@ export function useServiceabilityCheck(
   // its id still matches this ref when it resolves — i.e. it's the most
   // recently *started* request. This is what stops a slower, older
   // request (e.g. one kicked off for a stale cart weight just before a
-  // rapid second quantity change, or an Ekart response that simply takes
+  // rapid second quantity change, or an Delhivery response that simply takes
   // longer to come back than the one right after it) from resolving after
   // a newer one and clobbering fresher shipping state with stale data —
   // plain effect-cleanup cancellation only guards the common

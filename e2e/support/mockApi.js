@@ -9,7 +9,7 @@
 // response contracts is a legitimate, standard E2E technique. It also
 // makes every scenario (empty results, 500s, stock conflicts, payment
 // failure, rate limiting) deterministic and instant instead of depending
-// on live third-party state (Razorpay, MSG91, Ekart) this app talks to.
+// on live third-party state (Razorpay, MSG91, Delhivery) this app talks to.
 //
 // Every fixture shape here is derived from backend/src/modules/**
 // (routes/controllers/services) as documented in the E2E test report —

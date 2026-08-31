@@ -24,8 +24,8 @@ test.describe('Order tracking', () => {
     const shipment = {
       status: 'IN_TRANSIT',
       paymentMode: 'COD',
-      courierPartner: 'Ekart Logistics',
-      trackingId: 'EKT123456789',
+      courierPartner: 'Delhivery',
+      trackingId: 'DL123456789',
       estimatedDeliveryDate: new Date(Date.now() + 2 * 86400000).toISOString(),
       lastSyncedAt: new Date().toISOString(),
     };
@@ -38,8 +38,11 @@ test.describe('Order tracking', () => {
     // resolveStageIndex('shipped', 'IN_TRANSIT') -> the "Shipped" stage —
     // see orderTrackingUtils.js.
     await expect(page.getByText('Shipped', { exact: true }).first()).toBeVisible();
-    await expect(page.getByText('Ekart Logistics')).toBeVisible();
-    await expect(page.getByText('EKT123456789')).toBeVisible();
+    // exact: true — the stage-progress copy also mentions "Delhivery" in a
+    // full sentence ("Handed to Delhivery Surface..."), so a substring
+    // match is ambiguous; this targets the shipment-details courier value.
+    await expect(page.getByText('Delhivery', { exact: true })).toBeVisible();
+    await expect(page.getByText('DL123456789')).toBeVisible();
   });
 
   test('shows a "not found" state for a nonexistent order id (404)', async ({ page }) => {

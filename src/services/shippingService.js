@@ -1,10 +1,10 @@
 // src/services/shippingService.js
 //
-// Thin wrappers around the backend's Ekart-backed shipping endpoints (see
+// Thin wrappers around the backend's Delhivery-backed shipping endpoints (see
 // shipping.routes.js). Same rule as everywhere else in checkout: this
 // layer never computes or caches a delivery estimate or shipment status
-// itself — it just relays what the backend (which itself defers to Ekart,
-// and ultimately to the Ekart webhook as the real source of truth for
+// itself — it just relays what the backend (which itself defers to Delhivery,
+// and ultimately to the Delhivery webhook as the real source of truth for
 // delivery status) returns. See checkout-architecture.md §2.
 import apiClient from '@/utils/apiClient';
 
@@ -49,7 +49,7 @@ export const checkServiceability = async ({ pincode, paymentMode, weightKg, subt
 
 /**
  * Fetches the latest shipment status for an order. The backend polls
- * Ekart live on every call and persists whatever it gets back, so this
+ * Delhivery live on every call and persists whatever it gets back, so this
  * is safe to call again for a manual "refresh" rather than needing our
  * own background polling on top of it.
  *

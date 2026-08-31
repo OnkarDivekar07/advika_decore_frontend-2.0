@@ -26,10 +26,10 @@
 // folded into "Confirmed"/"Shipped" like the previous 5-step version of
 // this component): order.status jumps straight from 'confirmed' to
 // 'shipped' the instant a Shipment row is created (see
-// shipping.service.js's createShipmentForOrder), before Ekart has actually
+// shipping.service.js's createShipmentForOrder), before Delhivery has actually
 // picked the parcel up — so order.status alone can't tell "still being
 // packed" apart from "on the road". Shipment.status can: CREATED means a
-// shipment has been manifested with Ekart but not yet collected (Packed),
+// shipment has been manifested with Delhivery but not yet collected (Packed),
 // while PICKED_UP/IN_TRANSIT mean it's actually moving (Shipped). Nothing
 // here is inferred beyond what those two enums already say.
 //
@@ -37,7 +37,7 @@
 // version shown per-row on the "My Orders" list): terminal exception
 // states (cancelled/returned) break the normal forward progression, so
 // they're rendered as their own distinct end-state row rather than forced
-// into the step line. A delivery attempt that failed is different — Ekart
+// into the step line. A delivery attempt that failed is different — Delhivery
 // can still re-attempt it, so it's surfaced as a non-terminal warning
 // alongside the timeline rather than replacing it. A failed *payment*
 // (order never reached 'confirmed') is handled by OrderSuccessPage itself
@@ -73,7 +73,7 @@ const STEPS = [
 /**
  * Resolves which step of the 7-step timeline an order/shipment pair has
  * reached. Shipment.status (when present) is authoritative for everything
- * from "Packed" onward since it reflects what Ekart has actually reported;
+ * from "Packed" onward since it reflects what Delhivery has actually reported;
  * `orderStatus` alone carries the first three steps, and is also the
  * fallback for "Shipped" if a Shipment record exists on the order
  * (status flips to 'shipped' the moment one is) but its own status
@@ -125,7 +125,7 @@ export default function OrderTrackingTimeline({ orderStatus, shipmentStatus }) {
 
   const currentIndex = resolveCurrentStep(orderStatus, shipmentStatus);
   // A delivery attempt that didn't go through isn't a terminal state here —
-  // Ekart can re-attempt it — so it's a warning alongside the timeline
+  // Delhivery can re-attempt it — so it's a warning alongside the timeline
   // (still shown at the "Out for Delivery" step, where the attempt was
   // made) rather than a replacement end-state like cancelled/returned above.
   const deliveryAttemptFailed = shipmentStatus === 'DELIVERY_FAILED';

@@ -3,8 +3,8 @@
 // Shows the current shipment status for an order (see shippingService.js /
 // shipping.routes.js), fronted by OrderTrackingTimeline's visual
 // Placed -> Confirmed -> Shipped -> Out for Delivery -> Delivered stepper
-// (PHASE 12 — order tracking). The backend polls Ekart live on every
-// GET /track call and persists whatever it gets back — the Ekart webhook
+// (PHASE 12 — order tracking). The backend polls Delhivery live on every
+// GET /track call and persists whatever it gets back — the Delhivery webhook
 // is the real source of truth for status changes, same role the Razorpay
 // webhook plays for payment (checkout-architecture.md §1) — so this
 // component never derives status itself, only displays the last thing the
@@ -176,7 +176,7 @@ export default function ShipmentStatusCard({ orderId, orderStatus }) {
 
       <div className="text-sm text-gray-600 flex flex-col gap-1 mt-4 pt-3 border-t border-gray-100">
         {/* estimatedDeliveryDate is set on the shipment when it's created,
-            and kept fresh by the backend if Ekart later revises it (see
+            and kept fresh by the backend if Delhivery later revises it (see
             shipping.service.js) — shown here only while it's still
             meaningful (not already delivered/returned/cancelled). */}
         {!TERMINAL_STATUSES.has(shipment.status) && formatDeliveryDate(shipment.estimatedDeliveryDate) && (
