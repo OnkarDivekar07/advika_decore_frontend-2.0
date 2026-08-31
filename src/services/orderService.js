@@ -74,3 +74,22 @@ export const getOrderById = async (orderId) => {
   const { data } = await apiClient.get(`/api/order/${orderId}`);
   return data.data;
 };
+
+/**
+ * Customer self-service cancellation — POST /api/order/:orderId/cancel.
+ * Only succeeds for a COD order that hasn't shipped yet (see
+ * order.service.js's cancelOrderByCustomer); an order paid online, or
+ * already shipped, rejects with a 400 whose message tells the customer to
+ * contact support instead — there's no refund flow in this app, so the
+ * backend never accepts a cancellation it can't honor with money back.
+ *
+ * @param {string} orderId
+ * @param {string} [reason]
+ * @returns {Promise<object>} the updated order (status: 'cancelled')
+ */
+export const cancelOrder = async (orderId, reason) => {
+  const { data } = await apiClient.post(`/api/order/${orderId}/cancel`, {
+    ...(reason ? { reason } : {}),
+  });
+  return data.data;
+};

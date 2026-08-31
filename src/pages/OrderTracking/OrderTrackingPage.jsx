@@ -20,6 +20,13 @@ import * as shippingService from '@/services/shippingService';
 import { getCategoryByLabel } from '@/config/advikaAuto';
 import { useBrandPhone } from '@/hooks/useBrandPhone';
 import { formatPrice } from '@/utils/productUtils';
+import { handleError } from '@/utils/errorHandler';
+
+// Mirrors order.service.js's CUSTOMER_CANCELLABLE_ORDER_STATUSES exactly
+// — the backend is the real gate (this only controls whether the button
+// shows at all), so drift here just means a stale button that 400s on
+// click, never a security issue.
+const CUSTOMER_CANCELLABLE_ORDER_STATUSES = ['pending', 'confirmed'];
 import {
   STAGES,
   STAGE_ICONS,
@@ -37,6 +44,8 @@ export default function OrderTrackingPage() {
   const [state, setState] = useState('loading');
   const [order, setOrder] = useState(null);
   const [shipment, setShipment] = useState(null);
+  // 'idle' | 'confirming' | 'submitting'
+  const [cancelUiState, setCancelUiState] = useState('idle');
 
   const fetchOrder = useCallback(async () => {
     setState('loading');
@@ -65,6 +74,22 @@ export default function OrderTrackingPage() {
       .catch(() => {});
     return () => { cancelled = true; };
   }, [state, order]);
+
+  const handleConfirmCancel = async () => {
+    setCancelUiState('submitting');
+    try {
+      const updated = await orderService.cancelOrder(orderId);
+      setOrder((prev) => ({ ...prev, ...updated }));
+      setCancelUiState('idle');
+    } catch (error) {
+      // Covers both "already paid online" and "already shipped" —
+      // order.service.js's cancelOrderByCustomer sends a clear,
+      // customer-facing message either way (see its own comment on why
+      // there's no automatic refund path).
+      handleError(error, "Couldn't cancel this order. Please try again.");
+      setCancelUiState('confirming');
+    }
+  };
 
   if (state === 'loading') {
     return (
@@ -100,6 +125,10 @@ export default function OrderTrackingPage() {
   }
 
   const paymentMethod = resolvePaymentMethod(order, shipment);
+  const isCancelled = order.status === 'cancelled';
+  const canCancelOrder =
+    CUSTOMER_CANCELLABLE_ORDER_STATUSES.includes(order.status) &&
+    order.paymentStatus === 'cod_pending';
   const stageIndex = resolveStageIndex(order.status, shipment?.status);
   const currentStage = STAGES[stageIndex];
   const orderItems = order.orderItems ?? [];
@@ -135,18 +164,32 @@ export default function OrderTrackingPage() {
             <span className="aa-mono text-[11px] text-advika-grey600">{t('advika.tracking.placedOn', { date: formatOrderDate(order.createdAt).toUpperCase() })}</span>
           </div>
         </div>
-        <div className="flex items-center gap-[13px] rounded bg-advika-orange p-[15px]">
-          <Icon name={STAGE_ICONS[currentStage]} size={30} className="text-white" />
-          <div>
-            <div className="aa-label text-[9.5px] text-[#ffe4cc]">{t('advika.tracking.currentStatus', 'CURRENT STATUS')}</div>
-            <div className="text-[16px] font-bold leading-[1.25] text-white">{t(`advika.tracking.stage.${currentStage === 'delivered' ? deliveredStageKey : currentStage}.title`)}</div>
-            <div className="text-[11.5px] leading-[1.4] text-[#fff3e6]">{t(`advika.tracking.stage.${currentStage === 'delivered' ? deliveredStageKey : currentStage}.body`)}</div>
+        {isCancelled ? (
+          <div className="flex items-center gap-[13px] rounded bg-advika-grey900 p-[15px]">
+            <Icon name="cancel" size={30} className="text-white" />
+            <div>
+              <div className="aa-label text-[9.5px] text-advika-grey400">{t('advika.tracking.currentStatus', 'CURRENT STATUS')}</div>
+              <div className="text-[16px] font-bold leading-[1.25] text-white">{t('orders.status.cancelled', 'Cancelled')}</div>
+              <div className="text-[11.5px] leading-[1.4] text-advika-grey400">{t('advika.tracking.cancelled', 'Your order has been cancelled.')}</div>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="flex items-center gap-[13px] rounded bg-advika-orange p-[15px]">
+            <Icon name={STAGE_ICONS[currentStage]} size={30} className="text-white" />
+            <div>
+              <div className="aa-label text-[9.5px] text-[#ffe4cc]">{t('advika.tracking.currentStatus', 'CURRENT STATUS')}</div>
+              <div className="text-[16px] font-bold leading-[1.25] text-white">{t(`advika.tracking.stage.${currentStage === 'delivered' ? deliveredStageKey : currentStage}.title`)}</div>
+              <div className="text-[11.5px] leading-[1.4] text-[#fff3e6]">{t(`advika.tracking.stage.${currentStage === 'delivered' ? deliveredStageKey : currentStage}.body`)}</div>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="flex flex-col gap-3 px-4 py-5">
-        {/* Progress timeline */}
+        {/* Progress timeline — skipped once cancelled: a 5-step delivery
+            stepper stuck at "Order Placed" would misrepresent an order
+            that will never be delivered. */}
+        {!isCancelled && (
         <div className="rounded border border-advika-border-light bg-white p-4">
           <h2 className="mb-[6px] text-[16px] font-bold text-advika-chrome">{t('advika.tracking.orderProgress', 'Order Progress')}</h2>
           <div className="flex flex-col">
@@ -213,6 +256,7 @@ export default function OrderTrackingPage() {
             })}
           </div>
         </div>
+        )}
 
         {/* Shipment details */}
         {shipment && (
@@ -270,6 +314,52 @@ export default function OrderTrackingPage() {
             </span>
           </div>
         </div>
+
+        {/* Cancel order — COD only, before shipping (see
+            order.service.js's cancelOrderByCustomer for why a paid-online
+            or already-shipped order can't be self-cancelled here). */}
+        {canCancelOrder && (
+          <div className="rounded border border-advika-border-light bg-white p-4">
+            {cancelUiState === 'idle' ? (
+              <button
+                type="button"
+                onClick={() => setCancelUiState('confirming')}
+                data-testid="order-tracking-cancel-order-button"
+                className="aa-tracking flex h-12 w-full items-center justify-center rounded border-[1.5px] border-advika-danger text-[13px] font-bold text-advika-danger"
+              >
+                {t('advika.tracking.cancelOrder', 'CANCEL ORDER')}
+              </button>
+            ) : (
+              <div className="flex flex-col gap-[13px]">
+                <p className="text-[13.5px] font-bold text-advika-chrome">
+                  {t('advika.tracking.confirmCancel', 'Cancel this order?')}
+                </p>
+                <div className="flex gap-[10px]">
+                  <button
+                    type="button"
+                    onClick={() => setCancelUiState('idle')}
+                    disabled={cancelUiState === 'submitting'}
+                    data-testid="order-tracking-keep-order-button"
+                    className="flex h-11 flex-1 items-center justify-center rounded border-[1.5px] border-advika-grey400 text-[13px] font-semibold text-advika-chrome disabled:opacity-60"
+                  >
+                    {t('advika.tracking.keepOrder', 'Keep Order')}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleConfirmCancel}
+                    disabled={cancelUiState === 'submitting'}
+                    data-testid="order-tracking-confirm-cancel-button"
+                    className="aa-tracking flex h-11 flex-1 items-center justify-center rounded bg-advika-danger text-[13px] font-bold text-white disabled:opacity-60"
+                  >
+                    {cancelUiState === 'submitting'
+                      ? t('advika.tracking.cancelling', 'Cancelling…')
+                      : t('advika.tracking.cancelOrder', 'CANCEL ORDER')}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Delivering to */}
         {order.address && (

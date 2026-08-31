@@ -605,6 +605,7 @@
       "cancelOrder": "CANCEL ORDER",
       "cancelling": "Cancelling…",
       "confirmCancel": "Cancel this order?",
+      "keepOrder": "Keep Order",
       "cancelled": "Your order has been cancelled.",
       "itemsInOrder": "Items in this Order",
       "orderTotal": "Order Total",

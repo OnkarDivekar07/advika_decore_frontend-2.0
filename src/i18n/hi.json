@@ -604,6 +604,7 @@
       "cancelOrder": "ऑर्डर रद्द करें",
       "cancelling": "रद्द हो रहा है…",
       "confirmCancel": "क्या यह ऑर्डर रद्द करें?",
+      "keepOrder": "ऑर्डर रखें",
       "cancelled": "आपका ऑर्डर रद्द कर दिया गया है।",
       "itemsInOrder": "इस ऑर्डर का सामान",
       "orderTotal": "कुल रकम",
