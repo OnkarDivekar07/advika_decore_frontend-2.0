@@ -24,7 +24,13 @@ export const STATUS_SUCCESS = 'success';
 export const STATUS_EMPTY = 'empty';
 export const STATUS_ERROR = 'error';
 
-export function useOrderHistory(page = 1) {
+// `enabled` (default true, so OrderListPage's existing useOrderHistory(page)
+// call is unaffected) lets a caller that isn't sure yet whether the visitor
+// is even signed in — see UserProfilePage.jsx, which otherwise fired this
+// on mount for a logged-out visitor and turned a plain "you're not signed
+// in" into a confusing "session no longer valid" redirect — defer the fetch
+// until it knows. Mirrors useProfile's/useAddressBook's own `autoLoad`.
+export function useOrderHistory(page = 1, { enabled = true } = {}) {
   const [status, setStatus] = useState(STATUS_LOADING);
   const [orders, setOrders] = useState([]);
   const [meta, setMeta] = useState(null);
@@ -36,6 +42,7 @@ export function useOrderHistory(page = 1) {
   const requestIdRef = useRef(0);
 
   useEffect(() => {
+    if (!enabled) return;
     const targetPage = Math.max(1, page || 1);
 
     // Already have everything we need in memory (e.g. browser Back after
@@ -76,7 +83,7 @@ export function useOrderHistory(page = 1) {
         }
       }
     })();
-  }, [page, retryNonce]);
+  }, [page, retryNonce, enabled]);
 
   const retry = useCallback(() => {
     // A retry should re-fetch from page 1, not just re-request whatever

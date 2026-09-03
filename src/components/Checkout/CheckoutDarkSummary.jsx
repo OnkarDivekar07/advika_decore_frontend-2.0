@@ -8,6 +8,7 @@
 // place since that one's still used verbatim elsewhere.
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import { formatPrice } from '@/utils/productUtils';
 
 export default function CheckoutDarkSummary({ order }) {
   const { t } = useTranslation();
@@ -26,20 +27,20 @@ export default function CheckoutDarkSummary({ order }) {
             <span className="truncate">
               {item.product?.name ?? t('checkout.itemFallback', 'Item')} <span className="text-advika-grey700">×{item.quantity}</span>
             </span>
-            <span className="aa-mono shrink-0 whitespace-nowrap text-white">₹{(item.price * item.quantity).toFixed(2)}</span>
+            <span className="aa-mono shrink-0 whitespace-nowrap text-white">₹{formatPrice(item.price * item.quantity)}</span>
           </div>
         ))}
       </div>
       <div className="flex flex-col gap-[9px] border-t border-advika-border-dark pt-3">
         <div className="flex items-baseline justify-between text-[12.5px] text-advika-grey600">
           <span>{t('checkout.subtotal', 'Subtotal')}</span>
-          <span className="aa-mono text-[13px] text-advika-grey400">₹{subtotal.toFixed(2)}</span>
+          <span className="aa-mono text-[13px] text-advika-grey400">₹{formatPrice(subtotal)}</span>
         </div>
         <div className="flex items-baseline justify-between">
           {deliveryCharge > 0 ? (
             <>
               <span className="text-[12.5px] text-advika-grey600">{t('advika.cartPage.shipping')}</span>
-              <span className="aa-mono text-[13px] text-advika-grey400">₹{deliveryCharge.toFixed(2)}</span>
+              <span className="aa-mono text-[13px] text-advika-grey400">₹{formatPrice(deliveryCharge)}</span>
             </>
           ) : (
             <>
@@ -51,7 +52,7 @@ export default function CheckoutDarkSummary({ order }) {
       </div>
       <div className="flex items-center justify-between border-t border-advika-border-dark pt-[11px]">
         <span className="text-[15px] font-bold text-white">{t('checkout.total', 'Total')}</span>
-        <span className="aa-mono text-[19px] font-semibold text-advika-orange">₹{total.toFixed(2)}</span>
+        <span className="aa-mono text-[19px] font-semibold text-advika-orange">₹{formatPrice(total)}</span>
       </div>
     </div>
   );

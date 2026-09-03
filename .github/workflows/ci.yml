@@ -33,4 +33,15 @@ jobs:
         run: npm test
 
       - name: Build
+        # vite.config.js's assertProductionApiUrl refuses a production build
+        # with no VITE_API_URL (or a localhost one) — correct for a real
+        # deploy, but this repo has no committed .env.production, so a clean
+        # CI checkout has nothing to read and this step would otherwise fail
+        # every run before ever compiling anything. This is a CI-only
+        # placeholder (the reserved .invalid TLD, RFC 2606 — guaranteed never
+        # to resolve) that only proves the build itself succeeds; a real
+        # deploy still needs its own real VITE_API_URL set via its platform's
+        # environment variables, same as always.
         run: npm run build
+        env:
+          VITE_API_URL: https://ci-placeholder.invalid

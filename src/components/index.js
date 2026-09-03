@@ -6,7 +6,6 @@ export { default as BannerPagination }     from './HeroBanner/BannerPagination';
 export { default as ProductCard }          from './Product/ProductCard';
 export { default as NewArrivals }          from './Product/NewArrivals';
 export { default as ImageGallery }         from './Product/ImageGallery';
-export { default as ProductDetails }       from './Product/ProductDetails';
 export { default as RelatedProducts }      from './Product/RelatedProducts';
 export { default as QuantitySelector }     from './Product/QuantitySelector';
 export { default as CartItem }             from './Cart/CartItem';

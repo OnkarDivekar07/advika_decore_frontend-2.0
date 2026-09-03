@@ -20,7 +20,7 @@
 // journey.
 import { test, expect } from '@playwright/test';
 import realApi from './support/realApi.js';
-import { E2E_CUSTOMER_PHONE, E2E_OTP, E2E_ADDRESS, uniqueProductName } from './fixtures/e2eData.js';
+import { E2E_CUSTOMER_PHONE, E2E_OTP, E2E_ADDRESS } from './fixtures/e2eData.js';
 
 async function getAuthToken(page) {
   return page.evaluate(() => window.sessionStorage.getItem('authToken'));
@@ -134,7 +134,21 @@ test.describe.serial('Real customer journey (real backend + real DB)', () => {
 
   test('add to real cart, verified against the real backend (not just the DOM)', async () => {
     await page.goto(`/product/${productId}`);
+
+    // handleAddToCart (ProductDetailPage.jsx) fires PUT /api/cart in the
+    // background — the click itself returns immediately, before that
+    // request resolves. Against a fast local mock this rarely matters, but
+    // over a real network round trip to the real backend, navigating to
+    // /cart before this resolves races the write: the immediate
+    // page.goto('/cart') below can beat the PUT to the server, or the
+    // navigation can cancel the in-flight request outright, so the cart
+    // page's own fresh load finds nothing yet. Same wait pattern the next
+    // test ("update quantity") already uses for the same endpoint.
+    const added = page.waitForResponse(
+      (res) => res.url().includes('/api/cart') && res.request().method() === 'PUT'
+    );
     await page.getByTestId('product-detail-add-to-cart-button').click();
+    expect((await added).status()).toBe(200);
 
     await page.goto('/cart');
     await expect(page.getByTestId(`cart-item-${productId}`)).toBeVisible({ timeout: 10000 });

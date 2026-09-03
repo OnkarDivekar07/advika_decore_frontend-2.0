@@ -57,4 +57,15 @@ export default defineConfig([
       globals: { ...globals.browser, ...globals.node },
     },
   },
+  {
+    // Playwright specs/support files (e2e/, e2e-real/) run under Node via
+    // the Playwright test runner, not jsdom — same reasoning as the Vitest
+    // override above (process.env for reading .env.e2e config, Buffer for
+    // fixture bytes), plus these files also drive a real browser page via
+    // page.route()/page.goto(), hence keeping the browser globals too.
+    files: ['e2e/**/*.js', 'e2e-real/**/*.js'],
+    languageOptions: {
+      globals: { ...globals.browser, ...globals.node },
+    },
+  },
 ])

@@ -245,7 +245,7 @@ export default function OrderTrackingPage() {
                         <Icon name="schedule" size={15} className="text-advika-orange-dark" />
                         <span className="text-[11.5px] font-semibold leading-[1.4] text-advika-orange-darker2">
                           {paymentMethod === 'cod'
-                            ? t('advika.tracking.currentCallout', { amount: (order.total ?? 0).toFixed(0) })
+                            ? t('advika.tracking.currentCallout', { amount: formatPrice(order.total ?? 0) })
                             : t('advika.tracking.currentCalloutOnline', 'Arriving today between 2 PM and 7 PM.')}
                         </span>
                       </div>

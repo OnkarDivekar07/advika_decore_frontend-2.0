@@ -5,7 +5,7 @@
 // Notification preferences have no backend field yet (see
 // prisma/schema.prisma's User model), so they're shown as local-only
 // toggles rather than fabricated as persisted settings.
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import Icon from '@/components/Shared/Icon';
@@ -17,6 +17,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/features/account/hooks/useProfile';
 import { useOrderHistory, STATUS_LOADING } from '@/features/orders/hooks/useOrderHistory';
 import { useAddressBook } from '@/features/address/hooks/useAddressBook';
+import { formatPrice } from '@/utils/productUtils';
 
 const STATUS_STYLE = {
   delivered: 'bg-advika-success-tint text-advika-success-dark border-advika-success-border',
@@ -49,10 +50,28 @@ function formatDate(value) {
 export default function UserProfilePage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { logout } = useAuth();
-  const { profile, status: profileStatus } = useProfile();
-  const { orders, status: orderStatus } = useOrderHistory(1);
-  const { addresses, status: addressStatus } = useAddressBook();
+  const { isAuthenticated, isRestoring, logout } = useAuth();
+  const { profile, status: profileStatus, load: loadProfile } = useProfile({ autoLoad: false });
+  const { orders, status: orderStatus } = useOrderHistory(1, { enabled: isAuthenticated });
+  const { addresses, status: addressStatus, load: loadAddresses } = useAddressBook({ autoLoad: false });
+
+  // This page is meaningless signed out — bounce to /login the moment
+  // we're sure there's no session, rather than firing profile/orders/
+  // addresses requests that would each 401 and surface a confusing
+  // "session no longer valid" toast to someone who was never signed in
+  // to begin with. Same guard AddressBookPage/CheckoutLayout already use.
+  useEffect(() => {
+    if (!isRestoring && !isAuthenticated) {
+      navigate('/login', { replace: true });
+    }
+  }, [isRestoring, isAuthenticated, navigate]);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadProfile();
+      loadAddresses();
+    }
+  }, [isAuthenticated, loadProfile, loadAddresses]);
   // URL-driven so the Account page's tabs are real, linkable destinations
   // — the footer's "My orders", the slide menu's "My orders"/"My
   // wishlist", and a bookmarked /profile?tab=orders all land on the
@@ -71,7 +90,12 @@ export default function UserProfilePage() {
     navigate('/login');
   };
 
-  if (profileStatus === 'loading' && !profile) {
+  if (
+    isRestoring ||
+    !isAuthenticated ||
+    profileStatus === 'idle' ||
+    (profileStatus === 'loading' && !profile)
+  ) {
     return (
       <div className="aa-shell flex min-h-screen items-center justify-center bg-white">
         <Spinner size={40} />
@@ -224,7 +248,7 @@ export default function UserProfilePage() {
                     )}
                     <div className="flex items-center justify-between">
                       <span className="text-[12.5px] text-advika-grey800">
-                        {t('orders.itemCount', '{{count}} items', { count: (order.orderItems || []).reduce((a, i) => a + (i.quantity || 0), 0) })} · <span className="aa-mono font-semibold text-advika-chrome">₹{(order.total ?? 0).toFixed(2)}</span>
+                        {t('orders.itemCount', '{{count}} items', { count: (order.orderItems || []).reduce((a, i) => a + (i.quantity || 0), 0) })} · <span className="aa-mono font-semibold text-advika-chrome">₹{formatPrice(order.total ?? 0)}</span>
                       </span>
                       <span className="flex items-center gap-[5px] text-[12.5px] font-semibold text-advika-orange-dark">
                         {t('advika.account.trackOrder')} <Icon name="arrow_forward" size={15} />

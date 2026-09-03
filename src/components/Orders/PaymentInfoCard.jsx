@@ -19,6 +19,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
 import { FiCreditCard } from 'react-icons/fi';
+import { formatPrice } from '@/utils/productUtils';
 
 function formatDateTime(value) {
   if (!value) return null;
@@ -88,7 +89,7 @@ export default function PaymentInfoCard({ order, paymentMethod, isFailed, isProc
 
       <div className="flex items-center justify-between text-sm">
         <span className="text-gray-500">{t('orderSuccess.amount', 'Amount')}</span>
-        <span className="font-semibold text-gray-900">₹{(order.total ?? 0).toFixed(2)}</span>
+        <span className="font-semibold text-gray-900">₹{formatPrice(order.total ?? 0)}</span>
       </div>
 
       {showPaymentId && (

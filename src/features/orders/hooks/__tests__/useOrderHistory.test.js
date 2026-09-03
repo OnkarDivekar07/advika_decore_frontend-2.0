@@ -12,6 +12,7 @@ import * as orderService from '@/services/orderService';
 import { handleError } from '@/utils/errorHandler';
 import {
   useOrderHistory,
+  STATUS_LOADING,
   STATUS_SUCCESS,
   STATUS_EMPTY,
   STATUS_ERROR,
@@ -50,6 +51,27 @@ describe('initial load', () => {
     const { result } = renderHook(() => useOrderHistory(1));
     await waitFor(() => expect(result.current.status).toBe(STATUS_ERROR));
     expect(handleError).toHaveBeenCalledWith(error, "Couldn't load your orders.");
+  });
+});
+
+describe('enabled option', () => {
+  it('does not fetch while enabled is false, e.g. before auth is known', async () => {
+    const { result, rerender } = renderHook(
+      ({ enabled }) => useOrderHistory(1, { enabled }),
+      { initialProps: { enabled: false } }
+    );
+
+    expect(orderService.getOrderHistory).not.toHaveBeenCalled();
+    expect(result.current.status).toBe(STATUS_LOADING);
+
+    orderService.getOrderHistory.mockResolvedValue({
+      orders: [order('o1')],
+      meta: meta(1, 1),
+    });
+    rerender({ enabled: true });
+
+    await waitFor(() => expect(result.current.status).toBe(STATUS_SUCCESS));
+    expect(orderService.getOrderHistory).toHaveBeenCalledTimes(1);
   });
 });
 
