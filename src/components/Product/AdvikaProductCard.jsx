@@ -34,7 +34,7 @@ import { getStockInfo, formatPrice } from '@/utils/productUtils';
 import { buildProductPath } from '@/seo/seoUtils';
 import { getVoltageInfo, getCategoryByLabel } from '@/config/advikaAuto';
 
-export default function AdvikaProductCard({
+function AdvikaProductCard({
   product,
   imageHeight = 128,
   dense = false,
@@ -250,3 +250,10 @@ export default function AdvikaProductCard({
     </article>
   );
 }
+
+// Rendered in every grid on the site (Landing/Category/Vehicle/Wishlist/
+// "you may also like") — the highest-render-count product component in
+// the app, and the one most worth skipping a re-render on when a sibling
+// card or an unrelated ancestor state changes but this card's own props
+// haven't (see ProductCard/CartItem/WishlistCard, which already do this).
+export default React.memo(AdvikaProductCard);
