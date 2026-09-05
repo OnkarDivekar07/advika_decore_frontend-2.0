@@ -20,6 +20,7 @@ vi.mock('react-toastify', () => ({
 
 import { useAuth } from '@/contexts/AuthContext';
 import * as cartService from '@/services/cartService';
+import { getProductsByIds } from '@/services/productsService';
 import { toast } from 'react-toastify';
 import { CartProvider, useCart, mergeCartItems } from '@/contexts/CartContext';
 
@@ -262,6 +263,25 @@ describe('backend mode', () => {
     expect(result.current.items).toEqual([]); // rolled back
   });
 
+  it('rolls back the optimistic remove and rethrows on failure, same as addItem', async () => {
+    cartService.getCart.mockResolvedValue({
+      items: [{ productId: 'p1', quantity: 1, product: { name: 'Brake Pad', price: 500, images: [], stock: 10 } }],
+      summary: { subtotal: 500, deliveryCharge: 49, total: 549 },
+    });
+    cartService.removeFromCart.mockRejectedValue({ response: { status: 500 } });
+    const { result } = renderHook(() => useCart(), { wrapper });
+    await waitFor(() => expect(result.current.isSyncing).toBe(false));
+
+    const error = await actCatching(() => result.current.removeItem('p1'));
+
+    expect(error).toBeDefined();
+    // Rolled back to the item still being present, and the caller can
+    // actually observe the failure (previously removeItem swallowed it).
+    expect(result.current.items).toEqual([
+      { id: 'p1', name: 'Brake Pad', price: 500, quantity: 1, image: '', stock: 10 },
+    ]);
+  });
+
   it('reloads the authoritative cart (not a blind rollback) on a stale/stock conflict', async () => {
     cartService.getCart
       .mockResolvedValueOnce({ items: [], summary: { subtotal: 0, deliveryCharge: 0, total: 0 } }) // initial load
@@ -341,6 +361,48 @@ describe('guest -> backend cart merge on login', () => {
     useAuth.mockReturnValue({ isAuthenticated: false, isRestoring: true });
     renderHook(() => useCart(), { wrapper });
     expect(cartService.getCart).not.toHaveBeenCalled();
+  });
+});
+
+describe('backend -> guest cart fallback on logout', () => {
+  it('resets to the guest localStorage cart and drops the stale backend summary/error state', async () => {
+    cartService.getCart.mockResolvedValueOnce({
+      items: [{ productId: 'p1', quantity: 2, product: { name: 'Brake Pad', price: 500, images: [], stock: 10 } }],
+      summary: { subtotal: 1000, deliveryCharge: 0, total: 1000 },
+    });
+    useAuth.mockReturnValue({ isAuthenticated: true, isRestoring: false });
+
+    const { result, rerender } = renderHook(() => useCart(), { wrapper });
+    await waitFor(() => expect(result.current.isSyncing).toBe(false));
+    expect(result.current.isBackend).toBe(true);
+    expect(result.current.total).toBe(1000);
+
+    // A different guest cart already sitting in localStorage — proves the
+    // logout path actually re-reads it rather than just clearing to empty.
+    window.localStorage.setItem(
+      'cart',
+      JSON.stringify([{ id: 'p2', name: 'Air Filter', price: 300, quantity: 1, image: '', stock: 5 }])
+    );
+    // Guest-mode revalidation (see revalidateGuestCart) checks the newly
+    // fallen-back-to items against live product data on the very first
+    // guest-mode landing — give it a matching live product so it doesn't
+    // treat 'p2' as delisted and drop it.
+    getProductsByIds.mockResolvedValue([{ id: 'p2', name: 'Air Filter', price: 300, stock: 5 }]);
+
+    useAuth.mockReturnValue({ isAuthenticated: false, isRestoring: false });
+    await act(async () => {
+      rerender();
+    });
+
+    expect(result.current.isBackend).toBe(false);
+    expect(result.current.items).toEqual([
+      { id: 'p2', name: 'Air Filter', price: 300, quantity: 1, image: '', stock: 5 },
+    ]);
+    // The backend total (1000) must not leak into the post-logout guest
+    // total — it should now be computed from the guest cart alone (300 +
+    // delivery, per the mocked calculateDeliveryCharge: 300 < 600 -> 49).
+    expect(result.current.total).toBe(349);
+    expect(result.current.loadError).toBe(false);
   });
 });
 

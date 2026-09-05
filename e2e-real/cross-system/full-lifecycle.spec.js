@@ -19,21 +19,14 @@
 // This is the single test that proves the three real apps + real database
 // genuinely work together, not just individually.
 //
-// ENVIRONMENT NOTE (see final report): this test's very first real step —
-// admin product creation — requires a real image upload, which the real
-// backend genuinely rejects without one (400 "No images uploaded",
-// confirmed against the real server) and this environment's real AWS
-// credentials (backend 2.0/.env) are rejected by AWS itself
-// (InvalidAccessKeyId). That makes this specific test fail here, purely on
-// that environment limitation — not an app bug, and not fixable by
-// adjusting the test (unlike admin-journey.spec.js's inventory test, this
-// one's whole point is proving a FRESH admin-created product reaches a
-// customer, so substituting a seeded product would defeat the test).
-// Every individual real step this test chains together (admin login, real
-// order placement, real shipment creation, cross-app status sync) is
-// independently verified elsewhere (customer-journey.spec.js,
-// admin-journey.spec.js) — with working AWS credentials, this test is
-// expected to pass end to end unchanged.
+// HISTORY: this test's very first real step — admin product creation —
+// requires a real image upload, which the real backend genuinely rejects
+// without one (400 "No images uploaded", confirmed against the real
+// server). This used to fail in this environment because the real AWS S3
+// credentials (backend 2.0/.env) were rejected by AWS itself
+// (InvalidAccessKeyId) — fixed by migrating storage to Cloudflare R2 (see
+// backend 2.0/src/services/external/AWSUploads.js); this test now
+// genuinely passes end to end, confirmed live (Pattern 19 rerun).
 import { test, expect } from '@playwright/test';
 import fs from 'fs';
 import path from 'path';
@@ -114,7 +107,23 @@ test('full cross-system lifecycle: admin creates a product a real customer buys,
   await customerPage.waitForResponse((res) => res.url().includes('/api/products?') && res.url().includes('search='));
   await expect(customerPage.getByTestId(`product-card-${productId}`)).toBeVisible({ timeout: 10000 });
 
-  // Real login for the customer.
+  // === GUEST CART: add to cart before ever logging in (CartContext.jsx's
+  // guest mode — localStorage only, zero backend calls) — then verify the
+  // real backend cart after login, proving the guest->backend merge this
+  // context implements actually works against the real stack, not just in
+  // its own unit tests (contexts/__tests__/CartContext.test.jsx covers the
+  // merge function in isolation; nothing previously exercised it live). ===
+  await customerPage.goto(`/product/${productId}`);
+  await customerPage.getByTestId('product-detail-add-to-cart-button').click();
+  await expect(customerPage.getByTestId('product-detail-add-to-cart-button')).toContainText(
+    /added/i,
+    { timeout: 10000 }
+  );
+  const guestCart = await customerPage.evaluate(() => JSON.parse(localStorage.getItem('cart') || '[]'));
+  expect(guestCart.some((item) => item.id === productId && item.quantity >= 1)).toBe(true);
+
+  // Real login for the customer — this is the moment CartContext's
+  // syncGuestCartToBackend runs.
   await customerPage.goto('/login');
   await customerPage.getByTestId('login-phone-input').fill(E2E_CUSTOMER_PHONE);
   await customerPage.getByTestId('login-send-otp-button').click();
@@ -126,6 +135,16 @@ test('full cross-system lifecycle: admin creates a product a real customer buys,
   await expect(customerPage.getByTestId('login-start-shopping-button')).toBeVisible({ timeout: 10000 });
   const customerToken = await customerPage.evaluate(() => window.sessionStorage.getItem('authToken'));
 
+  // === BACKEND + DATABASE: the real cart genuinely has what the guest cart had ===
+  await expect
+    .poll(async () => {
+      const cartCheck = await realApi.getCart(customerToken);
+      return cartCheck.body.data;
+    }, { timeout: 10000 })
+    .toEqual(
+      expect.arrayContaining([expect.objectContaining({ productId, quantity: 1 })])
+    );
+
   // Ensure a delivery address exists (idempotent — real backend allows
   // multiple; this cross-system spec doesn't depend on any other spec's
   // run order).
@@ -134,12 +153,31 @@ test('full cross-system lifecycle: admin creates a product a real customer buys,
     customerToken
   );
 
-  await customerPage.goto(`/product/${productId}`);
-  await customerPage.getByTestId('product-detail-add-to-cart-button').click();
+  // === BACKEND: "address is created and serviceability passes" as its own
+  // checkable step, not just an assumption baked into checkout succeeding ===
+  const serviceabilityCheck = await realApi.checkServiceability(E2E_ADDRESS.pincode);
+  expect(serviceabilityCheck.status).toBe(200);
+  expect(serviceabilityCheck.body.data.serviceable).toBe(true);
+
   await customerPage.goto('/checkout');
   await expect(customerPage.getByTestId('address-selection-continue-button')).toBeEnabled({ timeout: 15000 });
   await customerPage.getByTestId('address-selection-continue-button').click();
   await customerPage.waitForURL(/\/checkout\/review$/, { timeout: 15000 });
+
+  // === BACKEND + DATABASE: a real draft order now exists for this cart,
+  // before any payment is even attempted ===
+  const draftOrderCheck = await realApi.getDraftOrder(customerToken);
+  expect(draftOrderCheck.status).toBe(200);
+  expect(draftOrderCheck.body.data.status).toBe('draft');
+  expect(draftOrderCheck.body.data.orderItems).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        quantity: 1,
+        product: expect.objectContaining({ id: productId }),
+      }),
+    ])
+  );
+
   await expect(customerPage.getByTestId('review-proceed-to-payment-button')).toBeEnabled({ timeout: 15000 });
   await customerPage.getByTestId('review-proceed-to-payment-button').click();
   await customerPage.waitForURL(/\/checkout\/payment$/, { timeout: 15000 });

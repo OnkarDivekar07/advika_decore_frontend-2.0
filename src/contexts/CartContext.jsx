@@ -594,7 +594,14 @@ export function CartProvider({ children }) {
           setBackendSummary(summary);
           reconcileInBackground();
         } catch (error) {
+          // Rethrow after recovery, same as addItem — cart state is
+          // already rolled back/reconciled by recoverFromMutationError at
+          // this point either way, but a caller awaiting removeItem (e.g.
+          // to keep a "removing…" spinner up, or show its own error UI)
+          // needs to be able to detect the failure too, not just have it
+          // silently resolve.
           await recoverFromMutationError(error, previous, 'Could not remove item.');
+          throw error;
         }
         return;
       }

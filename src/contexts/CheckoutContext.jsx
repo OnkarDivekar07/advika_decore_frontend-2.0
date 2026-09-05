@@ -64,7 +64,20 @@ export function CheckoutProvider({ children }) {
 
   const [addresses, setAddresses] = useState([]);
   const [addressesStatus, setAddressesStatus] = useState('idle'); // 'idle'|'loading'|'ready'|'error'
-  const [selectedAddressId, setSelectedAddressId] = useState(null);
+  const [selectedAddressId, setSelectedAddressIdState] = useState(null);
+  // Mirrors selectedAddressId, updated in the exact same synchronous tick
+  // as the state setter (never via a useEffect syncing off it — effect
+  // flushing isn't guaranteed to happen before an awaited promise's
+  // continuation runs, which made an earlier effect-based version of this
+  // guard unreliable). Lets refreshDraftOrder read the *current* selection
+  // from inside an in-flight async call without closing over a stale
+  // value — see its own comment on the out-of-order-response guard this
+  // backs.
+  const selectedAddressIdRef = useRef(null);
+  const setSelectedAddressId = useCallback((id) => {
+    selectedAddressIdRef.current = id;
+    setSelectedAddressIdState(id);
+  }, []);
   // Has the customer actually looked at the review step (address + order
   // summary) for the *current* selection and explicitly moved on from it?
   // This is what stops a direct/typed visit to /checkout/payment from
@@ -129,6 +142,21 @@ export function CheckoutProvider({ children }) {
     setDraftError(null);
     try {
       const order = await orderService.createOrUpdateDraftOrder(addressId, couponCode);
+      // Out-of-order-response guard: selectAddress fires this for whichever
+      // address was just clicked, synchronously updating selectedAddressId
+      // first so the picker highlights instantly — but the network call
+      // itself can still resolve out of order (a slower request for an
+      // earlier click landing after a faster one for a later click). If a
+      // newer selection has since superseded this addressId, this response
+      // is stale: committing it here would overwrite the current
+      // selection's own (possibly already-loaded) draft with the wrong
+      // address's price/delivery-charge/total. Same requestId-style
+      // pattern useProductSearch.js already uses for its own out-of-order
+      // search responses, just keyed on address identity instead of a
+      // counter, since that's the natural correctness key here.
+      if (addressId !== selectedAddressIdRef.current) {
+        return null;
+      }
       setDraftOrder(order);
       setDraftStatus('ready');
       // A successful re-fetch is itself the resolution to any previously
@@ -137,6 +165,9 @@ export function CheckoutProvider({ children }) {
       setConflicts(null);
       return order;
     } catch (error) {
+      if (addressId !== selectedAddressIdRef.current) {
+        return null;
+      }
       setDraftStatus('error');
       const message =
         error?.response?.data?.message ||

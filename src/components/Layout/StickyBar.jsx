@@ -91,6 +91,7 @@ export function ProductStickyBar({
   buyNowLabel,
   buyNowDisabled = false,
 }) {
+  const { t } = useTranslation();
   return (
     <div
       className="fixed inset-x-0 bottom-0 z-[60] mx-auto flex max-w-shell flex-col gap-[9px] border-t border-[#333] bg-advika-chrome px-[14px] pb-safe pt-[10px] shadow-[0_-8px_24px_rgba(0,0,0,.28)] transition-transform duration-[240ms] ease-[cubic-bezier(0.4,0,0.2,1)]"
@@ -105,11 +106,11 @@ export function ProductStickyBar({
           </div>
         </div>
         <div className="flex shrink-0 items-center overflow-hidden rounded-[3px] border border-advika-border-dark4">
-          <button type="button" onClick={onDecrease} className="flex h-10 w-10 items-center justify-center border-r border-[#333]">
+          <button type="button" onClick={onDecrease} aria-label={t('cart.decreaseQuantity', 'Decrease quantity')} className="flex h-10 w-10 items-center justify-center border-r border-[#333]">
             <Icon name="remove" size={17} className="text-[#e5e5e5]" />
           </button>
           <span className="aa-mono flex h-10 min-w-[42px] items-center justify-center text-[15px] font-semibold text-white">{quantity}</span>
-          <button type="button" onClick={onIncrease} disabled={!canIncrease} className="flex h-10 w-10 items-center justify-center border-l border-[#333] disabled:opacity-40">
+          <button type="button" onClick={onIncrease} disabled={!canIncrease} aria-label={t('cart.increaseQuantity', 'Increase quantity')} className="flex h-10 w-10 items-center justify-center border-l border-[#333] disabled:opacity-40">
             <Icon name="add" size={17} className="text-[#e5e5e5]" />
           </button>
         </div>

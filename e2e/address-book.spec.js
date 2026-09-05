@@ -3,13 +3,26 @@
 // client-side validation, and the signed-out redirect guard.
 import { test, expect } from '@playwright/test';
 import { installDefaultMocks, loginAs } from './support/mockApi.js';
-import { ADDRESS_1 } from './fixtures/data.js';
+import { ADDRESS_1, EXPIRED_TOKEN } from './fixtures/data.js';
 
 test.describe('Address book — signed out', () => {
   test('visiting /addresses while signed out redirects home', async ({ page }) => {
     await installDefaultMocks(page);
     await page.goto('/addresses');
     await expect(page).toHaveURL('/', { timeout: 10000 });
+  });
+
+  // authUtils.js's getToken() self-clears an already-expired token and
+  // returns null — an expired token in storage must be treated exactly
+  // like no token at all, not like a broken-but-authenticated state.
+  test('visiting /addresses with an expired token in storage redirects home, same as signed out', async ({ page }) => {
+    await installDefaultMocks(page);
+    await loginAs(page, { token: EXPIRED_TOKEN });
+    await page.goto('/addresses');
+    await expect(page).toHaveURL('/', { timeout: 10000 });
+
+    const token = await page.evaluate(() => window.sessionStorage.getItem('authToken'));
+    expect(token).toBeFalsy();
   });
 });
 

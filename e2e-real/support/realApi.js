@@ -59,6 +59,11 @@ const realApi = {
     request('GET', `/api/inventory/${productId}`, { token }),
   createDraftOrder: (selectedAddressId, token) =>
     request('POST', '/api/order', { token, body: { selectedAddressId } }),
+  // Public — no token needed. Pattern 19 (cross-system full lifecycle):
+  // "address is created and serviceability passes" is its own checkable
+  // step, not just an assumption baked into checkout succeeding.
+  checkServiceability: (pincode) =>
+    request('POST', '/api/shipping/serviceability', { body: { pincode } }),
   // The real address validator requires E.164 phone format too (same
   // +91[6-9]\d{9} regex as OTP — confirmed against the real backend). The
   // real AddressForm.jsx already converts a bare 10-digit UI input to

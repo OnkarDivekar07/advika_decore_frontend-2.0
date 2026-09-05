@@ -137,6 +137,7 @@
     "unnamedProduct": "Unnamed product",
     "addedToWishlist": "Added to wishlist!",
     "addToWishlist": "Add to wishlist",
+    "removeFromWishlist": "Remove from wishlist",
     "priceUnavailable": "Price unavailable",
     "perUnit": "/ {{unit}}",
     "inStock": "In Stock",

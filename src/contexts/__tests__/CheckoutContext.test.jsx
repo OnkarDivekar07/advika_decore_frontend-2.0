@@ -88,6 +88,46 @@ describe('address selection -> draft order', () => {
     expect(result.current.canProceedToPayment).toBe(false); // not reviewed yet
   });
 
+  // Pattern 7 (draft-order lifecycle audit): selectAddress fires a new
+  // POST /api/order for whichever address was just clicked, but the two
+  // network calls can resolve out of order (a slower request for an
+  // earlier click landing after a faster one for a later click). Without
+  // a guard, the earlier click's stale response would win and clobber the
+  // later click's own, correct draft order.
+  it('ignores a stale draft-order response from an earlier address selection that resolves after a later one', async () => {
+    let resolveFirst;
+    const firstCallPromise = new Promise((resolve) => {
+      resolveFirst = () => resolve(draftOrder({ id: 'order_addr1', total: 1000 }));
+    });
+    orderService.createOrUpdateDraftOrder
+      .mockImplementationOnce(() => firstCallPromise)
+      .mockImplementationOnce(() => Promise.resolve(draftOrder({ id: 'order_addr2', total: 2000 })));
+
+    const { result } = renderHook(() => useCheckout(), { wrapper });
+    await waitFor(() => expect(result.current.isRestoring).toBe(false));
+
+    // Click addr1 (slow), then addr2 (fast) before addr1's response lands.
+    let firstSelection;
+    await act(async () => {
+      firstSelection = result.current.selectAddress('addr1');
+      await result.current.selectAddress('addr2');
+    });
+
+    // addr2's fast response has already landed and should be what's shown.
+    expect(result.current.selectedAddressId).toBe('addr2');
+    expect(result.current.draftOrder.id).toBe('order_addr2');
+
+    // Now let addr1's slow, stale response resolve — it must NOT overwrite
+    // addr2's already-current draft order.
+    await act(async () => {
+      resolveFirst();
+      await firstSelection;
+    });
+
+    expect(result.current.selectedAddressId).toBe('addr2');
+    expect(result.current.draftOrder.id).toBe('order_addr2');
+  });
+
   it('does not persist a selection the backend rejected', async () => {
     orderService.createOrUpdateDraftOrder.mockRejectedValue({ response: { status: 400 } });
     const { result } = renderHook(() => useCheckout(), { wrapper });

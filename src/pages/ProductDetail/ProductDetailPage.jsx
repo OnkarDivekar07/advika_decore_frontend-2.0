@@ -313,6 +313,7 @@ export default function ProductDetailPage() {
               onClick={handleWishlist}
               disabled={isWishlistPending}
               data-testid="product-detail-wishlist-toggle"
+              aria-label={wishlisted ? t('productDetail.removeFromWishlist', 'Remove from wishlist') : t('productDetail.addToWishlist', 'Add to wishlist')}
               className="absolute right-[9px] top-[9px] flex h-9 w-9 items-center justify-center rounded-full border border-[#333] bg-advika-panel"
             >
               <Icon name={wishlisted ? 'favorite' : 'favorite_border'} size={19} className={wishlisted ? 'text-advika-orange' : 'text-[#e5e5e5]'} />
@@ -364,6 +365,8 @@ export default function ProductDetailPage() {
                       type="button"
                       onClick={handleSelect}
                       data-testid={`product-detail-thumbnail-${idx}`}
+                      aria-label={opt.label ? `${wattageGroup.label} ${opt.label}` : t('productDetail.thumbnailAlt', { n: idx + 1 })}
+                      aria-pressed={isSelected}
                       className={`relative flex h-[60px] items-center justify-center rounded bg-advika-ink ${isSelected ? 'border-2 border-advika-orange' : 'border-2 border-advika-border-dark'}`}
                     >
                       {opt.label && (
@@ -405,6 +408,8 @@ export default function ProductDetailPage() {
                       type="button"
                       onClick={() => setSelectedMediaSlot(idx)}
                       data-testid={`product-detail-media-slot-${slot.key}`}
+                      aria-label={slot.label}
+                      aria-pressed={isSelected}
                       className={`flex h-[60px] w-full items-center justify-center rounded bg-advika-ink ${isSelected ? 'border-2 border-advika-orange' : 'border-2 border-advika-border-dark'}`}
                     >
                       {slot.key === 'video' ? (
@@ -534,7 +539,7 @@ export default function ProductDetailPage() {
           )}
           <div className="flex gap-[11px]">
             <div className="flex h-[52px] overflow-hidden rounded border border-advika-grey400">
-              <button type="button" onClick={() => setQuantity((q) => Math.max(1, q - 1))} data-testid="product-detail-quantity-decrease" className="flex w-[42px] items-center justify-center border-r border-advika-border-light">
+              <button type="button" onClick={() => setQuantity((q) => Math.max(1, q - 1))} data-testid="product-detail-quantity-decrease" aria-label={t('cart.decreaseQuantity', 'Decrease quantity')} className="flex w-[42px] items-center justify-center border-r border-advika-border-light">
                 <Icon name="remove" size={18} className="text-advika-grey900" />
               </button>
               <span className="aa-mono flex min-w-[42px] items-center justify-center text-[16px] font-semibold" data-testid="product-detail-quantity-value">{quantity}</span>
@@ -543,6 +548,7 @@ export default function ProductDetailPage() {
                 onClick={() => setQuantity((q) => Math.min(maxSelectableQuantity, q + 1))}
                 disabled={quantity >= maxSelectableQuantity}
                 data-testid="product-detail-quantity-increase"
+                aria-label={t('cart.increaseQuantity', 'Increase quantity')}
                 className="flex w-[42px] items-center justify-center border-l border-advika-border-light disabled:opacity-40"
               >
                 <Icon name="add" size={18} className="text-advika-grey900" />

@@ -35,6 +35,11 @@ const ADDRESS_CONFLICT_TYPES = new Set([
   'delivery_unavailable',
   'delivery_check_unavailable',
   'cod_unavailable',
+  // Mirror of cod_unavailable — a pincode Delhivery can only deliver COD
+  // to, surfaced when the customer picked online payment instead. Same
+  // resolution shape: pick a different address, or (per this conflict's
+  // own message) switch to Cash on Delivery.
+  'prepaid_unavailable',
 ]);
 
 export default function OrderConflictsNotice({ conflicts, onRefresh, isRefreshing }) {
@@ -107,6 +112,7 @@ OrderConflictsNotice.propTypes = {
         'delivery_unavailable',         // real pincode, but Delhivery doesn't cover it
         'delivery_check_unavailable',   // carrier check itself couldn't get an answer (fail-closed policy)
         'cod_unavailable',              // covered, but not for Cash on Delivery
+        'prepaid_unavailable',          // covered, but only via Cash on Delivery
       ]),
       message: PropTypes.string,
     })
