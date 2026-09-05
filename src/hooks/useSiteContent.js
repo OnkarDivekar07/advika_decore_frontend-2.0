@@ -7,25 +7,46 @@
 // fetch failed. Callers never have to special-case "not ready yet" — this
 // is what keeps swapping a component over to dynamic content a
 // zero-visual-change, fail-safe operation.
+//
+// Called independently by several components on the same page (e.g.
+// HomePage and AdvikaFooter both call it directly, and useBrandPhone calls
+// it too, pulling in WhatsAppStrip/StickyBar/SlideMenu/most page
+// components) — so the fetch and its result are cached at module scope
+// and shared across every hook instance for the life of the page session,
+// instead of each mount firing its own GET /api/content.
 import { useEffect, useState } from 'react';
 import { fetchSiteContent } from '@/services/contentService';
 
 const LANG_FIELD = { en: 'valueEn', hi: 'valueHi', mr: 'valueMr' };
 
-export function useSiteContent() {
-  const [contentMap, setContentMap] = useState({});
+let cachedContentMap = null;
+let inFlightRequest = null;
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      const rows = await fetchSiteContent();
-      if (cancelled) return;
+function loadContentMap() {
+  if (cachedContentMap) return Promise.resolve(cachedContentMap);
+  if (!inFlightRequest) {
+    inFlightRequest = fetchSiteContent().then((rows) => {
       const map = {};
       rows.forEach((row) => {
         map[row.key] = row;
       });
-      setContentMap(map);
-    })();
+      cachedContentMap = map;
+      inFlightRequest = null;
+      return map;
+    });
+  }
+  return inFlightRequest;
+}
+
+export function useSiteContent() {
+  const [contentMap, setContentMap] = useState(cachedContentMap || {});
+
+  useEffect(() => {
+    if (cachedContentMap) return;
+    let cancelled = false;
+    loadContentMap().then((map) => {
+      if (!cancelled) setContentMap(map);
+    });
     return () => {
       cancelled = true;
     };
