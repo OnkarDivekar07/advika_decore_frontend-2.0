@@ -11,7 +11,6 @@ import Icon from '@/components/Shared/Icon';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCart } from '@/contexts/CartContext';
 import { useWishlist } from '@/contexts/WishlistContext';
-import { LanguageContext } from '@/contexts/LanguageContext';
 
 function Badge({ count }) {
   if (!count) return null;
@@ -24,12 +23,6 @@ function Badge({ count }) {
     </span>
   );
 }
-
-const LANG_SEGMENTS = [
-  { code: 'en', key: 'advika.header.langEn' },
-  { code: 'hi', key: 'advika.header.langHi' },
-  { code: 'mr', key: 'advika.header.langMr' },
-];
 
 export default function AdvikaHeader({ variant = 'account', menuOpen, onToggleMenu }) {
   const { t } = useTranslation();
@@ -52,111 +45,93 @@ export default function AdvikaHeader({ variant = 'account', menuOpen, onToggleMe
   }, [isAuthenticated, navigate]);
 
   return (
-    <LanguageContext.Consumer>
-      {({ language, changeLanguage }) => (
-        <>
-          {/* Skip link — first focusable element on every AdvikaHeader page.
-              Hidden until it receives keyboard focus, then jumps a
-              keyboard/screen-reader user straight past the repeated
-              header/nav to the page's main content (targets the
-              `id="main-content"` most page <main> elements already carry).
-              Same pattern as the legacy Navbar's own skip link. */}
-          <a
-            href="#main-content"
-            className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:bg-white focus:text-gray-900 focus:px-4 focus:py-2 focus:rounded-lg focus:shadow-lg focus:outline focus:outline-2 focus:outline-advika-orange"
+    <>
+      {/* Skip link — first focusable element on every AdvikaHeader page.
+          Hidden until it receives keyboard focus, then jumps a
+          keyboard/screen-reader user straight past the repeated
+          header/nav to the page's main content (targets the
+          `id="main-content"` most page <main> elements already carry).
+          Same pattern as the legacy Navbar's own skip link. */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:bg-white focus:text-gray-900 focus:px-4 focus:py-2 focus:rounded-lg focus:shadow-lg focus:outline focus:outline-2 focus:outline-advika-orange"
+      >
+        {t('nav.skipToContent', 'Skip to main content')}
+      </a>
+      <header
+        className="sticky top-0 z-50 flex items-center justify-between gap-1 border-b border-advika-border-dark bg-advika-chrome px-[10px] py-[11px]"
+      >
+      {/* Logo lockup */}
+      <Link to="/" className="flex shrink-0 items-center gap-2" aria-label={t('common.home', 'Home')}>
+        <span className="flex h-[34px] w-[34px] items-center justify-center rounded-[6px] bg-advika-orange">
+          <Icon name="bolt" className="text-white" size={21} />
+        </span>
+        <span className="font-archivoBlack whitespace-nowrap text-[15px] tracking-[.01em] text-white">
+          {t('advika.brand.name', 'ADVIKA AUTO')}
+        </span>
+      </Link>
+
+      {/* Action cluster. Language switching lives in the slide-down menu's
+          "Change language" row (LanguageModal) instead of here — an inline
+          EN/HI/MR segmented control previously took up enough width on
+          narrow mobile screens to push the account/hamburger icon off
+          the edge of the header. */}
+      <div className="flex shrink-0 items-center gap-[2px]">
+        <Link
+          to="/"
+          aria-label={t('common.home', 'Home')}
+          data-testid="header-home-link"
+          className="flex h-[38px] w-[38px] items-center justify-center"
+        >
+          <Icon name="home" size={22} className={isHome ? 'text-advika-orange' : 'text-[#e5e5e5]'} />
+        </Link>
+        {!isWishlistPage && (
+          <Link
+            to="/wishlist"
+            aria-label={t('nav.wishlist', 'Wishlist')}
+            data-testid="header-wishlist-link"
+            className="relative flex h-[38px] w-[38px] items-center justify-center"
           >
-            {t('nav.skipToContent', 'Skip to main content')}
-          </a>
-          <header
-            className="sticky top-0 z-50 flex items-center justify-between gap-1 border-b border-advika-border-dark bg-advika-chrome px-[10px] py-[11px]"
-          >
-          {/* Logo lockup */}
-          <Link to="/" className="flex shrink-0 items-center gap-2" aria-label={t('common.home', 'Home')}>
-            <span className="flex h-[34px] w-[34px] items-center justify-center rounded-[6px] bg-advika-orange">
-              <Icon name="bolt" className="text-white" size={21} />
-            </span>
-            <span className="font-archivoBlack whitespace-nowrap text-[15px] tracking-[.01em] text-white">
-              {t('advika.brand.name', 'ADVIKA AUTO')}
-            </span>
+            <Icon name="favorite_border" size={22} className="text-[#e5e5e5]" />
+            <Badge count={wishlistCount} />
           </Link>
+        )}
+        <Link
+          to="/cart"
+          aria-label={t('nav.cart', 'Cart')}
+          data-testid="header-cart-link"
+          className="relative flex h-[38px] w-[38px] items-center justify-center"
+        >
+          <Icon name="shopping_cart" size={22} className={isCartPage ? 'text-advika-orange' : 'text-[#e5e5e5]'} />
+          <Badge count={itemCount} />
+        </Link>
 
-          {/* Action cluster */}
-          <div className="flex shrink-0 items-center gap-[2px]">
-            {/* Language switcher */}
-            <div className="mr-[3px] flex overflow-hidden rounded border border-advika-border-dark4">
-              {LANG_SEGMENTS.map((seg) => (
-                <button
-                  key={seg.code}
-                  type="button"
-                  onClick={() => changeLanguage(seg.code)}
-                  aria-pressed={language === seg.code}
-                  data-testid={`header-lang-${seg.code}`}
-                  className={`aa-mono flex h-[34px] min-w-[30px] items-center justify-center px-1 text-[10.5px] font-semibold transition-colors ${
-                    language === seg.code ? 'bg-advika-orange text-white' : 'text-advika-grey600'
-                  }`}
-                >
-                  {t(seg.key)}
-                </button>
-              ))}
-            </div>
-
-            <Link
-              to="/"
-              aria-label={t('common.home', 'Home')}
-              data-testid="header-home-link"
+        {variant === 'hamburger' ? (
+          <button
+            type="button"
+            onClick={onToggleMenu}
+            aria-label={menuOpen ? t('nav.closeMenu', 'Close menu') : t('nav.openMenu', 'Open menu')}
+            aria-expanded={menuOpen}
+            data-testid="header-hamburger-toggle"
+            className="flex h-[38px] w-[38px] items-center justify-center"
+          >
+            <Icon name={menuOpen ? 'close' : 'menu'} size={24} className="text-white" />
+          </button>
+        ) : (
+          !isAccountPage && (
+            <button
+              type="button"
+              onClick={goAccount}
+              aria-label={t('nav.account', 'Account')}
+              data-testid="header-account-button"
               className="flex h-[38px] w-[38px] items-center justify-center"
             >
-              <Icon name="home" size={22} className={isHome ? 'text-advika-orange' : 'text-[#e5e5e5]'} />
-            </Link>
-            {!isWishlistPage && (
-              <Link
-                to="/wishlist"
-                aria-label={t('nav.wishlist', 'Wishlist')}
-                data-testid="header-wishlist-link"
-                className="relative flex h-[38px] w-[38px] items-center justify-center"
-              >
-                <Icon name="favorite_border" size={22} className="text-[#e5e5e5]" />
-                <Badge count={wishlistCount} />
-              </Link>
-            )}
-            <Link
-              to="/cart"
-              aria-label={t('nav.cart', 'Cart')}
-              data-testid="header-cart-link"
-              className="relative flex h-[38px] w-[38px] items-center justify-center"
-            >
-              <Icon name="shopping_cart" size={22} className={isCartPage ? 'text-advika-orange' : 'text-[#e5e5e5]'} />
-              <Badge count={itemCount} />
-            </Link>
-
-            {variant === 'hamburger' ? (
-              <button
-                type="button"
-                onClick={onToggleMenu}
-                aria-label={menuOpen ? t('nav.closeMenu', 'Close menu') : t('nav.openMenu', 'Open menu')}
-                aria-expanded={menuOpen}
-                data-testid="header-hamburger-toggle"
-                className="flex h-[38px] w-[38px] items-center justify-center"
-              >
-                <Icon name={menuOpen ? 'close' : 'menu'} size={24} className="text-white" />
-              </button>
-            ) : (
-              !isAccountPage && (
-                <button
-                  type="button"
-                  onClick={goAccount}
-                  aria-label={t('nav.account', 'Account')}
-                  data-testid="header-account-button"
-                  className="flex h-[38px] w-[38px] items-center justify-center"
-                >
-                  <Icon name="person_outline" size={22} className="text-[#e5e5e5]" />
-                </button>
-              )
-            )}
-          </div>
-          </header>
-        </>
-      )}
-    </LanguageContext.Consumer>
+              <Icon name="person_outline" size={22} className="text-[#e5e5e5]" />
+            </button>
+          )
+        )}
+      </div>
+      </header>
+    </>
   );
 }
