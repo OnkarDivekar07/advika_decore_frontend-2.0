@@ -35,13 +35,26 @@ export default function ProductListingPage() {
   const [searchInput, setSearchInput] = useState('');
   const [page, setPage] = useState(1);
   const activeChipRef = useRef(null);
+  const chipStripRef = useRef(null);
 
   // Same treatment as the vehicle page's class pills: centers the active
   // category chip in the scroll strip on every change, so the next chip
   // peeks into view instead of the selection landing flush against the
-  // edge with no hint there's more to scroll to.
+  // edge with no hint there's more to scroll to. Scrolls the strip's own
+  // scrollLeft directly rather than using scrollIntoView, which walks up
+  // every scrollable ancestor (including the page itself) — for the last
+  // chip, centering it isn't fully satisfiable within the strip, and some
+  // mobile browsers were also shifting the whole page vertically trying
+  // to compensate, since the strip sits right under the sticky header.
   useEffect(() => {
-    activeChipRef.current?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    const strip = chipStripRef.current;
+    const chip = activeChipRef.current;
+    if (strip && chip) {
+      strip.scrollTo({
+        left: chip.offsetLeft - (strip.clientWidth - chip.clientWidth) / 2,
+        behavior: 'smooth',
+      });
+    }
   }, [categoryParam]);
 
   const updateParams = useCallback(
@@ -188,7 +201,7 @@ export default function ProductListingPage() {
 
         {/* Category chips — right-edge fade hints there's more to scroll. */}
         <div className="relative border-b border-advika-border-dark bg-advika-chrome">
-          <div className="aa-hide-scrollbar flex gap-2 overflow-x-auto px-[14px] py-3">
+          <div ref={chipStripRef} className="aa-hide-scrollbar flex gap-2 overflow-x-auto px-[14px] py-3">
             <button
               type="button"
               ref={!categoryParam ? activeChipRef : null}

@@ -23,13 +23,26 @@ export default function VehiclePage() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const activePillRef = useRef(null);
+  const pillStripRef = useRef(null);
 
   // Centers the active pill in the scroll strip on every class change, so
   // the next pill (e.g. selecting "Medium vehicle" reveals "Big vehicle")
   // peeks into view instead of the selection landing flush against the
-  // edge with no hint there's more to scroll to.
+  // edge with no hint there's more to scroll to. Scrolls the strip's own
+  // scrollLeft directly rather than using scrollIntoView, which walks up
+  // every scrollable ancestor (including the page itself) — for the last
+  // pill, centering it isn't fully satisfiable within the strip, and some
+  // mobile browsers were also shifting the whole page vertically trying
+  // to compensate, since the strip sits right under the sticky header.
   useEffect(() => {
-    activePillRef.current?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    const strip = pillStripRef.current;
+    const pill = activePillRef.current;
+    if (strip && pill) {
+      strip.scrollTo({
+        left: pill.offsetLeft - (strip.clientWidth - pill.clientWidth) / 2,
+        behavior: 'smooth',
+      });
+    }
   }, [activeClass.id]);
 
   useEffect(() => {
@@ -116,7 +129,7 @@ export default function VehiclePage() {
         {/* Class chips — own chrome band with a right-edge fade hinting
             there's more to scroll, per design. */}
         <div className="relative border-b border-advika-border-dark bg-advika-chrome">
-          <div className="aa-hide-scrollbar flex gap-2 overflow-x-auto px-[14px] py-3">
+          <div ref={pillStripRef} className="aa-hide-scrollbar flex gap-2 overflow-x-auto px-[14px] py-3">
             {VEHICLE_CLASSES.map((cls) => (
               <Link
                 key={cls.id}
