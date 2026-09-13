@@ -121,6 +121,31 @@ export function useOtpFlow({ onVerified } = {}) {
     return () => clearInterval(timer);
   }, [step, otpSentAt]);
 
+  // WebOTP: on Android Chrome, this lets the code be read straight from
+  // the incoming SMS and dropped into the field without the user leaving
+  // the app to copy it — `autoComplete="one-time-code"` on the input
+  // (both screens that use this hook set it) is what iOS's own autofill
+  // relies on, but Android's "autofill from SMS" bottom sheet only
+  // appears when a page actually calls this API. Feature-detected so
+  // it's a silent no-op everywhere else (iOS, Firefox, desktop). Only
+  // fills the field — verification still requires the user's own tap,
+  // same as typing the code in by hand.
+  useEffect(() => {
+    if (step !== STEP_OTP || typeof window === 'undefined' || !('OTPCredential' in window)) {
+      return undefined;
+    }
+
+    const controller = new AbortController();
+    navigator.credentials
+      .get({ otp: { transport: ['sms'] }, signal: controller.signal })
+      .then((credential) => {
+        if (credential?.code) setOtp(credential.code);
+      })
+      .catch(() => {}); // aborted on cleanup, or the user dismissed the prompt — nothing to do
+
+    return () => controller.abort();
+  }, [step, setOtp]);
+
   const reset = useCallback(() => {
     setStep(STEP_PHONE);
     setPhoneDigitsRaw('');
