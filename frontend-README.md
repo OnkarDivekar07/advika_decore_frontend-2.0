@@ -72,6 +72,10 @@ VITE_API_URL=http://localhost:5000
 
 This is the base URL the frontend uses to call the backend API (see `src/utils/env.js` / `src/services/api.js`). Update it to point at your deployed backend URL in production.
 
+### ⚠️ Rotate previously hardcoded secrets
+
+`e2e-real/support/dbCleanup.cjs` previously had the real MongoDB Atlas connection string (with its password) hardcoded as a fallback default, and it was committed to this repo's git history across multiple commits before being fixed to load it from `backend 2.0/.env.e2e` instead. That old credential is still present in git history and must be treated as compromised — see the "Rotate previously hardcoded secrets" note in `backend 2.0/backend-README.md` for what to rotate.
+
 ---
 
 ## 5. Installation & Running Locally
