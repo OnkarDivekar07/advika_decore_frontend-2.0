@@ -241,6 +241,7 @@ export default function LoginPage() {
             <input
               type="tel"
               inputMode="numeric"
+              autoComplete="one-time-code"
               autoFocus
               data-testid="login-otp-hidden-input"
               value={otpFlow.otp}
