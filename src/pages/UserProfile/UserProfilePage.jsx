@@ -14,6 +14,7 @@ import Seo from '@/components/Shared/Seo';
 import Spinner from '@/components/Shared/Spinner';
 import AdvikaHeader from '@/components/Layout/AdvikaHeader';
 import AdvikaFooter from '@/components/Layout/AdvikaFooter';
+import MobileNumberChange from '@/components/Account/MobileNumberChange';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/features/account/hooks/useProfile';
 import { useOrderHistory, STATUS_LOADING } from '@/features/orders/hooks/useOrderHistory';
@@ -49,11 +50,31 @@ function formatDate(value) {
   return date.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
+// `profile.dateOfBirth` comes back as a full ISO datetime string;
+// <input type="date"> needs (and always gives back) just the
+// YYYY-MM-DD part — exactly what the backend's isISO8601 validator
+// also accepts, so the round trip needs no reformatting either way.
+function toDateInputValue(value) {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  return date.toISOString().slice(0, 10);
+}
+
+const VEHICLE_OPTIONS = ['Truck', 'Pickup', 'Tempo', 'Tractor'];
+
 export default function UserProfilePage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { isAuthenticated, isRestoring, logout } = useAuth();
-  const { profile, status: profileStatus, load: loadProfile } = useProfile({ autoLoad: false });
+  const {
+    profile,
+    status: profileStatus,
+    load: loadProfile,
+    updateProfile,
+    applyProfile,
+    isSaving: isSavingProfile,
+  } = useProfile({ autoLoad: false });
   const { orders, status: orderStatus } = useOrderHistory(1, { enabled: isAuthenticated });
   const { addresses, status: addressStatus, load: loadAddresses } = useAddressBook({ autoLoad: false });
 
@@ -85,6 +106,40 @@ export default function UserProfilePage() {
   const setActiveTab = (tab) => setSearchParams(tab === 'profile' ? {} : { tab }, { replace: true });
   const [prefs, setPrefs] = useState({ sms: true, email: false, whatsapp: true });
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [isChangingPhone, setIsChangingPhone] = useState(false);
+  const [editForm, setEditForm] = useState({ name: '', vehicle: null, dateOfBirth: '' });
+
+  const startEditingProfile = () => {
+    setEditForm({
+      name: profile?.name || '',
+      vehicle: profile?.vehicle || null,
+      dateOfBirth: toDateInputValue(profile?.dateOfBirth),
+    });
+    setIsEditingProfile(true);
+  };
+
+  const cancelEditingProfile = () => setIsEditingProfile(false);
+
+  const handleSaveProfile = async (e) => {
+    e.preventDefault();
+    const name = editForm.name.trim();
+    if (!name) {
+      toast.error(t('advika.account.nameRequired', 'Please enter your name.'));
+      return;
+    }
+    try {
+      await updateProfile({
+        name,
+        vehicle: editForm.vehicle,
+        dateOfBirth: editForm.dateOfBirth || null,
+      });
+      toast.success(t('advika.account.profileUpdated', 'Profile updated.'));
+      setIsEditingProfile(false);
+    } catch {
+      // useProfile's updateProfile already toasts the specific error.
+    }
+  };
 
   const handleLogout = () => {
     logout();
@@ -182,26 +237,131 @@ export default function UserProfilePage() {
             <div className="rounded border border-advika-border-light p-4">
               <div className="mb-3 flex items-center justify-between">
                 <h2 className="text-[16px] font-bold text-advika-chrome">{t('advika.account.personalDetails')}</h2>
-                <span className="flex items-center gap-[5px] text-[12px] font-semibold text-advika-orange-dark">
-                  <Icon name="edit" size={15} className="text-advika-orange" /> {t('advika.account.editProfile')}
-                </span>
+                {!isEditingProfile && (
+                  <button
+                    type="button"
+                    onClick={startEditingProfile}
+                    data-testid="profile-edit-button"
+                    className="flex items-center gap-[5px] text-[12px] font-semibold text-advika-orange-dark"
+                  >
+                    <Icon name="edit" size={15} className="text-advika-orange" /> {t('advika.account.editProfile')}
+                  </button>
+                )}
               </div>
-              {[
-                [t('advika.account.fullName'), profile?.name],
-                [t('advika.account.mobile'), profile?.phone],
-                [t('advika.account.email'), profile?.email || '—'],
-                [t('advika.account.dob', 'Date of birth'), formatDate(profile?.dateOfBirth)],
-                [
-                  t('advika.account.vehicle', 'Vehicle'),
-                  profile?.vehicle ? t(VEHICLE_LABEL_KEYS[profile.vehicle] || '', profile.vehicle) : '—',
-                ],
-                [t('advika.account.memberSince'), formatDate(profile?.createdAt)],
-              ].map(([label, value]) => (
-                <div key={label} className="flex flex-col gap-1 border-t border-advika-divider-light pt-[13px] mt-[13px] first:mt-0 first:border-0 first:pt-0">
-                  <span className="aa-label text-[9px] font-semibold text-advika-grey600">{label}</span>
-                  <span className="text-[14.5px] text-advika-chrome">{value || '—'}</span>
-                </div>
-              ))}
+
+              {isEditingProfile ? (
+                <form onSubmit={handleSaveProfile} className="flex flex-col gap-[14px]">
+                  <label className="flex flex-col gap-1">
+                    <span className="aa-label text-[9px] font-semibold text-advika-grey600">{t('advika.account.fullName')}</span>
+                    <input
+                      type="text"
+                      value={editForm.name}
+                      onChange={(e) => setEditForm((f) => ({ ...f, name: e.target.value }))}
+                      minLength={2}
+                      maxLength={80}
+                      required
+                      data-testid="profile-edit-name-input"
+                      className="h-11 rounded border border-advika-border-light px-3 text-[14.5px] text-advika-chrome focus:border-advika-orange focus:outline-none"
+                    />
+                  </label>
+
+                  <label className="flex flex-col gap-1">
+                    <span className="aa-label text-[9px] font-semibold text-advika-grey600">{t('advika.account.dob', 'Date of birth')}</span>
+                    <input
+                      type="date"
+                      value={editForm.dateOfBirth}
+                      onChange={(e) => setEditForm((f) => ({ ...f, dateOfBirth: e.target.value }))}
+                      data-testid="profile-edit-dob-input"
+                      className="h-11 rounded border border-advika-border-light px-3 text-[14.5px] text-advika-chrome focus:border-advika-orange focus:outline-none"
+                    />
+                  </label>
+
+                  <div className="flex flex-col gap-[7px]">
+                    <span className="aa-label text-[9px] font-semibold text-advika-grey600">{t('advika.account.vehicle', 'Vehicle')}</span>
+                    <div className="flex flex-wrap gap-[8px]">
+                      {VEHICLE_OPTIONS.map((v) => (
+                        <button
+                          key={v}
+                          type="button"
+                          onClick={() => setEditForm((f) => ({ ...f, vehicle: f.vehicle === v ? null : v }))}
+                          data-testid={`profile-edit-vehicle-${v.toLowerCase()}`}
+                          className={`h-9 rounded-[3px] border px-[13px] text-[12.5px] font-semibold ${
+                            editForm.vehicle === v
+                              ? 'border-advika-orange bg-advika-orange text-white'
+                              : 'border-advika-border-light text-advika-grey800'
+                          }`}
+                        >
+                          {t(VEHICLE_LABEL_KEYS[v], v)}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="flex gap-[10px] pt-[3px]">
+                    <button
+                      type="button"
+                      onClick={cancelEditingProfile}
+                      disabled={isSavingProfile}
+                      className="h-11 flex-1 rounded border border-advika-border-light text-[13px] font-bold text-advika-grey800 disabled:opacity-60"
+                    >
+                      {t('advika.account.cancel', 'Cancel')}
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isSavingProfile}
+                      data-testid="profile-edit-save-button"
+                      className="h-11 flex-1 rounded bg-advika-orange text-[13px] font-bold text-white disabled:opacity-60"
+                    >
+                      {isSavingProfile ? t('advika.account.saving', 'Saving…') : t('advika.account.save', 'Save')}
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <>
+                  {[
+                    [t('advika.account.fullName'), profile?.name],
+                    [t('advika.account.email'), profile?.email || '—'],
+                    [t('advika.account.dob', 'Date of birth'), formatDate(profile?.dateOfBirth)],
+                    [
+                      t('advika.account.vehicle', 'Vehicle'),
+                      profile?.vehicle ? t(VEHICLE_LABEL_KEYS[profile.vehicle] || '', profile.vehicle) : '—',
+                    ],
+                    [t('advika.account.memberSince'), formatDate(profile?.createdAt)],
+                  ].map(([label, value]) => (
+                    <div key={label} className="flex flex-col gap-1 border-t border-advika-divider-light pt-[13px] mt-[13px] first:mt-0 first:border-0 first:pt-0">
+                      <span className="aa-label text-[9px] font-semibold text-advika-grey600">{label}</span>
+                      <span className="text-[14.5px] text-advika-chrome">{value || '—'}</span>
+                    </div>
+                  ))}
+
+                  <div className="flex flex-col gap-1 border-t border-advika-divider-light pt-[13px] mt-[13px]">
+                    <span className="aa-label text-[9px] font-semibold text-advika-grey600">{t('advika.account.mobile')}</span>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-[14.5px] text-advika-chrome">{profile?.phone}</span>
+                      <button
+                        type="button"
+                        onClick={() => setIsChangingPhone((v) => !v)}
+                        data-testid="profile-change-number-button"
+                        className="text-[12px] font-semibold text-advika-orange-dark"
+                      >
+                        {t('advika.account.changeNumber', 'Change')}
+                      </button>
+                    </div>
+                  </div>
+
+                  {isChangingPhone && (
+                    <MobileNumberChange
+                      currentPhone={profile?.phone}
+                      onChanged={(updated) => {
+                        applyProfile(updated);
+                        setIsChangingPhone(false);
+                        toast.success(t('advika.account.numberUpdated', 'Mobile number updated.'));
+                      }}
+                      onClose={() => setIsChangingPhone(false)}
+                    />
+                  )}
+                </>
+              )}
             </div>
 
             <div className="rounded border border-advika-border-light p-4">

@@ -34,14 +34,19 @@ export function useProfile({ autoLoad = true } = {}) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoLoad]);
 
-  const updateName = useCallback(async (name) => {
+  // Accepts any subset of the PATCH /api/user/profile-editable fields
+  // (name/vehicle/dateOfBirth — see user.validation.js's
+  // updateProfileValidator). Renamed from the old name-only `updateName`
+  // now that the Account page's edit form actually exists and edits all
+  // three at once.
+  const updateProfile = useCallback(async (patch) => {
     setIsSaving(true);
     try {
-      const updated = await userService.updateProfile({ name });
+      const updated = await userService.updateProfile(patch);
       setProfile(updated);
       return updated;
     } catch (error) {
-      handleError(error, "Couldn't update your name. Please try again.");
+      handleError(error, "Couldn't update your profile. Please try again.");
       throw error;
     } finally {
       setIsSaving(false);
@@ -55,5 +60,5 @@ export function useProfile({ autoLoad = true } = {}) {
     setProfile(updated);
   }, []);
 
-  return { profile, status, load, updateName, applyProfile, isSaving };
+  return { profile, status, load, updateProfile, applyProfile, isSaving };
 }

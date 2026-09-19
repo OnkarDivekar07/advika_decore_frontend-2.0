@@ -7,7 +7,8 @@
 // they can't share the same request.
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FiLoader, FiPhone, FiX } from 'react-icons/fi';
+import { FiLoader } from 'react-icons/fi';
+import Icon from '@/components/Shared/Icon';
 import { usePhoneChange, STEP_OTP } from '@/features/account/hooks/usePhoneChange';
 import { OTP_LENGTH } from '@/utils/phoneValidation';
 
@@ -61,26 +62,26 @@ export default function MobileNumberChange({ currentPhone, onChanged, onClose })
   };
 
   const inputClass =
-    'w-full rounded-lg border px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--clr-primary)]/40 border-gray-300';
+    'w-full h-11 rounded border border-advika-border-light px-3 text-[14.5px] text-advika-chrome focus:border-advika-orange focus:outline-none';
 
   return (
-    <div className="card p-4 sm:p-5 mt-3 border border-gray-200">
+    <div className="rounded border border-advika-border-light p-4 mt-3">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="font-semibold text-gray-800 text-sm flex items-center gap-2">
-          <FiPhone className="w-4 h-4" aria-hidden />
+        <h3 className="text-[15px] font-bold text-advika-chrome flex items-center gap-2">
+          <Icon name="call" size={16} className="text-advika-orange" />
           {t('account.changeMobileNumber', 'Change Mobile Number')}
         </h3>
         <button
           type="button"
           onClick={onClose}
           aria-label={t('buttons.close', 'Close')}
-          className="p-1 text-gray-500 hover:text-gray-600"
+          className="p-1 text-advika-grey600 hover:text-advika-grey800"
         >
-          <FiX className="w-4 h-4" />
+          <Icon name="close" size={16} />
         </button>
       </div>
 
-      <p className="text-xs text-gray-500 mb-3">
+      <p className="text-[12px] text-advika-grey700 mb-3">
         {t('account.currentNumber', 'Current number: {{phone}}', {
           phone: `+91 ${currentPhone}`,
         })}
@@ -88,11 +89,11 @@ export default function MobileNumberChange({ currentPhone, onChanged, onClose })
 
       {step !== STEP_OTP ? (
         <form onSubmit={handleSend} className="flex flex-col gap-3">
-          <label htmlFor="new-phone" className="text-xs font-medium text-gray-600">
+          <label htmlFor="new-phone" className="aa-label text-[9px] font-semibold text-advika-grey600">
             {t('account.newMobileNumber', 'New mobile number')}
           </label>
           <div className="flex items-center gap-2">
-            <span className="px-3 py-2.5 rounded-lg bg-gray-100 text-sm text-gray-600 shrink-0">
+            <span className="flex h-11 shrink-0 items-center rounded border border-advika-border-light bg-advika-off-white px-3 text-[14.5px] text-advika-grey700">
               +91
             </span>
             <input
@@ -111,7 +112,7 @@ export default function MobileNumberChange({ currentPhone, onChanged, onClose })
           {feedback && (
             <p
               role={feedback.type === 'error' ? 'alert' : 'status'}
-              className={`text-xs ${feedback.type === 'error' ? 'text-red-600' : 'text-gray-500'}`}
+              className={`text-[12px] ${feedback.type === 'error' ? 'text-advika-danger' : 'text-advika-grey700'}`}
             >
               {feedback.text}
             </p>
@@ -120,10 +121,10 @@ export default function MobileNumberChange({ currentPhone, onChanged, onClose })
           <button
             type="submit"
             disabled={!isPhoneValid || isSubmitting || cooldown > 0}
-            className="btn btn-primary w-full disabled:opacity-60 disabled:cursor-not-allowed"
+            className="h-11 w-full rounded bg-advika-orange text-[13px] font-bold text-white disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {isSubmitting ? (
-              <FiLoader className="w-4 h-4 animate-spin" aria-hidden />
+              <FiLoader className="mx-auto w-4 h-4 animate-spin" aria-hidden />
             ) : (
               t('account.sendOtp', 'Send OTP')
             )}
@@ -131,7 +132,7 @@ export default function MobileNumberChange({ currentPhone, onChanged, onClose })
         </form>
       ) : (
         <form onSubmit={handleVerify} className="flex flex-col gap-3">
-          <label htmlFor="phone-otp" className="text-xs font-medium text-gray-600">
+          <label htmlFor="phone-otp" className="aa-label text-[9px] font-semibold text-advika-grey600">
             {t('account.enterOtp', 'Enter the OTP sent to +91 {{phone}}', { phone: phoneDigits })}
           </label>
           <input
@@ -147,7 +148,7 @@ export default function MobileNumberChange({ currentPhone, onChanged, onClose })
           />
 
           {isOtpLikelyExpired && (
-            <p className="text-xs text-amber-600" role="status">
+            <p className="text-[12px] text-advika-warning" role="status">
               {t('account.otpExpired', 'This OTP may have expired. Request a new one.')}
             </p>
           )}
@@ -155,7 +156,7 @@ export default function MobileNumberChange({ currentPhone, onChanged, onClose })
           {feedback && (
             <p
               role={feedback.type === 'error' ? 'alert' : 'status'}
-              className={`text-xs ${feedback.type === 'error' ? 'text-red-600' : 'text-gray-500'}`}
+              className={`text-[12px] ${feedback.type === 'error' ? 'text-advika-danger' : 'text-advika-grey700'}`}
             >
               {feedback.text}
             </p>
@@ -164,20 +165,20 @@ export default function MobileNumberChange({ currentPhone, onChanged, onClose })
           <button
             type="submit"
             disabled={!isOtpValid || isSubmitting}
-            className="btn btn-primary w-full disabled:opacity-60 disabled:cursor-not-allowed"
+            className="h-11 w-full rounded bg-advika-orange text-[13px] font-bold text-white disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {isSubmitting ? (
-              <FiLoader className="w-4 h-4 animate-spin" aria-hidden />
+              <FiLoader className="mx-auto w-4 h-4 animate-spin" aria-hidden />
             ) : (
               t('account.verifyAndUpdate', 'Verify & Update')
             )}
           </button>
 
-          <div className="flex items-center justify-between text-xs">
+          <div className="flex items-center justify-between text-[12px]">
             <button
               type="button"
               onClick={changeNumber}
-              className="text-gray-500 hover:text-gray-700 underline"
+              className="text-advika-grey700 hover:text-advika-grey900 underline"
             >
               {t('account.editNumber', 'Edit number')}
             </button>
@@ -185,7 +186,7 @@ export default function MobileNumberChange({ currentPhone, onChanged, onClose })
               type="button"
               onClick={handleResend}
               disabled={cooldown > 0 || isSubmitting}
-              className="text-[var(--clr-primary-dark)] hover:underline disabled:text-gray-500 disabled:no-underline"
+              className="font-semibold text-advika-orange-dark hover:underline disabled:text-advika-grey600 disabled:no-underline"
             >
               {cooldown > 0
                 ? t('account.resendIn', 'Resend in {{count}}s', { count: cooldown })
