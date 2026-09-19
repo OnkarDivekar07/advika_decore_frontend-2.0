@@ -33,6 +33,21 @@ export const updateProfile = async (payload) => {
 };
 
 /**
+ * Deletes (anonymizes) the signed-in user's account — see
+ * user.service.js's deleteAccount on the backend for exactly what this
+ * does and doesn't remove. The caller is responsible for clearing the
+ * locally-stored session (AuthContext's logout) right after this
+ * resolves — the backend can't revoke the JWT itself (see
+ * authenticate.js), so the client dropping it is what actually ends the
+ * session immediately rather than at its natural 1-hour expiry.
+ * @returns {Promise<{ message: string }>}
+ */
+export const deleteAccount = async () => {
+  const { data } = await apiClient.delete('/api/user/account');
+  return data;
+};
+
+/**
  * Step 1 of changing the signed-in user's mobile number: sends an OTP to
  * the new number.
  * @param {string} fullPhone - full E.164 phone, e.g. "+919876543210"

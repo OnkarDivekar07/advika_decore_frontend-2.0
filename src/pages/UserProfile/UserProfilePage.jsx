@@ -8,6 +8,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'react-toastify';
 import Icon from '@/components/Shared/Icon';
 import Seo from '@/components/Shared/Seo';
 import Spinner from '@/components/Shared/Spinner';
@@ -18,6 +19,7 @@ import { useProfile } from '@/features/account/hooks/useProfile';
 import { useOrderHistory, STATUS_LOADING } from '@/features/orders/hooks/useOrderHistory';
 import { useAddressBook } from '@/features/address/hooks/useAddressBook';
 import { formatPrice } from '@/utils/productUtils';
+import { deleteAccount } from '@/services/userService';
 
 const STATUS_STYLE = {
   delivered: 'bg-advika-success-tint text-advika-success-dark border-advika-success-border',
@@ -82,12 +84,40 @@ export default function UserProfilePage() {
   const activeTab = TABS.includes(tabParam) ? tabParam : 'profile';
   const setActiveTab = (tab) => setSearchParams(tab === 'profile' ? {} : { tab }, { replace: true });
   const [prefs, setPrefs] = useState({ sms: true, email: false, whatsapp: true });
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleLogout = () => {
     logout();
     // README's navigation map: "Account ──► ... Login (sign out)" —
     // Account.dc.html:60 links sign-out to the login screen, not home.
     navigate('/login');
+  };
+
+  const handleDeleteAccount = async () => {
+    if (
+      !window.confirm(
+        t(
+          'advika.account.confirmDelete',
+          'Delete your account? This permanently removes your personal details and cannot be undone.'
+        )
+      )
+    ) {
+      return;
+    }
+    setIsDeleting(true);
+    try {
+      await deleteAccount();
+      toast.success(t('advika.account.deleteSuccess', 'Your account has been deleted.'));
+      // The backend can't revoke the still-live JWT (it's a stateless
+      // signature check — see authenticate.js), so dropping it here is
+      // what actually ends the session now instead of at its natural
+      // 1-hour expiry.
+      logout();
+      navigate('/login');
+    } catch {
+      toast.error(t('advika.account.deleteError', 'Could not delete your account. Please try again.'));
+      setIsDeleting(false);
+    }
   };
 
   if (
@@ -208,6 +238,29 @@ export default function UserProfilePage() {
                   </label>
                 ))}
               </div>
+            </div>
+
+            <div className="rounded border border-red-200 p-4">
+              <h2 className="mb-1 text-[15px] font-bold text-advika-danger">
+                {t('advika.account.deleteAccount', 'Delete account')}
+              </h2>
+              <p className="mb-3 text-[12.5px] leading-[1.5] text-advika-grey700">
+                {t(
+                  'advika.account.deleteAccountBody',
+                  'Permanently removes your name, phone, date of birth, vehicle, and saved addresses. Past orders are kept for records but are no longer linked to your identity.'
+                )}
+              </p>
+              <button
+                type="button"
+                onClick={handleDeleteAccount}
+                disabled={isDeleting}
+                data-testid="profile-delete-account-button"
+                className="h-11 w-full rounded border border-advika-danger text-[13px] font-bold text-advika-danger disabled:opacity-60"
+              >
+                {isDeleting
+                  ? t('advika.account.deleting', 'Deleting…')
+                  : t('advika.account.deleteAccountCta', 'Delete my account')}
+              </button>
             </div>
           </div>
         )}
