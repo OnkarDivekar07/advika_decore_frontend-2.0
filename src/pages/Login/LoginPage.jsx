@@ -8,7 +8,7 @@
 // can drive the README's Roadmap #1 "vehicle-aware fitment" — a
 // localStorage-only value never could. City has no backend field yet
 // (not part of that roadmap item) and stays local-only.
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import Icon from '@/components/Shared/Icon';
@@ -43,6 +43,14 @@ export default function LoginPage() {
   const [fullName, setFullName] = useState('');
   const [city, setCity] = useState('');
   const [vehicle, setVehicle] = useState(null);
+  // The six OTP boxes below are decorative — the real input they represent
+  // is visually hidden (`sr-only`). `autoFocus` on that input only ever
+  // focuses it once, when the OTP step first renders; if focus is lost
+  // afterwards (keyboard dismissed, app switched, or autoFocus simply not
+  // firing at all — a known iOS Safari limitation), there was previously
+  // no way back in: the boxes had no click handler, so tapping them did
+  // nothing. This ref lets each box hand focus back to the real input.
+  const otpInputRef = useRef(null);
 
   const otpFlow = useOtpFlow({
     onVerified: () => setScreenStep(isNewUser ? STEP_PROFILE : STEP_SUCCESS),
@@ -229,6 +237,7 @@ export default function LoginPage() {
                   <span
                     key={idx}
                     data-testid={`otp-digit-${idx}`}
+                    onClick={() => otpInputRef.current?.focus()}
                     className={`aa-mono flex h-[54px] flex-1 items-center justify-center rounded-md text-[20px] font-semibold ${
                       filled || isNext ? 'border-[1.5px] border-advika-orange' : 'border-[1.5px] border-advika-grey400'
                     } ${filled ? 'bg-advika-orange-tint' : ''}`}
@@ -239,6 +248,7 @@ export default function LoginPage() {
               })}
             </div>
             <input
+              ref={otpInputRef}
               type="tel"
               inputMode="numeric"
               autoComplete="one-time-code"
