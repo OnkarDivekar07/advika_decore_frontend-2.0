@@ -245,10 +245,25 @@ export default function LoginPage() {
               autoFocus
               data-testid="login-otp-hidden-input"
               value={otpFlow.otp}
-              onChange={(e) => otpFlow.setOtp(e.target.value)}
+              onChange={(e) => {
+                // TEMP DEBUG — OTP autofill investigation. Remove this
+                // onChange override (restore the plain
+                // `onChange={(e) => otpFlow.setOtp(e.target.value)}` above
+                // it) and the debug <p> below once done.
+                console.log('[OTP DEBUG]', {
+                  value: e.target.value,
+                  length: e.target.value.length,
+                  at: new Date().toISOString(),
+                });
+                otpFlow.setOtp(e.target.value);
+              }}
               className="sr-only"
               aria-label={t('otp.codeLabel', '6-digit code')}
             />
+            {/* TEMP DEBUG — remove this <p> together with the onChange override above */}
+            <p data-testid="otp-debug-readout" className="text-[11px] text-advika-grey600">
+              [OTP DEBUG] value: "{otpFlow.otp}" (len {otpFlow.otp.length})
+            </p>
             <button
               type="submit"
               data-testid="login-verify-button"
